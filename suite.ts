@@ -54,12 +54,43 @@ test("map", () => {
     assertEqual(answers, [8]);
 });
 
-test("send_with_no_listener", () => {
+test("send_with_no_listener_1", () => {
     shouldThrow("invoked before listeners",
         () => {
             let s = new StreamSink<number>();
             s.send(7);
         }
     );
+});
+
+test("send_with_no_listener_2", () => {
+    shouldThrow("invoked before listeners",
+        () => {
+            let s = new StreamSink<number>();
+            let answers : number[] = [];
+            let kill = s.map((a : number) => a + 1).listen((a : number) => {
+                answers.push(a);
+            });
+            s.send(7);
+            kill();
+            s.send(9);  // should throw
+        }
+    );
+});
+
+test("map_track", () => {
+    let s = new StreamSink<number>();
+    let t = new StreamSink<string>();
+    let answers : number[] = [];
+    let kill = s.map(new Lambda1((a : number) => a + 1, [t]))
+                .listen((a : number) => {
+                    answers.push(a);
+                });
+    s.send(7);
+    t.send("banana");
+    kill();
+    let x : number[] = [];
+    x.push(8);
+    assertEqual(answers, [8]);
 });
 
