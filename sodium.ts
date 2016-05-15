@@ -34,13 +34,23 @@ function Lambda1_toFunction<A,B>(f : ((a : A) => B) | Lambda1<A,B>) : (a : A) =>
         return <(a : A) => B>f;
 }
 
+class Listener<A> {
+    constructor(h : (a : A) => void, target : Vertex) {
+        this.h = h;
+        this.target = target;
+    }
+    h : (a : A) => void;
+    target : Vertex;
+}
+
 class Stream<A> {
     constructor() {
-        this.vertex = new Vertex([]);
+        this.vertex = new Vertex(0, []);
     }
 
     private vertex : Vertex;
-    protected listeners : Array<(a : A) => void> = [];
+    protected listeners : Array<Listener<A>> = [];
+    private firings : A[] = [];
 
     getVertex() : Vertex {
         return this.vertex;
@@ -57,7 +67,7 @@ class Stream<A> {
     map<B>(f : ((a : A) => B) | Lambda1<A,B>) : Stream<B> {
         const out = new Stream<B>();
         let ff = Lambda1_toFunction(f);
-        out.vertex = new Vertex([
+        out.vertex = new Vertex(0, [
                 new Source(
                     this.vertex,
                     () => {
@@ -72,19 +82,38 @@ class Stream<A> {
     }
 
     listen(h : (a : A) => void) : () => void {
+        return transactionally<() => void>(() => {
+            return this.listen_(Vertex.NULL, h, false);
+        });
+    }
+
+    listen_(target : Vertex,
+            h : (a : A) => void,
+            suppressEarlierFirings : boolean) : () => void {
         if (this.listeners.length == 0)
-            this.vertex.register();
-        this.listeners.push(h);
+            if (this.vertex.register(target))
+                currentTransaction.requestRegen();
+        const listener = new Listener<A>(h, target);
+        this.listeners.push(listener);
+        if (!suppressEarlierFirings && this.firings.length != 0) {
+            const firings = this.firings.slice();
+            currentTransaction.prioritized(target, () => {
+                // Anything sent already in this transaction must be sent now so that
+                // there's no order dependency between send and listen.
+                for (let i = 0; i < firings.length; i++)
+                    h(firings[i]);
+            });
+        }
         return () => {
             if (this.listeners.length != 0) {
                 for (let i = 0; i < this.listeners.length; i++) {
-                    if (this.listeners[i] == h) {
+                    if (this.listeners[i] == listener) {
                         this.listeners.splice(i, 1);
                         break;
                     }
                 }
                 if (this.listeners.length == 0)
-                    this.vertex.deregister();
+                    this.vertex.deregister(target);
             }
         };
     }
@@ -92,8 +121,26 @@ class Stream<A> {
     protected send_(a : A) : void {
         if (this.vertex.registered == 0)
             throw "send() was invoked before listeners were registered";
-        for (let i = 0; i < this.listeners.length; i++)
-            this.listeners[i](a);
+		if (this.firings.length == 0)
+			currentTransaction.last(() => {
+			    this.firings = [];
+            });
+		this.firings.push(a);
+		const listeners = this.listeners.slice();
+        for (let i = 0; i < listeners.length; i++) {
+            const h = listeners[i].h;
+            currentTransaction.prioritized(listeners[i].target, () => {
+                currentTransaction.inCallback++;
+                try {
+                    h(a);
+                    currentTransaction.inCallback--;
+                }
+                catch (err) {
+                    currentTransaction.inCallback--;
+                    throw err;
+                }
+            });
+        }
     }
 }
 
@@ -109,6 +156,7 @@ class Cell<A> {
 class StreamSink<A> extends Stream<A> {
     constructor() {
         super();
+        console.log("Hello "+global);
     }
 
     send(a : A) : void {

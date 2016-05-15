@@ -1,9 +1,10 @@
 SOURCES=Vertex.ts \
         Transaction.ts \
-        Sodium.ts \
+        sodium.ts \
         suite.ts
 
 all: $(SOURCES)
+	tsc --out sodium.js sodium.ts
 	tsc --out suite.js suite.ts
 
 clean:

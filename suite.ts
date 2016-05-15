@@ -1,4 +1,4 @@
-/// <reference path='Sodium.ts'/>
+import * as sodium from "sodium.ts";
 
 function fail(err : string) : void {
     throw err;
