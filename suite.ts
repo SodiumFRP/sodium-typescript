@@ -1,4 +1,4 @@
-import * as sodium from "sodium.ts";
+import * as sodium from "./sodium";
 
 function fail(err : string) : void {
     throw err;
@@ -6,7 +6,7 @@ function fail(err : string) : void {
 
 function assertEqual<A>(is : A, sb: A) : void {
     if (JSON.stringify(is) != JSON.stringify(sb))
-        fail("expected: "+sb+"\n     got: "+is+"\n"+(is == sb));
+        fail("expected: "+sb+"\n       got: "+is);
 }
 
 function shouldThrow(substr : string, f : () => void) : void {
@@ -36,13 +36,15 @@ function test(name : string, t : () => void)
     catch (err) {
         console.log(name + " - FAIL:");
         console.log("  " + err);
+        if (err.stack !== undefined)
+            console.log(err.stack);
         pass = false;
-        current_test = null
+        current_test = null;
     }
 }
 
 test("map", () => {
-    let s = new StreamSink<number>();
+    let s = new sodium.StreamSink<number>();
     let answers : number[] = [];
     let kill = s.map((a : number) => a + 1).listen((a : number) => {
         answers.push(a);
@@ -57,16 +59,29 @@ test("map", () => {
 test("send_with_no_listener_1", () => {
     shouldThrow("invoked before listeners",
         () => {
-            let s = new StreamSink<number>();
+            let s = new sodium.StreamSink<number>();
             s.send(7);
         }
     );
 });
 
+test("map", () => {
+    let s = new sodium.StreamSink<number>();
+    let answers : number[] = [];
+    let kill = s.map((a : number) => a + 1).listen((a : number) => {
+        answers.push(a);
+    });
+    s.send(7);
+    kill();
+    let x : number[] = [];
+    x.push(8);
+    assertEqual(answers, [8]);
+});
+
 test("send_with_no_listener_2", () => {
     shouldThrow("invoked before listeners",
         () => {
-            let s = new StreamSink<number>();
+            let s = new sodium.StreamSink<number>();
             let answers : number[] = [];
             let kill = s.map((a : number) => a + 1).listen((a : number) => {
                 answers.push(a);
@@ -79,10 +94,10 @@ test("send_with_no_listener_2", () => {
 });
 
 test("map_track", () => {
-    let s = new StreamSink<number>();
-    let t = new StreamSink<string>();
+    let s = new sodium.StreamSink<number>();
+    let t = new sodium.StreamSink<string>();
     let answers : number[] = [];
-    let kill = s.map(new Lambda1((a : number) => a + 1, [t]))
+    let kill = s.map(new sodium.Lambda1((a : number) => a + 1, [t]))
                 .listen((a : number) => {
                     answers.push(a);
                 });

@@ -1,4 +1,4 @@
-class Source {
+export class Source {
     constructor(
         origin : Vertex,
         register_ : () => () => void
@@ -29,7 +29,7 @@ class Source {
     }
 }
 
-class Vertex {
+export class Vertex {
     static NULL : Vertex = new Vertex(1e12, []);
 
 	constructor(rank : number, sources : Source[]) {
@@ -39,9 +39,9 @@ class Vertex {
 	}
     rank : number;
     sources : Source[];
-    targets : Vertex[];
+    targets : Vertex[] = [];
     registered : number;
-    listeners : Vertex[];
+    listeners : Vertex[] = [];
     visited : boolean = false;
     register(target : Vertex) : boolean {
         let anyChanged : boolean = false;
@@ -78,4 +78,3 @@ class Vertex {
 	}
 }
 
-var global : Vertex = null;

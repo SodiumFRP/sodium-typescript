@@ -1,7 +1,7 @@
-/// <reference path='Vertex.ts'/>
+import { Vertex } from './Vertex';
 import * as Collections from 'typescript-collections';
 
-class Entry {
+export class Entry {
     constructor(rank : Vertex, action : () => void) {
         this.rank = rank; 
         this.action = action;
@@ -16,7 +16,7 @@ class Entry {
     }
 }
 
-class Transaction {
+export class Transaction {
     constructor() {
     }
     inCallback : number = 0;
@@ -99,17 +99,26 @@ class Transaction {
     }
 }
 
-var currentTransaction : Transaction = null;
+export let currentTransaction : Transaction = null;
 
-function transactionally<A>(f : () => A) : A {
+export function transactionally<A>(f : () => A) : A {
     let transWas : Transaction = currentTransaction;
     if (transWas === null)
         currentTransaction = new Transaction();
-    let a : A = f();
-    if (transWas === null) {
-        currentTransaction.close();
-        currentTransaction = null;
+    try {
+        let a : A = f();
+        if (transWas === null) {
+            currentTransaction.close();
+            currentTransaction = null;
+        }
+        return a;
     }
-    return a;
+    catch (err) {
+        if (transWas === null) {
+            currentTransaction.close();
+            currentTransaction = null;
+        }
+        throw err;
+    }
 }
 

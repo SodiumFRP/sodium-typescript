@@ -1,7 +1,7 @@
-/// <reference path='Vertex.ts'/>
-/// <reference path='Transaction.ts'/>
+import { Source, Vertex } from "./Vertex";
+import { Transaction, transactionally, currentTransaction } from "./Transaction";
 
-class Lambda1<A,B> {
+export class Lambda1<A,B> {
     constructor(f : (a : A) => B,
                 deps : Array<Stream<any>|Cell<any>>) {
         this.f = f;
@@ -43,7 +43,7 @@ class Listener<A> {
     target : Vertex;
 }
 
-class Stream<A> {
+export class Stream<A> {
     constructor() {
         this.vertex = new Vertex(0, []);
     }
@@ -153,10 +153,9 @@ class Cell<A> {
     }
 }
 
-class StreamSink<A> extends Stream<A> {
+export class StreamSink<A> extends Stream<A> {
     constructor() {
         super();
-        console.log("Hello "+global);
     }
 
     send(a : A) : void {
@@ -165,4 +164,3 @@ class StreamSink<A> extends Stream<A> {
         )
     }
 }
-

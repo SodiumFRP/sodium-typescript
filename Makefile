@@ -4,8 +4,7 @@ SOURCES=Vertex.ts \
         suite.ts
 
 all: $(SOURCES)
-	tsc --out sodium.js sodium.ts
-	tsc --out suite.js suite.ts
+	tsc suite.ts
 
 clean:
 	rm -f $(SOURCES:.ts=.js)
