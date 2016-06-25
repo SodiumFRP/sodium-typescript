@@ -1,7 +1,4 @@
-SOURCES=Vertex.ts \
-        Transaction.ts \
-        sodium.ts \
-        suite.ts
+SOURCES=Cell.ts  CoalesceHandler.ts  Lambda.ts  Listener.ts  StreamSink.ts  Stream.ts  suite.ts  Transaction.ts  Vertex.ts
 
 all: $(SOURCES)
 	tsc suite.ts
