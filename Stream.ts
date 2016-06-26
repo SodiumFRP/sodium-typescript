@@ -129,6 +129,48 @@ export class Stream<A> {
         });
     }
 
+    /**
+     * Return a stream that only outputs events for which the predicate returns true.
+     */
+    filter(f : ((a : A) => boolean) | Lambda1<A,boolean>) : Stream<A> {
+        const out = new StreamWithSend<A>(null);
+        let ff = Lambda1_toFunction(f);
+        out.vertex = new Vertex(0, [
+                new Source(
+                    this.vertex,
+                    () => {
+                        return this.listen_(out.vertex, (a : A) => {
+                            if (ff(a))
+                                out.send_(a);
+                        }, false);
+                    }
+                )
+            ].concat(toSources(Lambda1_deps(f)))
+        );
+        return out;
+    }
+
+    /**
+     * Return a stream that only outputs events that have present
+     * values, discarding null values.
+     */
+    filterNotNull() : Stream<A> {
+        const out = new StreamWithSend<A>(null);
+        out.vertex = new Vertex(0, [
+                new Source(
+                    this.vertex,
+                    () => {
+                        return this.listen_(out.vertex, (a : A) => {
+                            if (a !== null)
+                                out.send_(a);
+                        }, false);
+                    }
+                )
+            ]
+        );
+        return out;
+    }
+
     listen(h : (a : A) => void) : () => void {
         return transactionally<() => void>(() => {
             return this.listen_(Vertex.NULL, h, false);

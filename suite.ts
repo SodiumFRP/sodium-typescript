@@ -79,10 +79,10 @@ test("send_with_no_listener_2", () => {
 });
 
 test("map_track", () => {
-    let s = new StreamSink<number>();
-    let t = new StreamSink<string>();
-    let out : number[] = [];
-    let kill = s.map(new Lambda1((a : number) => a + 1, [t]))
+    let s = new StreamSink<number>(),
+        t = new StreamSink<string>(),
+        out : number[] = [],
+        kill = s.map(new Lambda1((a : number) => a + 1, [t]))
                 .listen((a : number) => {
                     out.push(a);
                 });
@@ -95,11 +95,11 @@ test("map_track", () => {
 });
 
 test("mapTo", () => {
-    let s = new StreamSink<number>();
-    let out : string[] = [];
-    let kill = s.mapTo("fusebox").listen((a : string) => {
-        out.push(a);
-    });
+    let s = new StreamSink<number>(),
+        out : string[] = [],
+        kill = s.mapTo("fusebox").listen((a : string) => {
+            out.push(a);
+        });
     s.send(7);
     s.send(9);
     kill();
@@ -123,10 +123,10 @@ test("mergeNonSimultaneous", () => {
 test("mergeSimultaneous", () => {
     let s1 = new StreamSink<number>((l : number, r : number) => { return r; }),
         s2 = new StreamSink<number>((l : number, r : number) => { return r; }),
-        out : number[] = [];
-    let kill = s2.orElse(s1).listen((a : number) => {
-        out.push(a);
-    });
+        out : number[] = [],
+        kill = s2.orElse(s1).listen((a : number) => {
+            out.push(a);
+        });
     transactionally<void>(() => {
         s1.send(7);
         s2.send(60);
@@ -154,4 +154,47 @@ test("mergeSimultaneous", () => {
     });
     kill();
     assertEqual([60,9,90,90,90], out);
+});
+
+test("coalesce", () => {
+    let s = new StreamSink<number>((a : number, b : number) => { return a+b; }),
+        out : number[] = [],
+        kill = s.listen((a : number) => {
+            out.push(a);
+        });
+    transactionally<void>(() => {
+        s.send(2);
+    });
+    transactionally<void>(() => {
+        s.send(8);
+        s.send(40);
+    });
+    kill();
+    assertEqual([2, 48], out);
+});
+
+test("filter", () => {
+    let s = new StreamSink<number>(),
+        out : number[] = [],
+        kill = s.filter((a : number) => { return a < 10; }).listen((a : number) => {
+            out.push(a);
+        });
+    s.send(2);
+    s.send(16);
+    s.send(9);
+    kill();
+    assertEqual([2, 9], out);
+});
+
+test("filterNotNull", () => {
+    let s = new StreamSink<string>(),
+        out : string[] = [],
+        kill = s.filterNotNull().listen((a : string) => {
+            out.push(a);
+        });
+    s.send("tomato");
+    s.send(null);
+    s.send("peach");
+    kill();
+    assertEqual(["tomato", "peach"], out);
 });
