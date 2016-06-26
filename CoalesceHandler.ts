@@ -19,6 +19,7 @@ export class CoalesceHandler<A>
 	private out : StreamWithSend<A>;
 	private accumValid : boolean;
     private accum : A;
+    private verbose : boolean;
     send_(a : A) {
         if (this.accumValid)
             this.accum = this.f(this.accum, a);

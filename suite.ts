@@ -1,4 +1,4 @@
-import { Lambda1, Lambda2, Stream, StreamSink, Cell, transactionally } from "./sodium";
+import { Lambda1, Lambda2, Stream, StreamSink, StreamLoop, Cell, transactionally } from "./sodium";
 
 function fail(err : string) : void {
     throw err;
@@ -197,4 +197,41 @@ test("filterNotNull", () => {
     s.send("peach");
     kill();
     assertEqual(["tomato", "peach"], out);
+});
+
+test("merge2", () => {
+    let sa = new StreamSink<number>(),
+        sb = sa.map((x : number) => { return Math.floor(x / 10); })
+                   .filter((x : number) => { return x != 0; }),
+        sc = sa.map((x : number) => { return x % 10; }).merge(sb,
+            (x : number, y : number) => { return x+y; }),
+        out : number[] = [],
+        kill = sc.listen((a : number) => {
+            out.push(a);
+        });
+    sa.send(2);
+    sa.send(52);
+    kill();
+    assertEqual([2, 7], out);
+});
+
+test("loopStream", () => {
+    let sa = new StreamSink<number>(),
+        sc = transactionally(() => {
+            let sb = new StreamLoop<number>(),
+                sc_ = sa.map((x : number) => { return x % 10; }).merge(sb,
+                    (x : number, y : number) => { return x+y; }),
+                sb_out = sa.map((x : number) => { return Math.floor(x / 10); })
+                           .filter((x : number) => { return x != 0; });
+            sb.loop(sb_out);
+            return sc_;
+        }),
+        out : number[] = [],
+        kill = sc.listen((a : number) => {
+            out.push(a);
+        });
+    sa.send(2);
+    sa.send(52);
+    kill();
+    assertEqual([2, 7], out);
 });

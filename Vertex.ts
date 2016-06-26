@@ -49,7 +49,7 @@ export class Vertex {
                 anyChanged = true;
         this.registered++;
         this.targets.push(target);
-        if (this.ensureBiggerThan(this.rank))
+        if (target.ensureBiggerThan(this.rank))
             anyChanged = true;
         return anyChanged;
     }
@@ -76,4 +76,3 @@ export class Vertex {
 		return true;
 	}
 }
-

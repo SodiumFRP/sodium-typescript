@@ -84,30 +84,47 @@ export class Stream<A> {
         });
     }
 
-    private merge_(s : Stream<A>, f : ((left : A, right : A) => A) | Lambda2<A,A,A>) : Stream<A> {
+    private merge_(s : Stream<A>) : Stream<A> {
         const out = new StreamWithSend<A>();
         const left = new Vertex(0, []);
-        const right = out.vertex;
-        right.sources.push(new Source(left, () => { return null; }));
-        const coalescer = new CoalesceHandler<A>(f, out);
-        const send = (a : A) => {
-                            coalescer.send_(a);
-                     };
+        left.sources.push(new Source(this.vertex, () => {
+            return this.listen_(left, (a : A) => {
+                    out.send_(a);
+                }, false);
+        }));
         out.vertex.sources = out.vertex.sources.concat([
                 new Source(
-                    this.vertex,
+                    left,
                     () => {
-                        return this.listen_(left, send, false);
+                        left.register(out.vertex);
+                        return () => { left.deregister(out.vertex); }
                     }
                 ),
                 new Source(
                     s.vertex,
                     () => {
-                        return s.listen_(right, send, false);
+                        return s.listen_(out.vertex, (a : A) => {
+                            out.send_(a);
+                        }, false);
                     }
                 )
-            ])
-            .concat(toSources(Lambda2_deps(f)));
+            ]);
+        return out;
+    }
+
+    private coalesce(f : ((left : A, right : A) => A) | Lambda2<A,A,A>) : Stream<A> {
+        const out = new StreamWithSend<A>();
+        const coalescer = new CoalesceHandler<A>(f, out);
+        out.vertex.sources = out.vertex.sources.concat([
+                new Source(
+                    this.vertex,
+                    () => {
+                        return this.listen_(out.vertex, (a : A) => {
+                            coalescer.send_(a);
+                        }, false);
+                    }
+                )
+            ]).concat(toSources(Lambda2_deps(f)));
         return out;
     }
 
@@ -123,9 +140,9 @@ export class Stream<A> {
      * @param f Function to combine the values. It may construct FRP logic or use
      *    {@link Cell#sample()}. Apart from this the function must be <em>referentially transparent</em>.
      */
-    protected merge(s : Stream<A>, f : ((left : A, right : A) => A) | Lambda2<A,A,A>) : Stream<A> {
+    merge(s : Stream<A>, f : ((left : A, right : A) => A) | Lambda2<A,A,A>) : Stream<A> {
         return transactionally<Stream<A>>(() => {
-            return this.merge_(s, f);
+            return this.merge_(s).coalesce(f);
         });
     }
 
@@ -237,5 +254,41 @@ export class StreamWithSend<A> extends Stream<A> {
                 }
             });
         }
+    }
+}
+
+/**
+ * A forward reference for a {@link Stream} equivalent to the Stream that is referenced. 
+ */
+export class StreamLoop<A> extends StreamWithSend<A> {
+    private assigned : boolean = false;
+
+    constructor()
+    {
+        super();
+    	if (currentTransaction === null)
+    	    throw "StreamLoop/CellLoop must be used within an explicit transaction";
+    }
+
+    /**
+     * Resolve the loop to specify what the StreamLoop was a forward reference to. It
+     * must be invoked inside the same transaction as the place where the StreamLoop is used.
+     * This requires you to create an explicit transaction with {@link Transaction#run(Lambda0)}
+     * or {@link Transaction#runVoid(Runnable)}.
+     */
+    loop(sa_out : Stream<A>) : void {
+        if (this.assigned)
+            throw "StreamLoop looped more than once";
+        this.assigned = true;
+        this.vertex.sources.push(
+            new Source(
+                sa_out.getVertex(),
+                () => {
+                    return sa_out.listen_(this.vertex, (a : A) => {
+                        this.send_(a);
+                    }, false);
+                }
+            )
+        );
     }
 }
