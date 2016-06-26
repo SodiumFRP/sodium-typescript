@@ -23,7 +23,7 @@ export class StreamSink<A> extends StreamWithSend<A> {
 
     send(a : A) : void {
         transactionally<void>(
-            () => { this.send_(a); }
+            () => { this.coalescer.send_(a); }
         )
     }
 }

@@ -41,7 +41,6 @@ export class Vertex {
     sources : Source[];
     targets : Vertex[] = [];
     registered : number;
-    listeners : Vertex[] = [];
     visited : boolean = false;
     register(target : Vertex) : boolean {
         let anyChanged : boolean = false;
@@ -71,8 +70,8 @@ export class Vertex {
 
         this.visited = true;
 		this.rank = limit + 1;
-		for (let i = 0; i < this.listeners.length; i++)
-			this.listeners[i].ensureBiggerThan(this.rank);
+		for (let i = 0; i < this.targets.length; i++)
+			this.targets[i].ensureBiggerThan(this.rank);
         this.visited = false;
 		return true;
 	}

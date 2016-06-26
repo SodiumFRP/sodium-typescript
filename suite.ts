@@ -128,6 +128,10 @@ test("mergeSimultaneous", () => {
         out.push(a);
     });
     transactionally<void>(() => {
+        s1.send(7);
+        s2.send(60);
+    });
+    transactionally<void>(() => {
             s1.send(9);
         });
     transactionally<void>(() => {
@@ -149,5 +153,5 @@ test("mergeSimultaneous", () => {
         s1.send(60);
     });
     kill();
-    assertEqual([7,9,8], out);
+    assertEqual([60,9,90,90,90], out);
 });

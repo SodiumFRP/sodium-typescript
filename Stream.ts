@@ -8,8 +8,8 @@ import { Cell } from "./Cell";
 import { Listener } from "./Listener";
 
 export class Stream<A> {
-    constructor() {
-        this.vertex = new Vertex(0, []);
+    constructor(vertex? : Vertex) {
+        this.vertex = vertex ? vertex : new Vertex(0, []);
     }
 
     getVertex() : Vertex {
@@ -29,15 +29,15 @@ export class Stream<A> {
      *    cell. Apart from this the function must be <em>referentially transparent</em>.
      */
     map<B>(f : ((a : A) => B) | Lambda1<A,B>) : Stream<B> {
-        const out = new StreamWithSend<B>();
+        const out = new StreamWithSend<B>(null);
         let ff = Lambda1_toFunction(f);
         out.vertex = new Vertex(0, [
                 new Source(
                     this.vertex,
                     () => {
-                        return this.listen((a : A) => {
+                        return this.listen_(out.vertex, (a : A) => {
                             out.send_(ff(a));
-                        });
+                        }, false);
                     }
                 )
             ].concat(toSources(Lambda1_deps(f)))
@@ -50,14 +50,14 @@ export class Stream<A> {
      * @param b Constant value.
      */
     mapTo<B>(b : B) : Stream<B> {
-        const out = new StreamWithSend<B>();
+        const out = new StreamWithSend<B>(null);
         out.vertex = new Vertex(0, [
                 new Source(
                     this.vertex,
                     () => {
-                        return this.listen((a : A) => {
+                        return this.listen_(out.vertex, (a : A) => {
                             out.send_(b);
-                        });
+                        }, false);
                     }
                 )
             ]
@@ -86,25 +86,28 @@ export class Stream<A> {
 
     private merge_(s : Stream<A>, f : ((left : A, right : A) => A) | Lambda2<A,A,A>) : Stream<A> {
         const out = new StreamWithSend<A>();
-        out.vertex = new Vertex(0, [
+        const left = new Vertex(0, []);
+        const right = out.vertex;
+        right.sources.push(new Source(left, () => { return null; }));
+        const coalescer = new CoalesceHandler<A>(f, out);
+        const send = (a : A) => {
+                            coalescer.send_(a);
+                     };
+        out.vertex.sources = out.vertex.sources.concat([
                 new Source(
                     this.vertex,
                     () => {
-                        return this.listen((a : A) => {
-                            out.send_(a);
-                        });
+                        return this.listen_(left, send, false);
                     }
                 ),
                 new Source(
                     s.vertex,
                     () => {
-                        return s.listen((a : A) => {
-                           out.send_(a);
-                        });
+                        return s.listen_(right, send, false);
                     }
                 )
-            ].concat(toSources(Lambda2_deps(f)))
-        );
+            ])
+            .concat(toSources(Lambda2_deps(f)));
         return out;
     }
 
@@ -165,12 +168,8 @@ export class Stream<A> {
 }
 
 export class StreamWithSend<A> extends Stream<A> {
-    constructor() {
-        super();
-    }
-
-    setVertex(vertex : Vertex) {
-        this.vertex = vertex;
+    constructor(vertex? : Vertex) {
+        super(vertex);
     }
 
     send_(a : A) : void {
