@@ -47,9 +47,8 @@ function test(name : string, t : () => void)
 test("map", () => {
     let s = new StreamSink<number>();
     let out : number[] = [];
-    let kill = s.map((a : number) => a + 1).listen((a : number) => {
-        out.push(a);
-    });
+    let kill = s.map(a => a + 1)
+                .listen(a => out.push(a));
     s.send(7);
     kill();
     assertEquals([8], out);
@@ -68,9 +67,8 @@ test("send_with_no_listener_2", () => {
     () => {
         let s = new StreamSink<number>();
         let out : number[] = [];
-        let kill = s.map((a : number) => a + 1).listen((a : number) => {
-            out.push(a);
-        });
+        let kill = s.map(a => a + 1)
+                    .listen(a => out.push(a));
         s.send(7);
         kill();
         s.send(9);  // this should not throw, because once() uses this mechanism
@@ -82,23 +80,18 @@ test("map_track", () => {
         t = new StreamSink<string>(),
         out : number[] = [],
         kill = s.map(new Lambda1((a : number) => a + 1, [t]))
-                .listen((a : number) => {
-                    out.push(a);
-                });
+                .listen(a => out.push(a));
     s.send(7);
     t.send("banana");
     kill();
-    let x : number[] = [];
-    x.push(8);
     assertEquals([8], out);
 });
 
 test("mapTo", () => {
     let s = new StreamSink<number>(),
         out : string[] = [],
-        kill = s.mapTo("fusebox").listen((a : string) => {
-            out.push(a);
-        });
+        kill = s.mapTo("fusebox")
+                .listen(a => out.push(a));
     s.send(7);
     s.send(9);
     kill();
@@ -109,9 +102,8 @@ test("mergeNonSimultaneous", () => {
     let s1 = new StreamSink<number>(),
         s2 = new StreamSink<number>(),
         out : number[] = [];
-    let kill = s2.orElse(s1).listen((a : number) => {
-        out.push(a);
-    });
+    let kill = s2.orElse(s1)
+                 .listen(a => out.push(a));
     s1.send(7);
     s2.send(9);
     s1.send(8);
@@ -123,9 +115,8 @@ test("mergeSimultaneous", () => {
     let s1 = new StreamSink<number>((l : number, r : number) => { return r; }),
         s2 = new StreamSink<number>((l : number, r : number) => { return r; }),
         out : number[] = [],
-        kill = s2.orElse(s1).listen((a : number) => {
-            out.push(a);
-        });
+        kill = s2.orElse(s1)
+                 .listen(a => out.push(a));
     transactionally<void>(() => {
         s1.send(7);
         s2.send(60);
@@ -156,11 +147,9 @@ test("mergeSimultaneous", () => {
 });
 
 test("coalesce", () => {
-    let s = new StreamSink<number>((a : number, b : number) => { return a+b; }),
+    let s = new StreamSink<number>((a, b) => a+b),
         out : number[] = [],
-        kill = s.listen((a : number) => {
-            out.push(a);
-        });
+        kill = s.listen(a => out.push(a));
     transactionally<void>(() => {
         s.send(2);
     });
@@ -175,9 +164,8 @@ test("coalesce", () => {
 test("filter", () => {
     let s = new StreamSink<number>(),
         out : number[] = [],
-        kill = s.filter((a : number) => { return a < 10; }).listen((a : number) => {
-            out.push(a);
-        });
+        kill = s.filter(a => a < 10)
+                .listen(a => out.push(a));
     s.send(2);
     s.send(16);
     s.send(9);
@@ -188,9 +176,8 @@ test("filter", () => {
 test("filterNotNull", () => {
     let s = new StreamSink<string>(),
         out : string[] = [],
-        kill = s.filterNotNull().listen((a : string) => {
-            out.push(a);
-        });
+        kill = s.filterNotNull()
+                .listen(a => out.push(a));
     s.send("tomato");
     s.send(null);
     s.send("peach");
@@ -200,14 +187,12 @@ test("filterNotNull", () => {
 
 test("merge2", () => {
     let sa = new StreamSink<number>(),
-        sb = sa.map((x : number) => { return Math.floor(x / 10); })
-                   .filter((x : number) => { return x != 0; }),
-        sc = sa.map((x : number) => { return x % 10; }).merge(sb,
-            (x : number, y : number) => { return x+y; }),
+        sb = sa.map(x => Math.floor(x / 10))
+                   .filter(x => x != 0),
+        sc = sa.map(x => x % 10).merge(sb,
+            (x,y) => x+y),
         out : number[] = [],
-        kill = sc.listen((a : number) => {
-            out.push(a);
-        });
+        kill = sc.listen(a => out.push(a));
     sa.send(2);
     sa.send(52);
     kill();
@@ -218,17 +203,15 @@ test("loopStream", () => {
     let sa = new StreamSink<number>(),
         sc = transactionally(() => {
             let sb = new StreamLoop<number>(),
-                sc_ = sa.map((x : number) => { return x % 10; }).merge(sb,
-                    (x : number, y : number) => { return x+y; }),
-                sb_out = sa.map((x : number) => { return Math.floor(x / 10); })
-                           .filter((x : number) => { return x != 0; });
+                sc_ = sa.map(x => x % 10).merge(sb,
+                    (x, y) => x+y),
+                sb_out = sa.map(x => Math.floor(x / 10))
+                           .filter(x => x != 0);
             sb.loop(sb_out);
             return sc_;
         }),
         out : number[] = [],
-        kill = sc.listen((a : number) => {
-            out.push(a);
-        });
+        kill = sc.listen(a => out.push(a));
     sa.send(2);
     sa.send(52);
     kill();
@@ -239,9 +222,7 @@ test("gate", () => {
     let s = new StreamSink<string>(),
         pred = new CellSink<boolean>(true),
         out : string[] = [],
-        kill = s.gate(pred).listen((a : string) => {
-            out.push(a);
-        });
+        kill = s.gate(pred).listen(a => out.push(a));
     s.send("H");
     pred.send(false);
     s.send('O');
@@ -254,10 +235,8 @@ test("gate", () => {
 test("collect", () => {
     let ea = new StreamSink<number>(),
         out : number[] = [],
-        sum = ea.collect(0, (a : number, s : number) => {
-                return new Tuple2(a+s+100, a+s);
-            }),
-        kill = sum.listen((a : number) => { out.push(a); });
+        sum = ea.collect(0, (a, s) => new Tuple2(a+s+100, a+s)),
+        kill = sum.listen(a => out.push(a));
     ea.send(5);
     ea.send(7);
     ea.send(1);
@@ -270,8 +249,8 @@ test("collect", () => {
 test("accum", () => {
     let ea = new StreamSink<number>(),
         out : number[] = [],
-        sum = ea.accum(100, (a : number, s : number) => { return a + s; }),
-        kill = sum.listen((a : number) => { out.push(a); });
+        sum = ea.accum(100, (a, s) => a + s),
+        kill = sum.listen(a => out.push(a));
     ea.send(5);
     ea.send(7);
     ea.send(1);
@@ -285,7 +264,7 @@ test("once", () => {
     
     let s = new StreamSink<string>(),
         out : string[] = [],
-        kill = s.once().listen((x : string) => { out.push(x); });
+        kill = s.once().listen(a => out.push(a));
     s.send("A");
     s.send("B");
     s.send("C");
@@ -298,9 +277,47 @@ test("defer", () => {
         c = s.hold(" "),
         out : string[] = [],
         kill = Operational.defer(s).snapshot1(c)
-               .listen((x : string) => { out.push(x); });
+               .listen(a => out.push(a));
     s.send("C");
     s.send("B");
     s.send("A");
     assertEquals(["C","B","A"], out);
+});
+
+test("hold", () => {
+    let s = new StreamSink<number>(),
+        c = s.hold(0),
+        out : number[] = [],
+        kill = Operational.updates(c)
+              .listen(a => out.push(a));
+    s.send(2);
+    s.send(9);
+    kill();
+    assertEquals([2, 9], out);
+});
+
+test("snapshot", () => {
+    let c = new CellSink<number>(0),
+        s = new StreamSink<number>(),
+        out : string[] = [],
+        kill = s.snapshot(c, (x, y) => x + " " + y)
+                .listen(a => out.push(a));
+    s.send(100);
+    c.send(2);
+    s.send(200);
+    c.send(9);
+    c.send(1);
+    s.send(300);
+    kill();
+    assertEquals(["100 0", "200 2", "300 1"], out);
+});
+
+test("values", () => {
+    let c = new CellSink<number>(9),
+        out : number[] = [],
+        kill = c.listen(a => out.push(a));
+    c.send(2);
+    c.send(7);
+    kill();
+    assertEquals([9, 2, 7], out);
 });
