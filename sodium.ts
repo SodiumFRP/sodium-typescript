@@ -6,3 +6,4 @@ export { CellSink } from "./CellSink";
 export { transactionally } from "./Transaction";
 export { Tuple2 } from "./Tuple2";
 export { Unit } from "./Unit";
+export { Operational } from "./Operational";

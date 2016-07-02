@@ -381,6 +381,10 @@ export class StreamWithSend<A> extends Stream<A> {
     constructor(vertex? : Vertex) {
         super(vertex);
     }
+    
+    setVertex__(vertex : Vertex) {  // TO DO figure out how to hide this
+        this.vertex = vertex;
+    }
 
     send_(a : A) : void {
         // We only throw this if send has never been registered. If it's been registered

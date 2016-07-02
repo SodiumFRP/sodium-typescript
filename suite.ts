@@ -1,5 +1,5 @@
 import { Lambda1, Lambda2, Stream, StreamSink, StreamLoop, Cell, CellSink,
-         Tuple2, transactionally, Unit } from "./sodium";
+         Tuple2, transactionally, Unit, Operational } from "./sodium";
 
 function fail(err : string) : void {
     throw err;
@@ -291,4 +291,16 @@ test("once", () => {
     s.send("C");
     kill();
     assertEquals(["A"], out);
+});
+
+test("defer", () => {
+    let s = new StreamSink<string>(),
+        c = s.hold(" "),
+        out : string[] = [],
+        kill = Operational.defer(s).snapshot1(c)
+               .listen((x : string) => { out.push(x); });
+    s.send("C");
+    s.send("B");
+    s.send("A");
+    assertEquals(["C","B","A"], out);
 });

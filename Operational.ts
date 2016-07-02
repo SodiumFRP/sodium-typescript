@@ -1,8 +1,8 @@
-import { Stream } from "./Stream";
+import { Stream, StreamWithSend } from "./Stream";
 import { Cell } from "./Cell";
-import { StreamWithSend } from "./Stream";
 import { transactionally, currentTransaction } from "./Transaction";
 import { Unit } from "./Unit";
+import { Source, Vertex } from "./Vertex";
 
 export class Operational {
     /**
@@ -36,5 +36,44 @@ export class Operational {
             let sInitial = sSpark.snapshot1(c);
             return sInitial.merge(this.updates(c), (l : A, r : A) => { return r; });
         });
+    }
+
+	/**
+	 * Push each event onto a new transaction guaranteed to come before the next externally
+	 * initiated transaction. Same as {@link split(Stream)} but it works on a single value.
+	 */
+	static defer<A>(s : Stream<A>) : Stream<A> {
+	    return Operational.split<A>(s.map((a : A) => {
+	        return [a];
+	    }));
+    }
+
+	/**
+	 * Push each event in the list onto a newly created transaction guaranteed
+	 * to come before the next externally initiated transaction. Note that the semantics
+	 * are such that two different invocations of split() can put events into the same
+	 * new transaction, so the resulting stream's events could be simultaneous with
+	 * events output by split() or {@link defer(Stream)} invoked elsewhere in the code.
+	 */
+	static split<A>(s : Stream<Array<A>>) : Stream<A> {
+	    let out = new StreamWithSend<A>(null);
+        out.setVertex__(new Vertex(0, [
+                new Source(
+                    s.getVertex__(),
+                    () => {
+                        return s.listen_(out.getVertex__(), (as : Array<A>) => {
+                            for (let i = 0; i < as.length; i++) {
+                                currentTransaction.post(i, () => {
+                                    transactionally(() => {
+                                        out.send_(as[i]);
+                                    });
+                                });
+                            }
+                        }, false);
+                    }
+                )
+            ]
+        ));
+        return out;
     }
 }

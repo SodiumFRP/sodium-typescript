@@ -43,6 +43,25 @@ export class Transaction {
         this.lastQ.push(h);
     }
 
+	/**
+     * Add an action to run after all last() actions.
+     */
+	post(childIx : number, action : () => void) : void {
+	    if (this.postQ == null)
+	        this.postQ = [];
+	    // If an entry exists already, combine the old one with the new one.
+	    while (this.postQ.length <= childIx)
+	        this.postQ.push(null);
+	    let existing = this.postQ[childIx],
+	        neu =
+                existing === null ? action
+	                         : () => {
+	                               existing();
+	                               action();
+                               };
+	    this.postQ[childIx] = neu;
+	}
+
 	// If the priority queue has entries in it when we modify any of the nodes'
 	// ranks, then we need to re-generate it to make sure it's up-to-date.
 	private checkRegen() : void
