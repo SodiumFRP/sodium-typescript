@@ -230,7 +230,7 @@ export class Stream<A> {
                     this.vertex,
                     () => {
                         return this.listen_(out.vertex, (a : A) => {
-                            out.send_(ff(a, c.sampleNoTrans()));
+                            out.send_(ff(a, c.sampleNoTrans__()));
                         }, false);
                     }
                 ),

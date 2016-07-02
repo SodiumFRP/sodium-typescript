@@ -8,7 +8,7 @@ export class LazyCell<A> extends Cell<A> {
         this.lazyInitValue = lazyInitValue;
     }
 
-    sampleNoTrans() : A {  // Override
+    sampleNoTrans__() : A {  // Override
         if (this.value == null && this.lazyInitValue != null) {
             this.value = this.lazyInitValue.get();
             this.lazyInitValue = null;

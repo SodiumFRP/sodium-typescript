@@ -321,3 +321,21 @@ test("values", () => {
     kill();
     assertEquals([9, 2, 7], out);
 });
+
+test("constantCell", () => {
+    let c = new Cell<number>(12),
+        out : number[] = [],
+        kill = c.listen(a => out.push(a));
+    kill();
+    assertEquals([12], out);
+});
+
+test("mapC", () => {
+    let c = new CellSink<number>(6),
+        out : string[] = [],
+        kill = c.map(a => ""+a)
+                .listen(a => out.push(a));
+    c.send(8);
+    kill();
+    assertEquals(["6", "8"], out);
+});
