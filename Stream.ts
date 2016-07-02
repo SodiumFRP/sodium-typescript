@@ -15,7 +15,7 @@ export class Stream<A> {
         this.vertex = vertex ? vertex : new Vertex(0, []);
     }
 
-    getVertex() : Vertex {
+    getVertex__() : Vertex {
         return this.vertex;
     }
 
@@ -235,7 +235,7 @@ export class Stream<A> {
                     }
                 ),
                 new Source(
-                    c.str.vertex,
+                    c.getStream__().vertex,
                     () => {
                         return () => { };
                     }
@@ -291,6 +291,31 @@ export class Stream<A> {
                 es_out = ebs.map((bs : Tuple2<B,S>) => { return bs.b; });
             es.loop(es_out);
             return eb;
+        });
+    }
+
+    /**
+     * Accumulate on input event, outputting the new state each time.
+     * @param f Function to apply to update the state. It may construct FRP logic or use
+     *    {@link Cell#sample()} in which case it is equivalent to {@link Stream#snapshot(Cell)}ing the
+     *    cell. Apart from this the function must be <em>referentially transparent</em>.
+     */
+    accum<S>(initState : S, f : ((a : A, s : S) => S) | Lambda2<A,S,S>) : Cell<S> {
+        return this.accumLazy(new Lazy<S>(() => { return initState; }), f);
+    }
+
+    /**
+     * A variant of {@link accum(Object, Lambda2)} that takes an initial state returned by
+     * {@link Cell#sampleLazy()}.
+     */
+    accumLazy<S>(initState : Lazy<S>, f : ((a : A, s : S) => S) | Lambda2<A,S,S>) : Cell<S> {
+        let ea = this;
+        return transactionally(() => {
+            let es = new StreamLoop<S>(),
+                s = es.holdLazy(initState),
+                es_out = ea.snapshot(s, f);
+            es.loop(es_out);
+            return es_out.holdLazy(initState);
         });
     }
 
@@ -388,7 +413,7 @@ export class StreamLoop<A> extends StreamWithSend<A> {
         this.assigned = true;
         this.vertex.sources.push(
             new Source(
-                sa_out.getVertex(),
+                sa_out.getVertex__(),
                 () => {
                     return sa_out.listen_(this.vertex, (a : A) => {
                         this.send_(a);

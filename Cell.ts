@@ -3,9 +3,10 @@ import { Transaction, transactionally, currentTransaction } from "./Transaction"
 import { Lazy } from "./Lazy";
 import { Listener } from "./Listener";
 import { Stream } from "./Stream";
+import { Operational } from "./Operational";
 
 export class Cell<A> {
-	public str : Stream<A>;   // TO DO: Work out how to hide this
+	private str : Stream<A>;
 	protected value : A;
 	protected valueUpdate : A;
 	private cleanup : () => void;
@@ -33,8 +34,12 @@ export class Cell<A> {
         }
     }
 
-    getVertex() : Vertex {
+    getVertex__() : Vertex {
         return null;
+    }
+
+    getStream__() : Stream<A> {  // TO DO: Figure out how to hide this
+        return this.str;
     }
 
     /**
@@ -53,5 +58,23 @@ export class Cell<A> {
 
     sampleNoTrans() : A {
         return this.value;
+    }
+
+	/**
+	 * Listen for updates to the value of this cell. This is the observer pattern. The
+	 * returned {@link Listener} has a {@link Listener#unlisten()} method to cause the
+	 * listener to be removed. This is an OPERATIONAL mechanism is for interfacing between
+	 * the world of I/O and for FRP.
+	 * @param h The handler to execute when there's a new value.
+	 *   You should make no assumptions about what thread you are called on, and the
+	 *   handler should not block. You are not allowed to use {@link CellSink#send(Object)}
+	 *   or {@link StreamSink#send(Object)} in the handler.
+	 *   An exception will be thrown, because you are not meant to use this to create
+	 *   your own primitives.
+     */
+    listen(h : (a : A) => void) : () => void {
+        return transactionally(() => {
+            return Operational.value(this).listen(h);
+        });
     }
 }

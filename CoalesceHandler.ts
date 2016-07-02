@@ -11,7 +11,7 @@ export class CoalesceHandler<A>
 	{
 	    this.f = Lambda2_toFunction(f);
 	    this.out = out;
-        this.out.getVertex().sources = this.out.getVertex().sources.concat(
+        this.out.getVertex__().sources = this.out.getVertex__().sources.concat(
             toSources(Lambda2_deps(f)));
         this.accumValid = false;
     }
@@ -24,7 +24,7 @@ export class CoalesceHandler<A>
         if (this.accumValid)
             this.accum = this.f(this.accum, a);
         else {
-            currentTransaction.prioritized(this.out.getVertex(), () => {
+            currentTransaction.prioritized(this.out.getVertex__(), () => {
                 this.out.send_(this.accum);
                 this.accumValid = false;
                 this.accum = null;

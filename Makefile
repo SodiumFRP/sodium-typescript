@@ -10,6 +10,7 @@ SOURCES=\
     suite.ts \
     Transaction.ts \
     Tuple2.ts \
+    Unit.ts \
     Vertex.ts
 
 all: $(SOURCES)

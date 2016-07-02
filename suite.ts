@@ -1,5 +1,5 @@
 import { Lambda1, Lambda2, Stream, StreamSink, StreamLoop, Cell, CellSink,
-         Tuple2, transactionally } from "./sodium";
+         Tuple2, transactionally, Unit } from "./sodium";
 
 function fail(err : string) : void {
     throw err;
@@ -267,4 +267,18 @@ test("collect", () => {
     ea.send(3);
     kill();
     assertEquals([105,112,113,115,118], out);
+});
+
+test("accum", () => {
+    let ea = new StreamSink<number>(),
+        out : number[] = [],
+        sum = ea.accum(100, (a : number, s : number) => { return a + s; }),
+        kill = sum.listen((a : number) => { out.push(a); });
+    ea.send(5);
+    ea.send(7);
+    ea.send(1);
+    ea.send(2);
+    ea.send(3);
+    kill();
+    assertEquals([100,105,112,113,115,118], out);
 });

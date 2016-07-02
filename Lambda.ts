@@ -54,7 +54,7 @@ export function toSources(deps : Array<Stream<any>|Cell<any>>) : Source[] {
     let ss : Source[] = [];
     for (let i = 0; i < deps.length; i++) {
         let dep = deps[i];
-        ss.push(new Source(dep.getVertex(), null));
+        ss.push(new Source(dep.getVertex__(), null));
     }
     return ss;
 }

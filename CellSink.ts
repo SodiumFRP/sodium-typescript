@@ -28,6 +28,6 @@ export class CellSink<A> extends Cell<A> {
      * @param a Value to push into the cell.
      */
     send(a : A) : void {
-        (<StreamSink<A>>this.str).send(a);
+        (<StreamSink<A>>this.getStream__()).send(a);
     }
 }
