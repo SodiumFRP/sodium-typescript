@@ -188,6 +188,54 @@ export class Stream<A> {
         return out;
     }
 
+    /**
+     * Return a stream that only outputs events from the input stream
+     * when the specified cell's value is true.
+     */
+    gate(c : Cell<boolean>) : Stream<A> {
+        return this.snapshot(c, (a : A, pred : boolean) => {
+            return pred ? a : null;
+        }).filterNotNull();
+    }
+
+	/**
+	 * Variant of {@link snapshot(Cell, Lambda2)} that captures the cell's value
+	 * at the time of the event firing, ignoring the stream's value.
+	 */
+	snapshot1<B>(c : Cell<B>) : Stream<B> {
+	    return transactionally(() => {
+	        return this.map((a : A) => { return c.sample(); });
+	    });
+	}
+
+	/**
+	 * Return a stream whose events are the result of the combination using the specified
+	 * function of the input stream's event value and the value of the cell at that time.
+     * <P>
+     * There is an implicit delay: State updates caused by event firings being held with
+     * {@link Stream#hold(Object)} don't become visible as the cell's current value until
+     * the following transaction. To put this another way, {@link Stream#snapshot(Cell, Lambda2)}
+     * always sees the value of a cell as it was before any state changes from the current
+     * transaction.
+     */
+	snapshot<B,C>(c : Cell<B>, f : ((a : A, b : B) => C) | Lambda2<A,B,C>)
+	{
+        const out = new StreamWithSend<C>(null);
+        let ff = Lambda2_toFunction(f);
+        out.vertex = new Vertex(0, [
+                new Source(
+                    this.vertex,
+                    () => {
+                        return this.listen_(out.vertex, (a : A) => {
+                            out.send_(ff(a, c.sampleNoTrans()));
+                        }, false);
+                    }
+                )
+            ].concat(toSources(Lambda2_deps(f)))
+        );
+        return out;
+	}
+
     listen(h : (a : A) => void) : () => void {
         return transactionally<() => void>(() => {
             return this.listen_(Vertex.NULL, h, false);

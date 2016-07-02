@@ -1,4 +1,15 @@
-SOURCES=Cell.ts  CoalesceHandler.ts  Lambda.ts  Listener.ts  StreamSink.ts  Stream.ts  suite.ts  Transaction.ts  Vertex.ts
+SOURCES=\
+    Cell.ts \
+    CellSink.ts \
+    CoalesceHandler.ts \
+    Lambda.ts \
+    Lazy.ts \
+    Listener.ts \
+    StreamSink.ts \
+    Stream.ts \
+    suite.ts \
+    Transaction.ts \
+    Vertex.ts
 
 all: $(SOURCES)
 	tsc suite.ts

@@ -1,4 +1,4 @@
-import { Lambda1, Lambda2, Stream, StreamSink, StreamLoop, Cell, transactionally } from "./sodium";
+import { Lambda1, Lambda2, Stream, StreamSink, StreamLoop, Cell, CellSink, transactionally } from "./sodium";
 
 function fail(err : string) : void {
     throw err;
@@ -234,4 +234,20 @@ test("loopStream", () => {
     sa.send(52);
     kill();
     assertEqual([2, 7], out);
+});
+
+test("gate", () => {
+    let s = new StreamSink<string>(),
+        pred = new CellSink<boolean>(true),
+        out : string[] = [],
+        kill = s.gate(pred).listen((a : string) => {
+            out.push(a);
+        });
+    s.send("H");
+    pred.send(false);
+    s.send('O');
+    pred.send(true);
+    s.send('I');
+    kill();
+    assertEqual(["H", "I"], out);
 });
