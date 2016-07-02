@@ -319,6 +319,26 @@ export class Stream<A> {
         });
     }
 
+    /**
+     * Return a stream that outputs only one value: the next event of the
+     * input stream, starting from the transaction in which once() was invoked.
+     */
+    once() : Stream<A> {
+        return transactionally(() => {
+            let ev = this,
+                la : (() => void)[] = [],
+                out = new StreamWithSend<A>();
+            la.push(ev.listen_(out.vertex, (a : A) => {
+                if (la[0] !== null) {
+                    out.send_(a);
+                    la[0]();
+                    la[0] = null;
+                }
+            }, false));
+            return out;
+        });
+    }
+
     listen(h : (a : A) => void) : () => void {
         return transactionally<() => void>(() => {
             return this.listen_(Vertex.NULL, h, false);
@@ -363,7 +383,10 @@ export class StreamWithSend<A> extends Stream<A> {
     }
 
     send_(a : A) : void {
-        if (this.vertex.registered == 0)
+        // We only throw this if send has never been registered. If it's been registered
+        // and de-registered again, we just throw the value away. This happens
+        // legitimately in the case of Stream.once().
+        if (!this.vertex.hasBeenRegistered)
             throw "send() was invoked before listeners were registered";
 		if (this.firings.length == 0)
 			currentTransaction.last(() => {

@@ -35,19 +35,18 @@ export class Vertex {
 	constructor(rank : number, sources : Source[]) {
 		this.rank = rank;
 		this.sources = sources;
-		this.registered = 0;
 	}
     rank : number;
     sources : Source[];
     targets : Vertex[] = [];
-    registered : number;
+    hasBeenRegistered : boolean = false;
     visited : boolean = false;
     register(target : Vertex) : boolean {
         let anyChanged : boolean = false;
         for (let i = 0; i < this.sources.length; i++)
             if (this.sources[i].register(this))
                 anyChanged = true;
-        this.registered++;
+        this.hasBeenRegistered = true;
         this.targets.push(target);
         if (target.ensureBiggerThan(this.rank))
             anyChanged = true;
@@ -61,7 +60,6 @@ export class Vertex {
                 this.targets.splice(i, 1);
                 break;
             }
-        this.registered--;
     }
 
 	private ensureBiggerThan(limit : number) : boolean {

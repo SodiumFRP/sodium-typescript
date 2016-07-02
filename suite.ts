@@ -65,18 +65,16 @@ test("send_with_no_listener_1", () => {
 });
 
 test("send_with_no_listener_2", () => {
-    shouldThrow("invoked before listeners",
-        () => {
-            let s = new StreamSink<number>();
-            let out : number[] = [];
-            let kill = s.map((a : number) => a + 1).listen((a : number) => {
-                out.push(a);
-            });
-            s.send(7);
-            kill();
-            s.send(9);  // should throw
-        }
-    );
+    () => {
+        let s = new StreamSink<number>();
+        let out : number[] = [];
+        let kill = s.map((a : number) => a + 1).listen((a : number) => {
+            out.push(a);
+        });
+        s.send(7);
+        kill();
+        s.send(9);  // this should not throw, because once() uses this mechanism
+    }
 });
 
 test("map_track", () => {
@@ -281,4 +279,16 @@ test("accum", () => {
     ea.send(3);
     kill();
     assertEquals([100,105,112,113,115,118], out);
+});
+
+test("once", () => {
+    
+    let s = new StreamSink<string>(),
+        out : string[] = [],
+        kill = s.once().listen((x : string) => { out.push(x); });
+    s.send("A");
+    s.send("B");
+    s.send("C");
+    kill();
+    assertEquals(["A"], out);
 });
