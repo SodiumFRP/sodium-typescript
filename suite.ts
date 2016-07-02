@@ -1,10 +1,11 @@
-import { Lambda1, Lambda2, Stream, StreamSink, StreamLoop, Cell, CellSink, transactionally } from "./sodium";
+import { Lambda1, Lambda2, Stream, StreamSink, StreamLoop, Cell, CellSink,
+         Tuple2, transactionally } from "./sodium";
 
 function fail(err : string) : void {
     throw err;
 }
 
-function assertEqual<A>(sb: A, is : A) : void {
+function assertEquals<A>(sb: A, is : A) : void {
     if (JSON.stringify(is) != JSON.stringify(sb))
         fail("expected: "+sb+"\n       got: "+is);
 }
@@ -51,7 +52,7 @@ test("map", () => {
     });
     s.send(7);
     kill();
-    assertEqual([8], out);
+    assertEquals([8], out);
 });
 
 test("send_with_no_listener_1", () => {
@@ -91,7 +92,7 @@ test("map_track", () => {
     kill();
     let x : number[] = [];
     x.push(8);
-    assertEqual([8], out);
+    assertEquals([8], out);
 });
 
 test("mapTo", () => {
@@ -103,7 +104,7 @@ test("mapTo", () => {
     s.send(7);
     s.send(9);
     kill();
-    assertEqual(["fusebox", "fusebox"], out);
+    assertEquals(["fusebox", "fusebox"], out);
 });
 
 test("mergeNonSimultaneous", () => {
@@ -117,7 +118,7 @@ test("mergeNonSimultaneous", () => {
     s2.send(9);
     s1.send(8);
     kill();
-    assertEqual([7,9,8], out);
+    assertEquals([7,9,8], out);
 });
 
 test("mergeSimultaneous", () => {
@@ -153,7 +154,7 @@ test("mergeSimultaneous", () => {
         s1.send(60);
     });
     kill();
-    assertEqual([60,9,90,90,90], out);
+    assertEquals([60,9,90,90,90], out);
 });
 
 test("coalesce", () => {
@@ -170,7 +171,7 @@ test("coalesce", () => {
         s.send(40);
     });
     kill();
-    assertEqual([2, 48], out);
+    assertEquals([2, 48], out);
 });
 
 test("filter", () => {
@@ -183,7 +184,7 @@ test("filter", () => {
     s.send(16);
     s.send(9);
     kill();
-    assertEqual([2, 9], out);
+    assertEquals([2, 9], out);
 });
 
 test("filterNotNull", () => {
@@ -196,7 +197,7 @@ test("filterNotNull", () => {
     s.send(null);
     s.send("peach");
     kill();
-    assertEqual(["tomato", "peach"], out);
+    assertEquals(["tomato", "peach"], out);
 });
 
 test("merge2", () => {
@@ -212,7 +213,7 @@ test("merge2", () => {
     sa.send(2);
     sa.send(52);
     kill();
-    assertEqual([2, 7], out);
+    assertEquals([2, 7], out);
 });
 
 test("loopStream", () => {
@@ -233,7 +234,7 @@ test("loopStream", () => {
     sa.send(2);
     sa.send(52);
     kill();
-    assertEqual([2, 7], out);
+    assertEquals([2, 7], out);
 });
 
 test("gate", () => {
@@ -249,5 +250,21 @@ test("gate", () => {
     pred.send(true);
     s.send('I');
     kill();
-    assertEqual(["H", "I"], out);
+    assertEquals(["H", "I"], out);
+});
+
+test("collect", () => {
+    let ea = new StreamSink<number>(),
+        out : number[] = [],
+        sum = ea.collect(0, (a : number, s : number) => {
+                return new Tuple2(a+s+100, a+s);
+            }),
+        kill = sum.listen((a : number) => { out.push(a); });
+    ea.send(5);
+    ea.send(7);
+    ea.send(1);
+    ea.send(2);
+    ea.send(3);
+    kill();
+    assertEquals([105,112,113,115,118], out);
 });

@@ -5,7 +5,7 @@ import { Listener } from "./Listener";
 import { Stream } from "./Stream";
 
 export class Cell<A> {
-	protected str : Stream<A>;
+	public str : Stream<A>;   // TO DO: Work out how to hide this
 	protected value : A;
 	protected valueUpdate : A;
 	private cleanup : () => void;

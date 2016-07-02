@@ -6,6 +6,9 @@ import { Transaction, transactionally, currentTransaction } from "./Transaction"
 import { CoalesceHandler } from "./CoalesceHandler";
 import { Cell } from "./Cell";
 import { Listener } from "./Listener";
+import { Tuple2 } from "./Tuple2";
+import { Lazy } from "./Lazy";
+import { LazyCell } from "./LazyCell";
 
 export class Stream<A> {
     constructor(vertex? : Vertex) {
@@ -218,7 +221,7 @@ export class Stream<A> {
      * always sees the value of a cell as it was before any state changes from the current
      * transaction.
      */
-	snapshot<B,C>(c : Cell<B>, f : ((a : A, b : B) => C) | Lambda2<A,B,C>)
+	snapshot<B,C>(c : Cell<B>, f : ((a : A, b : B) => C) | Lambda2<A,B,C>) : Stream<C>
 	{
         const out = new StreamWithSend<C>(null);
         let ff = Lambda2_toFunction(f);
@@ -230,11 +233,66 @@ export class Stream<A> {
                             out.send_(ff(a, c.sampleNoTrans()));
                         }, false);
                     }
+                ),
+                new Source(
+                    c.str.vertex,
+                    () => {
+                        return () => { };
+                    }
                 )
             ].concat(toSources(Lambda2_deps(f)))
         );
         return out;
 	}
+
+	/**
+	 * Create a {@link Cell} with the specified initial value, that is updated
+     * by this stream's event values.
+     * <p>
+     * There is an implicit delay: State updates caused by event firings don't become
+     * visible as the cell's current value as viewed by {@link Stream#snapshot(Cell, Lambda2)}
+     * until the following transaction. To put this another way,
+     * {@link Stream#snapshot(Cell, Lambda2)} always sees the value of a cell as it was before
+     * any state changes from the current transaction.
+     */
+    hold(initValue : A) : Cell<A> {
+        return new Cell<A>(initValue, this);
+	}
+
+	/**
+	 * A variant of {@link hold(Object)} with an initial value captured by {@link Cell#sampleLazy()}.
+	 */
+	holdLazy(initValue : Lazy<A>) : Cell<A> {
+	    return new LazyCell<A>(initValue, this);
+	}
+
+    /**
+     * Transform an event with a generalized state loop (a Mealy machine). The function
+     * is passed the input and the old state and returns the new state and output value.
+     * @param f Function to apply to update the state. It may construct FRP logic or use
+     *    {@link Cell#sample()} in which case it is equivalent to {@link Stream#snapshot(Cell)}ing the
+     *    cell. Apart from this the function must be <em>referentially transparent</em>.
+     */
+    collect<B,S>(initState : S, f : ((a : A, s : S) => Tuple2<B,S>) | Lambda2<A,S,Tuple2<B,S>>) : Stream<B> {
+        return this.collectLazy(new Lazy<S>(() => { return initState; }), f);
+    }
+
+    /**
+     * A variant of {@link collect(Object, Lambda2)} that takes an initial state returned by
+     * {@link Cell#sampleLazy()}.
+     */
+    collectLazy<B,S>(initState : Lazy<S>, f : ((a : A, s : S) => Tuple2<B,S>) | Lambda2<A,S,Tuple2<B,S>>) : Stream<B> {
+        let ea = this;
+        return transactionally(() => {
+            let es = new StreamLoop<S>(),
+                s = es.holdLazy(initState),
+                ebs = ea.snapshot(s, f),
+                eb = ebs.map((bs : Tuple2<B,S>) => { return bs.a; }),
+                es_out = ebs.map((bs : Tuple2<B,S>) => { return bs.b; });
+            es.loop(es_out);
+            return eb;
+        });
+    }
 
     listen(h : (a : A) => void) : () => void {
         return transactionally<() => void>(() => {

@@ -9,6 +9,7 @@ SOURCES=\
     Stream.ts \
     suite.ts \
     Transaction.ts \
+    Tuple2.ts \
     Vertex.ts
 
 all: $(SOURCES)
