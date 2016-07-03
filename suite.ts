@@ -350,3 +350,14 @@ test("mapCLateListen", () => {
     kill();
     assertEquals(["2", "8"], out);
 });
+
+test("apply", () => {
+    let cf = new CellSink<(a : number) => string>(a => "1 "+a),
+        ca = new CellSink<number>(5),
+        out : string[] = [],
+        kill = Cell.apply(cf, ca).listen(a => out.push(a));
+    cf.send(a => "12 " + a);
+    ca.send(6);
+    kill();
+    assertEquals(["1 5", "12 5", "12 6"], out);
+});

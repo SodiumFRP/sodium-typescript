@@ -115,7 +115,7 @@ export class Stream<A> {
         return out;
     }
 
-    private coalesce(f : ((left : A, right : A) => A) | Lambda2<A,A,A>) : Stream<A> {
+    coalesce__(f : ((left : A, right : A) => A) | Lambda2<A,A,A>) : Stream<A> {  // TO DO figure out how to hide this
         const out = new StreamWithSend<A>();
         const coalescer = new CoalesceHandler<A>(f, out);
         out.vertex.sources = out.vertex.sources.concat([
@@ -145,7 +145,7 @@ export class Stream<A> {
      */
     merge(s : Stream<A>, f : ((left : A, right : A) => A) | Lambda2<A,A,A>) : Stream<A> {
         return transactionally<Stream<A>>(() => {
-            return this.merge_(s).coalesce(f);
+            return this.merge_(s).coalesce__(f);
         });
     }
 
@@ -326,15 +326,15 @@ export class Stream<A> {
     once() : Stream<A> {
         return transactionally(() => {
             let ev = this,
-                la : (() => void)[] = [],
                 out = new StreamWithSend<A>();
-            la.push(ev.listen_(out.vertex, (a : A) => {
-                if (la[0] !== null) {
+            var la : () => void = null;
+            la = ev.listen_(out.vertex, (a : A) => {
+                if (la !== null) {
                     out.send_(a);
-                    la[0]();
-                    la[0] = null;
+                    la();
+                    la = null;
                 }
-            }, false));
+            }, false);
             return out;
         });
     }

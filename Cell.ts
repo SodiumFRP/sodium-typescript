@@ -5,7 +5,7 @@ import { Source, Vertex } from "./Vertex";
 import { Transaction, transactionally, currentTransaction } from "./Transaction";
 import { Lazy } from "./Lazy";
 import { Listener } from "./Listener";
-import { Stream } from "./Stream";
+import { Stream, StreamWithSend } from "./Stream";
 import { Operational } from "./Operational";
 
 class LazySample<A> {
@@ -15,6 +15,14 @@ class LazySample<A> {
     cell : Cell<A>;
     hasValue : boolean = false;
     value : A = null;
+}
+
+class ApplyState<A,B> {
+    constructor() {}
+    f : (a : A) => B = null;
+    f_present : boolean = false;
+    a : A = null;
+    a_present : boolean = false;
 }
 
 export class Cell<A> {
@@ -109,6 +117,47 @@ export class Cell<A> {
             Operational.updates(c).map(f).holdLazy(c.sampleLazy().map(Lambda1_toFunction(f)))
         );
     }
+
+	/**
+	 * Apply a value inside a cell to a function inside a cell. This is the
+	 * primitive for all function lifting.
+	 */
+	static apply<A,B>(cf : Cell<(a : A) => B>, ca : Cell<A>) {
+    	return transactionally(() => {
+    	    let state = new ApplyState<A,B>(),
+                out = new StreamWithSend<B>(),
+                cf_value = Operational.value(cf),
+                ca_value = Operational.value(ca);
+            out.setVertex__(new Vertex(0, [
+                    new Source(
+                        cf_value.getVertex__(),
+                        () => {
+                            return cf_value.listen_(out.getVertex__(), (f : (a : A) => B) => {
+                                state.f = f;
+                                state.f_present = true;
+                                if (state.a_present)
+                                    out.send_(state.f(state.a));
+                            }, false);
+                        }
+                    ),
+                    new Source(
+                        ca_value.getVertex__(),
+                        () => {
+                            return ca_value.listen_(out.getVertex__(), (a : A) => {
+                                state.a = a;
+                                state.a_present = true;
+                                if (state.f_present)
+                                    out.send_(state.f(state.a));
+                            }, false);
+                        }
+                    )
+                ]
+            ));
+            return out.coalesce__((l, r) => r).holdLazy(new Lazy<B>(() =>
+                    cf.sampleNoTrans__()(ca.sampleNoTrans__())
+                ));
+        });
+	}
 
 	/**
 	 * Listen for updates to the value of this cell. This is the observer pattern. The
