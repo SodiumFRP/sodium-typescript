@@ -29,11 +29,11 @@ export class Operational {
      */
     static value<A>(c : Cell<A>) : Stream<A> {
         return transactionally(() => {
-            let sSpark = new StreamWithSend<Unit>();
+            const sSpark = new StreamWithSend<Unit>();
             currentTransaction.prioritized(sSpark.getVertex__(), () => {
                 sSpark.send_(Unit.UNIT);
             });
-            let sInitial = sSpark.snapshot1(c);
+            const sInitial = sSpark.snapshot1(c);
             return sInitial.merge(this.updates(c), (l : A, r : A) => { return r; });
         });
     }
@@ -56,7 +56,7 @@ export class Operational {
 	 * events output by split() or {@link defer(Stream)} invoked elsewhere in the code.
 	 */
 	static split<A>(s : Stream<Array<A>>) : Stream<A> {
-	    let out = new StreamWithSend<A>(null);
+	    const out = new StreamWithSend<A>(null);
         out.setVertex__(new Vertex(0, [
                 new Source(
                     s.getVertex__(),

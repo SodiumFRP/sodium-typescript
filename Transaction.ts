@@ -52,7 +52,7 @@ export class Transaction {
 	    // If an entry exists already, combine the old one with the new one.
 	    while (this.postQ.length <= childIx)
 	        this.postQ.push(null);
-	    let existing = this.postQ[childIx],
+	    const existing = this.postQ[childIx],
 	        neu =
                 existing === null ? action
 	                         : () => {
@@ -121,11 +121,11 @@ export class Transaction {
 export let currentTransaction : Transaction = null;
 
 export function transactionally<A>(f : () => A) : A {
-    let transWas : Transaction = currentTransaction;
+    const transWas : Transaction = currentTransaction;
     if (transWas === null)
         currentTransaction = new Transaction();
     try {
-        let a : A = f();
+        const a : A = f();
         if (transWas === null) {
             currentTransaction.close();
             currentTransaction = null;

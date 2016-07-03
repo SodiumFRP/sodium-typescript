@@ -42,7 +42,7 @@ export class Cell<A> {
             this.str = new Stream<A>();
         else {
             this.str = str;
-            let me = this;
+            const me = this;
             transactionally(() => {
                 me.cleanup = me.str.listen_(Vertex.NULL, (a : A) => {
                         if (this.valueUpdate == null) {
@@ -90,12 +90,12 @@ export class Cell<A> {
      * @see Stream#holdLazy(Lazy) Stream.holdLazy()
      */
     sampleLazy() : Lazy<A> {
-        let me = this;
+        const me = this;
         return transactionally(() => me.sampleLazyNoTrans__());
     }
 
     sampleLazyNoTrans__() : Lazy<A> {  // TO DO figure out how to hide this
-        let me = this,
+        const me = this,
             s = new LazySample<A>(me);
         currentTransaction.last(() => {
             s.value = me.valueUpdate != null ? me.valueUpdate : me.sampleNoTrans__();
@@ -116,7 +116,7 @@ export class Cell<A> {
      * @param f Function to apply to convert the values. It must be <em>referentially transparent</em>.
      */
     map<B>(f : ((a : A) => B) | Lambda1<A,B>) : Cell<B> {
-        let c = this;
+        const c = this;
         return transactionally(() =>
             Operational.updates(c).map(f).holdLazy(c.sampleLazy().map(Lambda1_toFunction(f)))
         );
@@ -130,7 +130,7 @@ export class Cell<A> {
 	lift<B,C>(b : Cell<B>,
 	          fn0 : ((a : A, b : B) => C) |
 	                Lambda2<A,B,C>) : Cell<C> {
-        let fn = Lambda2_toFunction(fn0),
+        const fn = Lambda2_toFunction(fn0),
             cf = this.map(aa => bb => fn(aa, bb));
         return Cell.apply(cf, b,
             toSources(Lambda2_deps(fn0)));
@@ -144,7 +144,7 @@ export class Cell<A> {
 	lift3<B,C,D>(b : Cell<B>, c : Cell<C>,
 	             fn0 : ((a : A, b : B, c : C) => D) |
 	                   Lambda3<A,B,C,D>) : Cell<D> {
-        let fn = Lambda3_toFunction(fn0),
+        const fn = Lambda3_toFunction(fn0),
             cf = this.map(aa => bb => cc => fn(aa, bb, cc));
         return Cell.apply(
                    Cell.apply<B, (c : C) => D>(cf, b),
@@ -160,7 +160,7 @@ export class Cell<A> {
 	lift4<B,C,D,E>(b : Cell<B>, c : Cell<C>, d : Cell<D>,
 	               fn0 : ((a : A, b : B, c : C, d : D) => E) |
 	                     Lambda4<A,B,C,D,E>) : Cell<E> {
-        let fn = Lambda4_toFunction(fn0),
+        const fn = Lambda4_toFunction(fn0),
             cf = this.map(aa => bb => cc => dd => fn(aa, bb, cc, dd));
         return Cell.apply(
                    Cell.apply(
@@ -178,7 +178,7 @@ export class Cell<A> {
 	lift5<B,C,D,E,F>(b : Cell<B>, c : Cell<C>, d : Cell<D>, e : Cell<E>,
 	                 fn0 : ((a : A, b : B, c : C, d : D, e : E) => F) |
 	                       Lambda5<A,B,C,D,E,F>) : Cell<F> {
-        let fn = Lambda5_toFunction(fn0),
+        const fn = Lambda5_toFunction(fn0),
             cf = this.map(aa => bb => cc => dd => ee => fn(aa, bb, cc, dd, ee));
         return Cell.apply(
                    Cell.apply(
@@ -198,7 +198,7 @@ export class Cell<A> {
 	lift6<B,C,D,E,F,G>(b : Cell<B>, c : Cell<C>, d : Cell<D>, e : Cell<E>, f : Cell<F>,
 	                   fn0 : ((a : A, b : B, c : C, d : D, e : E, f : F) => G) |
 	                         Lambda6<A,B,C,D,E,F,G>) : Cell<G> {
-        let fn = Lambda6_toFunction(fn0),
+        const fn = Lambda6_toFunction(fn0),
             cf = this.map(aa => bb => cc => dd => ee => ff => fn(aa, bb, cc, dd, ee, ff));
         return Cell.apply(
                    Cell.apply(
@@ -218,7 +218,7 @@ export class Cell<A> {
 	 */
 	static apply<A,B>(cf : Cell<(a : A) => B>, ca : Cell<A>, sources? : Source[]) : Cell<B> {
     	return transactionally(() => {
-    	    let state = new ApplyState<A,B>(),
+    	    const state = new ApplyState<A,B>(),
                 out = new StreamWithSend<B>(),
                 cf_value = Operational.value(cf),
                 ca_value = Operational.value(ca);
@@ -258,10 +258,10 @@ export class Cell<A> {
 	 */
     static switchC<A>(bba : Cell<Cell<A>>) : Cell<A> {
 	    return transactionally(() => {
-            let za = bba.sampleLazy().map((ba : Cell<A>) => ba.sample()),
+            const za = bba.sampleLazy().map((ba : Cell<A>) => ba.sample()),
                 out = new StreamWithSend<A>();
             let currentKill : () => void = null;
-            let bba_value = Operational.value(bba);
+            const bba_value = Operational.value(bba);
             out.setVertex__(new Vertex(0, [
                     // TO DO: We will need changing sources here!
                     new Source(

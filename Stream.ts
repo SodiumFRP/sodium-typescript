@@ -33,7 +33,7 @@ export class Stream<A> {
      */
     map<B>(f : ((a : A) => B) | Lambda1<A,B>) : Stream<B> {
         const out = new StreamWithSend<B>(null);
-        let ff = Lambda1_toFunction(f);
+        const ff = Lambda1_toFunction(f);
         out.vertex = new Vertex(0, [
                 new Source(
                     this.vertex,
@@ -154,7 +154,7 @@ export class Stream<A> {
      */
     filter(f : ((a : A) => boolean) | Lambda1<A,boolean>) : Stream<A> {
         const out = new StreamWithSend<A>(null);
-        let ff = Lambda1_toFunction(f);
+        const ff = Lambda1_toFunction(f);
         out.vertex = new Vertex(0, [
                 new Source(
                     this.vertex,
@@ -224,7 +224,7 @@ export class Stream<A> {
 	snapshot<B,C>(c : Cell<B>, f : ((a : A, b : B) => C) | Lambda2<A,B,C>) : Stream<C>
 	{
         const out = new StreamWithSend<C>(null);
-        let ff = Lambda2_toFunction(f);
+        const ff = Lambda2_toFunction(f);
         out.vertex = new Vertex(0, [
                 new Source(
                     this.vertex,
@@ -282,9 +282,9 @@ export class Stream<A> {
      * {@link Cell#sampleLazy()}.
      */
     collectLazy<B,S>(initState : Lazy<S>, f : ((a : A, s : S) => Tuple2<B,S>) | Lambda2<A,S,Tuple2<B,S>>) : Stream<B> {
-        let ea = this;
+        const ea = this;
         return transactionally(() => {
-            let es = new StreamLoop<S>(),
+            const es = new StreamLoop<S>(),
                 s = es.holdLazy(initState),
                 ebs = ea.snapshot(s, f),
                 eb = ebs.map((bs : Tuple2<B,S>) => { return bs.a; }),
@@ -309,9 +309,9 @@ export class Stream<A> {
      * {@link Cell#sampleLazy()}.
      */
     accumLazy<S>(initState : Lazy<S>, f : ((a : A, s : S) => S) | Lambda2<A,S,S>) : Cell<S> {
-        let ea = this;
+        const ea = this;
         return transactionally(() => {
-            let es = new StreamLoop<S>(),
+            const es = new StreamLoop<S>(),
                 s = es.holdLazy(initState),
                 es_out = ea.snapshot(s, f);
             es.loop(es_out);
@@ -325,7 +325,7 @@ export class Stream<A> {
      */
     once() : Stream<A> {
         return transactionally(() => {
-            let ev = this,
+            const ev = this,
                 out = new StreamWithSend<A>();
             let la : () => void = null;
             la = ev.listen_(out.vertex, (a : A) => {

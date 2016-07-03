@@ -154,9 +154,9 @@ export function Lambda6_toFunction<A,B,C,D,E,F,G>(f : ((a : A, b : B, c : C, d :
 }
 
 export function toSources(deps : Array<Stream<any>|Cell<any>>) : Source[] {
-    let ss : Source[] = [];
+    const ss : Source[] = [];
     for (let i = 0; i < deps.length; i++) {
-        let dep = deps[i];
+        const dep = deps[i];
         ss.push(new Source(dep.getVertex__(), null));
     }
     return ss;
