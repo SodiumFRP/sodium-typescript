@@ -45,9 +45,9 @@ function test(name : string, t : () => void)
 }
 
 test("map", () => {
-    let s = new StreamSink<number>();
-    let out : number[] = [];
-    let kill = s.map(a => a + 1)
+    const s = new StreamSink<number>();
+    const out : number[] = [];
+    const kill = s.map(a => a + 1)
                 .listen(a => out.push(a));
     s.send(7);
     kill();
@@ -57,7 +57,7 @@ test("map", () => {
 test("send_with_no_listener_1", () => {
     shouldThrow("invoked before listeners",
         () => {
-            let s = new StreamSink<number>();
+            const s = new StreamSink<number>();
             s.send(7);
         }
     );
@@ -65,9 +65,9 @@ test("send_with_no_listener_1", () => {
 
 test("send_with_no_listener_2", () => {
     () => {
-        let s = new StreamSink<number>();
-        let out : number[] = [];
-        let kill = s.map(a => a + 1)
+        const s = new StreamSink<number>();
+        const out : number[] = [];
+        const kill = s.map(a => a + 1)
                     .listen(a => out.push(a));
         s.send(7);
         kill();
@@ -76,7 +76,7 @@ test("send_with_no_listener_2", () => {
 });
 
 test("map_track", () => {
-    let s = new StreamSink<number>(),
+    const s = new StreamSink<number>(),
         t = new StreamSink<string>(),
         out : number[] = [],
         kill = s.map(new Lambda1((a : number) => a + 1, [t]))
@@ -88,7 +88,7 @@ test("map_track", () => {
 });
 
 test("mapTo", () => {
-    let s = new StreamSink<number>(),
+    const s = new StreamSink<number>(),
         out : string[] = [],
         kill = s.mapTo("fusebox")
                 .listen(a => out.push(a));
@@ -99,10 +99,10 @@ test("mapTo", () => {
 });
 
 test("mergeNonSimultaneous", () => {
-    let s1 = new StreamSink<number>(),
+    const s1 = new StreamSink<number>(),
         s2 = new StreamSink<number>(),
         out : number[] = [];
-    let kill = s2.orElse(s1)
+    const kill = s2.orElse(s1)
                  .listen(a => out.push(a));
     s1.send(7);
     s2.send(9);
@@ -112,7 +112,7 @@ test("mergeNonSimultaneous", () => {
 });
 
 test("mergeSimultaneous", () => {
-    let s1 = new StreamSink<number>((l : number, r : number) => { return r; }),
+    const s1 = new StreamSink<number>((l : number, r : number) => { return r; }),
         s2 = new StreamSink<number>((l : number, r : number) => { return r; }),
         out : number[] = [],
         kill = s2.orElse(s1)
@@ -147,7 +147,7 @@ test("mergeSimultaneous", () => {
 });
 
 test("coalesce", () => {
-    let s = new StreamSink<number>((a, b) => a+b),
+    const s = new StreamSink<number>((a, b) => a+b),
         out : number[] = [],
         kill = s.listen(a => out.push(a));
     transactionally<void>(() => {
@@ -162,7 +162,7 @@ test("coalesce", () => {
 });
 
 test("filter", () => {
-    let s = new StreamSink<number>(),
+    const s = new StreamSink<number>(),
         out : number[] = [],
         kill = s.filter(a => a < 10)
                 .listen(a => out.push(a));
@@ -174,7 +174,7 @@ test("filter", () => {
 });
 
 test("filterNotNull", () => {
-    let s = new StreamSink<string>(),
+    const s = new StreamSink<string>(),
         out : string[] = [],
         kill = s.filterNotNull()
                 .listen(a => out.push(a));
@@ -186,7 +186,7 @@ test("filterNotNull", () => {
 });
 
 test("merge2", () => {
-    let sa = new StreamSink<number>(),
+    const sa = new StreamSink<number>(),
         sb = sa.map(x => Math.floor(x / 10))
                    .filter(x => x != 0),
         sc = sa.map(x => x % 10).merge(sb,
@@ -200,9 +200,9 @@ test("merge2", () => {
 });
 
 test("loopStream", () => {
-    let sa = new StreamSink<number>(),
+    const sa = new StreamSink<number>(),
         sc = transactionally(() => {
-            let sb = new StreamLoop<number>(),
+            const sb = new StreamLoop<number>(),
                 sc_ = sa.map(x => x % 10).merge(sb,
                     (x, y) => x+y),
                 sb_out = sa.map(x => Math.floor(x / 10))
@@ -219,7 +219,7 @@ test("loopStream", () => {
 });
 
 test("gate", () => {
-    let s = new StreamSink<string>(),
+    const s = new StreamSink<string>(),
         pred = new CellSink<boolean>(true),
         out : string[] = [],
         kill = s.gate(pred).listen(a => out.push(a));
@@ -233,7 +233,7 @@ test("gate", () => {
 });
 
 test("collect", () => {
-    let ea = new StreamSink<number>(),
+    const ea = new StreamSink<number>(),
         out : number[] = [],
         sum = ea.collect(0, (a, s) => new Tuple2(a+s+100, a+s)),
         kill = sum.listen(a => out.push(a));
@@ -247,7 +247,7 @@ test("collect", () => {
 });
 
 test("accum", () => {
-    let ea = new StreamSink<number>(),
+    const ea = new StreamSink<number>(),
         out : number[] = [],
         sum = ea.accum(100, (a, s) => a + s),
         kill = sum.listen(a => out.push(a));
@@ -262,7 +262,7 @@ test("accum", () => {
 
 test("once", () => {
     
-    let s = new StreamSink<string>(),
+    const s = new StreamSink<string>(),
         out : string[] = [],
         kill = s.once().listen(a => out.push(a));
     s.send("A");
@@ -273,7 +273,7 @@ test("once", () => {
 });
 
 test("defer", () => {
-    let s = new StreamSink<string>(),
+    const s = new StreamSink<string>(),
         c = s.hold(" "),
         out : string[] = [],
         kill = Operational.defer(s).snapshot1(c)
@@ -285,7 +285,7 @@ test("defer", () => {
 });
 
 test("hold", () => {
-    let s = new StreamSink<number>(),
+    const s = new StreamSink<number>(),
         c = s.hold(0),
         out : number[] = [],
         kill = Operational.updates(c)
@@ -297,7 +297,7 @@ test("hold", () => {
 });
 
 test("snapshot", () => {
-    let c = new CellSink<number>(0),
+    const c = new CellSink<number>(0),
         s = new StreamSink<number>(),
         out : string[] = [],
         kill = s.snapshot(c, (x, y) => x + " " + y)
@@ -313,7 +313,7 @@ test("snapshot", () => {
 });
 
 test("values", () => {
-    let c = new CellSink<number>(9),
+    const c = new CellSink<number>(9),
         out : number[] = [],
         kill = c.listen(a => out.push(a));
     c.send(2);
@@ -323,7 +323,7 @@ test("values", () => {
 });
 
 test("constantCell", () => {
-    let c = new Cell<number>(12),
+    const c = new Cell<number>(12),
         out : number[] = [],
         kill = c.listen(a => out.push(a));
     kill();
@@ -331,7 +331,7 @@ test("constantCell", () => {
 });
 
 test("mapC", () => {
-    let c = new CellSink<number>(6),
+    const c = new CellSink<number>(6),
         out : string[] = [],
         kill = c.map(a => ""+a)
                 .listen(a => out.push(a));
@@ -341,18 +341,18 @@ test("mapC", () => {
 });
 
 test("mapCLateListen", () => {
-    let c = new CellSink<number>(6),
+    const c = new CellSink<number>(6),
         out : string[] = [],
         cm = c.map(a => ""+a);
     c.send(2);
-    let kill = cm.listen(a => out.push(a));
+    const kill = cm.listen(a => out.push(a));
     c.send(8);
     kill();
     assertEquals(["2", "8"], out);
 });
 
 test("apply", () => {
-    let cf = new CellSink<(a : number) => string>(a => "1 "+a),
+    const cf = new CellSink<(a : number) => string>(a => "1 "+a),
         ca = new CellSink<number>(5),
         out : string[] = [],
         kill = Cell.apply(cf, ca).listen(a => out.push(a));
@@ -363,7 +363,7 @@ test("apply", () => {
 });
 
 test("lift", () => {
-    let a = new CellSink<number>(1),
+    const a = new CellSink<number>(1),
         b = new CellSink<number>(5),
         out : string[] = [],
         kill = a.lift(b, (aa, bb) => aa + " " + bb)
@@ -375,7 +375,7 @@ test("lift", () => {
 });
 
 test("liftGlitch", () => {
-    let a = new CellSink(1),
+    const a = new CellSink(1),
         a3 = a.map(x => x * 3),
         a5 = a.map(x => x * 5),
         b = a3.lift(a5, (x, y) => x + " " + y),
@@ -387,13 +387,13 @@ test("liftGlitch", () => {
 });
 
 test("liftFromSimultaneous", () => {
-    let t = transactionally(() => {
-        let b1 = new CellSink(3),
+    const t = transactionally(() => {
+        const b1 = new CellSink(3),
             b2 = new CellSink(5);
         b2.send(7);
         return new Tuple2(b1, b2);
     });
-    let b1 = t.a,
+    const b1 = t.a,
         b2 = t.b,
         out : number[] = [],
         kill = b1.lift(b2, (x, y) => x + y)
@@ -403,7 +403,7 @@ test("liftFromSimultaneous", () => {
 });
 
 test("holdIsDelayed", () => {
-    let s = new StreamSink<number>(),
+    const s = new StreamSink<number>(),
         h = s.hold(0),
         sPair = s.snapshot(h, (a, b) => a + " " + b),
         out : string[] = [],
@@ -427,7 +427,7 @@ class SB {
 }
 
 test("switchC", () => {
-    let esb = new StreamSink<SB>(),
+    const esb = new StreamSink<SB>(),
         // Split each field out of SB so we can update multiple behaviours in a
         // single transaction.
         ba = esb.map(s => s.a).filterNotNull().hold("A"),
