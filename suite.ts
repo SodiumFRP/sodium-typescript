@@ -413,3 +413,39 @@ test("holdIsDelayed", () => {
     kill();
     assertEquals(["2 0", "3 2"], out);
 });
+
+class SB {
+    constructor(a : string, b : string, sw : Cell<string>) {
+        this.a = a;
+        this.b = b;
+        this.sw = sw;
+    }
+
+    a : string;
+    b : string;
+    sw : Cell<string>;
+}
+
+test("switchC", () => {
+    let esb = new StreamSink<SB>(),
+        // Split each field out of SB so we can update multiple behaviours in a
+        // single transaction.
+        ba = esb.map(s => s.a).filterNotNull().hold("A"),
+        bb = esb.map(s => s.b).filterNotNull().hold("a"),
+        bsw = esb.map(s => s.sw).filterNotNull().hold(ba),
+        bo = Cell.switchC(bsw),
+        out : string[] = [],
+        kill = bo.listen(c => out.push(c));
+    esb.send(new SB("B", "b", null));
+    esb.send(new SB("C", "c", bb));
+    esb.send(new SB("D", "d", null));
+    esb.send(new SB("E", "e", ba));
+    esb.send(new SB("F", "f", null));
+    esb.send(new SB(null, null, bb));
+    esb.send(new SB(null, null, ba));
+    esb.send(new SB("G", "g", bb));
+    esb.send(new SB("H", "h", ba));
+    esb.send(new SB("I", "i", ba));
+    kill();
+    assertEquals(["A", "B", "c", "d", "E", "F", "f", "F", "g", "H", "I"], out);
+});
