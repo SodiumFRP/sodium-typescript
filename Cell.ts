@@ -1,5 +1,9 @@
 import { Lambda1, Lambda1_deps, Lambda1_toFunction,
          Lambda2, Lambda2_deps, Lambda2_toFunction,
+         Lambda3, Lambda3_deps, Lambda3_toFunction,
+         Lambda4, Lambda4_deps, Lambda4_toFunction,
+         Lambda5, Lambda5_deps, Lambda5_toFunction,
+         Lambda6, Lambda6_deps, Lambda6_toFunction,
          toSources } from "./Lambda";
 import { Source, Vertex } from "./Vertex";
 import { Transaction, transactionally, currentTransaction } from "./Transaction";
@@ -119,10 +123,100 @@ export class Cell<A> {
     }
 
 	/**
+	 * Lift a binary function into cells, so the returned Cell always reflects the specified
+	 * function applied to the input cells' values.
+	 * @param fn Function to apply. It must be <em>referentially transparent</em>.
+	 */
+	lift<B,C>(b : Cell<B>,
+	          fn0 : ((a : A, b : B) => C) |
+	                Lambda2<A,B,C>) : Cell<C> {
+        let fn = Lambda2_toFunction(fn0),
+            cf = this.map(aa => bb => fn(aa, bb));
+        return Cell.apply(cf, b,
+            toSources(Lambda2_deps(fn0)));
+	}
+
+	/**
+	 * Lift a ternary function into cells, so the returned Cell always reflects the specified
+	 * function applied to the input cells' values.
+	 * @param fn Function to apply. It must be <em>referentially transparent</em>.
+	 */
+	lift3<B,C,D>(b : Cell<B>, c : Cell<C>,
+	             fn0 : ((a : A, b : B, c : C) => D) |
+	                   Lambda3<A,B,C,D>) : Cell<D> {
+        let fn = Lambda3_toFunction(fn0),
+            cf = this.map(aa => bb => cc => fn(aa, bb, cc));
+        return Cell.apply(
+                   Cell.apply<B, (c : C) => D>(cf, b),
+                   c,
+                   toSources(Lambda3_deps(fn0)));
+	}
+
+	/**
+	 * Lift a quaternary function into cells, so the returned Cell always reflects the specified
+	 * function applied to the input cells' values.
+	 * @param fn Function to apply. It must be <em>referentially transparent</em>.
+	 */
+	lift4<B,C,D,E>(b : Cell<B>, c : Cell<C>, d : Cell<D>,
+	               fn0 : ((a : A, b : B, c : C, d : D) => E) |
+	                     Lambda4<A,B,C,D,E>) : Cell<E> {
+        let fn = Lambda4_toFunction(fn0),
+            cf = this.map(aa => bb => cc => dd => fn(aa, bb, cc, dd));
+        return Cell.apply(
+                   Cell.apply(
+                       Cell.apply<B, (c : C) => (d : D) => E>(cf, b),
+                       c),
+                   d,
+                   toSources(Lambda4_deps(fn0)));
+	}
+
+	/**
+	 * Lift a 5-argument function into cells, so the returned Cell always reflects the specified
+	 * function applied to the input cells' values.
+	 * @param fn Function to apply. It must be <em>referentially transparent</em>.
+	 */
+	lift5<B,C,D,E,F>(b : Cell<B>, c : Cell<C>, d : Cell<D>, e : Cell<E>,
+	                 fn0 : ((a : A, b : B, c : C, d : D, e : E) => F) |
+	                       Lambda5<A,B,C,D,E,F>) : Cell<F> {
+        let fn = Lambda5_toFunction(fn0),
+            cf = this.map(aa => bb => cc => dd => ee => fn(aa, bb, cc, dd, ee));
+        return Cell.apply(
+                   Cell.apply(
+                       Cell.apply(
+                           Cell.apply<B, (c : C) => (d : D) => (e : E) => F>(cf, b),
+                           c),
+                       d),
+                   e,
+                   toSources(Lambda5_deps(fn0)));
+	}
+
+	/**
+	 * Lift a 6-argument function into cells, so the returned Cell always reflects the specified
+	 * function applied to the input cells' values.
+	 * @param fn Function to apply. It must be <em>referentially transparent</em>.
+	 */
+	lift6<B,C,D,E,F,G>(b : Cell<B>, c : Cell<C>, d : Cell<D>, e : Cell<E>, f : Cell<F>,
+	                   fn0 : ((a : A, b : B, c : C, d : D, e : E, f : F) => G) |
+	                         Lambda6<A,B,C,D,E,F,G>) : Cell<G> {
+        let fn = Lambda6_toFunction(fn0),
+            cf = this.map(aa => bb => cc => dd => ee => ff => fn(aa, bb, cc, dd, ee, ff));
+        return Cell.apply(
+                   Cell.apply(
+                       Cell.apply(
+                           Cell.apply(
+                               Cell.apply<B, (c : C) => (d : D) => (e : E) => (f : F) => G>(cf, b),
+                               c),
+                           d),
+                       e),
+                   f,
+                   toSources(Lambda6_deps(fn0)));
+	}
+
+	/**
 	 * Apply a value inside a cell to a function inside a cell. This is the
 	 * primitive for all function lifting.
 	 */
-	static apply<A,B>(cf : Cell<(a : A) => B>, ca : Cell<A>) {
+	static apply<A,B>(cf : Cell<(a : A) => B>, ca : Cell<A>, sources? : Source[]) : Cell<B> {
     	return transactionally(() => {
     	    let state = new ApplyState<A,B>(),
                 out = new StreamWithSend<B>(),
@@ -151,7 +245,7 @@ export class Cell<A> {
                             }, false);
                         }
                     )
-                ]
+                ].concat(sources ? sources : []) 
             ));
             return out.coalesce__((l, r) => r).holdLazy(new Lazy<B>(() =>
                     cf.sampleNoTrans__()(ca.sampleNoTrans__())

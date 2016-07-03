@@ -361,3 +361,15 @@ test("apply", () => {
     kill();
     assertEquals(["1 5", "12 5", "12 6"], out);
 });
+
+test("lift", () => {
+    let a = new CellSink<number>(1),
+        b = new CellSink<number>(5),
+        out : string[] = [],
+        kill = a.lift(b, (aa, bb) => aa + " " + bb)
+                .listen(a => out.push(a));
+    a.send(12);
+    b.send(6);
+    kill();
+    assertEquals(["1 5", "12 5", "12 6"], out);
+});
