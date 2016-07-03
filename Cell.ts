@@ -260,7 +260,7 @@ export class Cell<A> {
 	    return transactionally(() => {
             let za = bba.sampleLazy().map((ba : Cell<A>) => ba.sample()),
                 out = new StreamWithSend<A>();
-            var currentKill : () => void = null;
+            let currentKill : () => void = null;
             let bba_value = Operational.value(bba);
             out.setVertex__(new Vertex(0, [
                     // TO DO: We will need changing sources here!

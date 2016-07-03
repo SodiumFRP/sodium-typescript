@@ -327,7 +327,7 @@ export class Stream<A> {
         return transactionally(() => {
             let ev = this,
                 out = new StreamWithSend<A>();
-            var la : () => void = null;
+            let la : () => void = null;
             la = ev.listen_(out.vertex, (a : A) => {
                 if (la !== null) {
                     out.send_(a);
