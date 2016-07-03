@@ -373,3 +373,43 @@ test("lift", () => {
     kill();
     assertEquals(["1 5", "12 5", "12 6"], out);
 });
+
+test("liftGlitch", () => {
+    let a = new CellSink(1),
+        a3 = a.map(x => x * 3),
+        a5 = a.map(x => x * 5),
+        b = a3.lift(a5, (x, y) => x + " " + y),
+        out : string[] = [],
+        kill = b.listen(x => out.push(x));
+    a.send(2);
+    kill();
+    assertEquals(["3 5", "6 10"], out);
+});
+
+test("liftFromSimultaneous", () => {
+    let t = transactionally(() => {
+        let b1 = new CellSink(3),
+            b2 = new CellSink(5);
+        b2.send(7);
+        return new Tuple2(b1, b2);
+    });
+    let b1 = t.a,
+        b2 = t.b,
+        out : number[] = [],
+        kill = b1.lift(b2, (x, y) => x + y)
+          .listen(a => out.push(a));
+    kill();
+    assertEquals([10], out);
+});
+
+test("holdIsDelayed", () => {
+    let s = new StreamSink<number>(),
+        h = s.hold(0),
+        sPair = s.snapshot(h, (a, b) => a + " " + b),
+        out : string[] = [],
+        kill = sPair.listen(a => out.push(a));
+    s.send(2);
+    s.send(3);
+    kill();
+    assertEquals(["2 0", "3 2"], out);
+});
