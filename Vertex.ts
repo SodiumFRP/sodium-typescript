@@ -45,9 +45,11 @@ export class Vertex {
     visited : boolean = false;
     register(target : Vertex) : boolean {
         let anyChanged : boolean = false;
-        for (let i = 0; i < this.sources.length; i++)
-            if (this.sources[i].register(this))
-                anyChanged = true;
+        if (this.registrationCount == 0) {
+            for (let i = 0; i < this.sources.length; i++)
+                if (this.sources[i].register(this))
+                    anyChanged = true;
+        }
         this.registrationCount++;
         this.targets.push(target);
         if (target.ensureBiggerThan(this.rank))
@@ -56,8 +58,10 @@ export class Vertex {
     }
     deregister(target : Vertex) : void {
         this.registrationCount--;
-        for (let i = 0; i < this.sources.length; i++)
-            this.sources[i].deregister(this);
+        if (this.registrationCount == 0) {
+            for (let i = 0; i < this.sources.length; i++)
+                this.sources[i].deregister(this);
+        }
         for (let i = 0; i < this.targets.length; i++)
             if (this.targets[i] === target) {
                 this.targets.splice(i, 1);

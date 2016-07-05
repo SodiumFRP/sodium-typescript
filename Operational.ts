@@ -14,6 +14,27 @@ export class Operational {
      * that do not allow the caller to detect the cell updates.
      */
     static updates<A>(c : Cell<A>) : Stream<A> {
+        /*  Don't think this is needed
+        const out = new StreamWithSend<A>(null);
+        out.setVertex__(new Vertex(0, [
+                new Source(
+                    c.getStream__().getVertex__(),
+                    () => {
+                        return c.getStream__().listen_(out.getVertex__(), (a : A) => {
+                            out.send_(a);
+                        }, false);
+                    }
+                ),
+                new Source(
+                    c.getVertex__(),
+                    () => {
+                        return () => { };
+                    }
+                )
+            ]
+        ));
+        return out;
+        */
         return c.getStream__();
     }
 
@@ -34,7 +55,7 @@ export class Operational {
                 sSpark.send_(Unit.UNIT);
             });
             const sInitial = sSpark.snapshot1(c);
-            return sInitial.merge(this.updates(c), (l : A, r : A) => { return r; });
+            return Operational.updates(c).orElse(sInitial);
         });
     }
 

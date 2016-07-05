@@ -437,8 +437,7 @@ test("switchC", () => {
         ba = esb.map(s => s.a).filterNotNull().hold("A"),
         bb = esb.map(s => s.b).filterNotNull().hold("a"),
         bsw_str = esb.map(s => s.sw).filterNotNull().hold("ba"),
-        bsw = bsw_str.map(lambda1(s =>
-            s == "ba" ? ba : bb, [ba, bb])),
+        bsw = bsw_str.map(lambda1(s => s == "ba" ? ba : bb, [ba, bb])),
         bo = Cell.switchC(bsw),
         out : string[] = [],
         kill = bo.listen(c => out.push(c));

@@ -278,14 +278,13 @@ export class Cell<A> {
             const za = bba.sampleLazy().map((ba : Cell<A>) => ba.sample()),
                 out = new StreamWithSend<A>();
             let currentKill : () => void = null;
-            const bba_value = Operational.value(bba);
-            out.setVertex__(new Vertex(0, [
-                    new Source(
+            const bba_value = Operational.value(bba),
+                  src = new Source(
                         bba_value.getVertex__(),
                         () => {
                             return bba_value.listen_(out.getVertex__(), (ba : Cell<A>) => {
                                 // Note: If any switch takes place during a transaction, then the
-                                // lastFiringOnly() below will always cause a sample to be fetched
+                                // coalesce__() below will always cause a sample to be fetched
                                 // from the one we just switched to. So anything from the old input cell
                                 // that might have happened during this transaction will be suppressed.
                                 if (currentKill !== null)
@@ -294,8 +293,8 @@ export class Cell<A> {
                                     (a : A) => out.send_(a), false);
                             }, false);
                         }
-                    )
-                ]));
+                    );
+            out.setVertex__(new Vertex(0, [src]));
             return out.coalesce__((l, r) => r).holdLazy(za);
         });
 	}
