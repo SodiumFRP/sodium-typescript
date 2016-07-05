@@ -35,17 +35,26 @@ export class Cell<A> {
 	protected valueUpdate : A;
 	private cleanup : () => void;
 	protected lazyInitValue : Lazy<A>;  // Used by LazyCell
+	private vertex : Vertex;
 
     constructor(initValue : A, str? : Stream<A>) {
         this.value = initValue;
-        if (!str)
+        if (!str) {
             this.str = new Stream<A>();
-        else {
-            this.str = str;
-            const me = this;
-            transactionally(() => {
-                me.cleanup = me.str.listen_(Vertex.NULL, (a : A) => {
-                        if (this.valueUpdate == null) {
+            this.vertex = new Vertex(0, []);
+        }
+        else
+            transactionally(() => this.setStream(str));
+    }
+
+    protected setStream(str : Stream<A>) {
+        this.str = str;
+        const me = this,
+              src = new Source(
+                str.getVertex__(),
+                () => {
+                    return str.listen_(me.vertex, (a : A) => {
+                        if (me.valueUpdate == null) {
                             currentTransaction.last(() => {
                                 me.value = me.valueUpdate;
                                 me.lazyInitValue = null;
@@ -54,12 +63,20 @@ export class Cell<A> {
                         }
                         me.valueUpdate = a;
                     }, false);
-            });
-        }
+                }
+            );
+        this.vertex = new Vertex(0, [src]);
+        // We do a trick here of registering the source for the duration of the current
+        // transaction so that we are guaranteed to catch any stream events that
+        // occur in the same transaction.
+        src.register(Vertex.NULL);
+        currentTransaction.last(() => {
+            src.deregister(Vertex.NULL);
+        });
     }
 
     getVertex__() : Vertex {
-        return null;
+        return this.vertex;
     }
 
     getStream__() : Stream<A> {  // TO DO: Figure out how to hide this
@@ -221,9 +238,8 @@ export class Cell<A> {
     	    const state = new ApplyState<A,B>(),
                 out = new StreamWithSend<B>(),
                 cf_value = Operational.value(cf),
-                ca_value = Operational.value(ca);
-            out.setVertex__(new Vertex(0, [
-                    new Source(
+                ca_value = Operational.value(ca),
+                src1 = new Source(
                         cf_value.getVertex__(),
                         () => {
                             return cf_value.listen_(out.getVertex__(), (f : (a : A) => B) => {
@@ -234,7 +250,7 @@ export class Cell<A> {
                             }, false);
                         }
                     ),
-                    new Source(
+                src2 = new Source(
                         ca_value.getVertex__(),
                         () => {
                             return ca_value.listen_(out.getVertex__(), (a : A) => {
@@ -244,8 +260,9 @@ export class Cell<A> {
                                     out.send_(state.f(state.a));
                             }, false);
                         }
-                    )
-                ].concat(sources ? sources : []) 
+                    );
+            out.setVertex__(new Vertex(0,
+                [src1, src2].concat(sources ? sources : []) 
             ));
             return out.coalesce__((l, r) => r).holdLazy(new Lazy<B>(() =>
                     cf.sampleNoTrans__()(ca.sampleNoTrans__())
@@ -263,7 +280,6 @@ export class Cell<A> {
             let currentKill : () => void = null;
             const bba_value = Operational.value(bba);
             out.setVertex__(new Vertex(0, [
-                    // TO DO: We will need changing sources here!
                     new Source(
                         bba_value.getVertex__(),
                         () => {

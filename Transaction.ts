@@ -17,8 +17,7 @@ export class Entry {
 }
 
 export class Transaction {
-    constructor() {
-    }
+    constructor() {}
     inCallback : number = 0;
     private toRegen : boolean = false;
     requestRegen() : void { this.toRegen = true; }
@@ -36,7 +35,9 @@ export class Transaction {
     private postQ : Array<() => void> = null;
 
     prioritized(target : Vertex, f : () => void) : void {
-        this.prioritizedQ.enqueue(new Entry(target, f));
+        const e = new Entry(target, f);
+        this.prioritizedQ.enqueue(e);
+        this.entries.add(e);
     }
     
     last(h : () => void) : void {
@@ -80,6 +81,7 @@ export class Transaction {
 	        this.checkRegen();
 		    if (this.prioritizedQ.isEmpty()) break;
 		    const e = this.prioritizedQ.dequeue();
+		    this.entries.remove(e);
 			e.action();
 		}
 		for (let i = 0; i < this.lastQ.length; i++)

@@ -1,4 +1,4 @@
-export { Lambda1, Lambda2 } from "./Lambda";
+export { lambda1, lambda2, lambda3, lambda4, lambda5, lambda6 } from "./Lambda";
 export { Stream, StreamLoop } from "./Stream";
 export { StreamSink } from "./StreamSink";
 export { Cell } from "./Cell";

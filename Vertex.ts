@@ -3,6 +3,8 @@ export class Source {
         origin : Vertex,
         register_ : () => () => void
     ) {
+        if (origin === null)
+            throw new Error("null origin!");
         this.origin = origin;
         this.register_ = register_;
     }
@@ -39,20 +41,21 @@ export class Vertex {
     rank : number;
     sources : Source[];
     targets : Vertex[] = [];
-    hasBeenRegistered : boolean = false;
+    registrationCount : number = 0;
     visited : boolean = false;
     register(target : Vertex) : boolean {
         let anyChanged : boolean = false;
         for (let i = 0; i < this.sources.length; i++)
             if (this.sources[i].register(this))
                 anyChanged = true;
-        this.hasBeenRegistered = true;
+        this.registrationCount++;
         this.targets.push(target);
         if (target.ensureBiggerThan(this.rank))
             anyChanged = true;
         return anyChanged;
     }
     deregister(target : Vertex) : void {
+        this.registrationCount--;
         for (let i = 0; i < this.sources.length; i++)
             this.sources[i].deregister(this);
         for (let i = 0; i < this.targets.length; i++)

@@ -14,7 +14,7 @@ export class StreamSink<A> extends StreamWithSend<A> {
         super();
         if (!f)
             f = <(l : A, r : A) => A>((l : A, r : A) => {
-                throw "send() called more than once per transaction, which isn't allowed. Did you want to combine the events? Then pass a combining function to your StreamSink constructor.";
+                throw new Error("send() called more than once per transaction, which isn't allowed. Did you want to combine the events? Then pass a combining function to your StreamSink constructor.");
             });
         this.coalescer = new CoalesceHandler<A>(f, this);
     }

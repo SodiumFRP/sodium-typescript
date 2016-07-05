@@ -206,9 +206,25 @@ export class Stream<A> {
 	 * at the time of the event firing, ignoring the stream's value.
 	 */
 	snapshot1<B>(c : Cell<B>) : Stream<B> {
-	    return transactionally(() => {
-	        return this.map((a : A) => { return c.sample(); });
-	    });
+        const out = new StreamWithSend<B>(null);
+        out.vertex = new Vertex(0, [
+                new Source(
+                    this.vertex,
+                    () => {
+                        return this.listen_(out.vertex, (a : A) => {
+                            out.send_(c.sampleNoTrans__());
+                        }, false);
+                    }
+                ),
+                new Source(
+                    c.getVertex__(),
+                    () => {
+                        return () => { };
+                    }
+                )
+            ]
+        );
+        return out;
 	}
 
 	/**
@@ -235,7 +251,7 @@ export class Stream<A> {
                     }
                 ),
                 new Source(
-                    c.getStream__().vertex,
+                    c.getVertex__(),
                     () => {
                         return () => { };
                     }
@@ -324,6 +340,7 @@ export class Stream<A> {
      * input stream, starting from the transaction in which once() was invoked.
      */
     once() : Stream<A> {
+    /*
         return transactionally(() => {
             const ev = this,
                 out = new StreamWithSend<A>();
@@ -337,6 +354,14 @@ export class Stream<A> {
             }, false);
             return out;
         });
+        */
+        // We can't use the implementation above, beacuse deregistering
+        // listeners triggers the exception
+        // "send() was invoked before listeners were registered"
+        // We can revisit this another time. For now we will use the less
+        // efficient implementation below.
+        const me = this;
+        return transactionally(() => me.gate(me.mapTo(false).hold(true)));
     }
 
     listen(h : (a : A) => void) : () => void {
@@ -387,11 +412,11 @@ export class StreamWithSend<A> extends Stream<A> {
     }
 
     send_(a : A) : void {
-        // We only throw this if send has never been registered. If it's been registered
-        // and de-registered again, we just throw the value away. This happens
-        // legitimately in the case of Stream.once().
-        if (!this.vertex.hasBeenRegistered)
-            throw "send() was invoked before listeners were registered";
+        // We throw this error if we send into FRP logic that has been constructed
+        // but nothing is listening to it yet. We need to do it this way because
+        // it's the only way to manage memory in a language with no finalizers.
+        if (this.vertex.registrationCount == 0)
+            throw new Error("send() was invoked before listeners were registered");
 		if (this.firings.length == 0)
 			currentTransaction.last(() => {
 			    this.firings = [];
@@ -425,7 +450,7 @@ export class StreamLoop<A> extends StreamWithSend<A> {
     {
         super();
     	if (currentTransaction === null)
-    	    throw "StreamLoop/CellLoop must be used within an explicit transaction";
+    	    throw new Error("StreamLoop/CellLoop must be used within an explicit transaction");
     }
 
     /**
@@ -436,7 +461,7 @@ export class StreamLoop<A> extends StreamWithSend<A> {
      */
     loop(sa_out : Stream<A>) : void {
         if (this.assigned)
-            throw "StreamLoop looped more than once";
+            throw new Error("StreamLoop looped more than once");
         this.assigned = true;
         this.vertex.sources.push(
             new Source(

@@ -1,13 +1,13 @@
-import { Lambda1, Lambda2, Stream, StreamSink, StreamLoop, Cell, CellSink,
+import { lambda1, lambda2, Stream, StreamSink, StreamLoop, Cell, CellSink,
          Tuple2, transactionally, Unit, Operational } from "./sodium";
 
 function fail(err : string) : void {
-    throw err;
+    throw new Error(err);
 }
 
 function assertEquals<A>(sb: A, is : A) : void {
     if (JSON.stringify(is) != JSON.stringify(sb))
-        fail("expected: "+sb+"\n       got: "+is);
+        fail("expected: "+sb+"\n       got:      "+is);
 }
 
 function shouldThrow(substr : string, f : () => void) : void {
@@ -15,7 +15,7 @@ function shouldThrow(substr : string, f : () => void) : void {
         f();
     }
     catch (err) {
-        if (err.search(substr) >= 0)
+        if (err.message.search(substr) >= 0)
             return;
         else
             fail("unexpected exception: "+err);
@@ -36,9 +36,10 @@ function test(name : string, t : () => void)
     }
     catch (err) {
         console.log(name + " - FAIL:");
-        console.log("  " + err);
         if (err.stack !== undefined)
             console.log(err.stack);
+        else
+            console.log(err);
         pass = false;
         current_test = null;
     }
@@ -79,7 +80,7 @@ test("map_track", () => {
     const s = new StreamSink<number>(),
         t = new StreamSink<string>(),
         out : number[] = [],
-        kill = s.map(new Lambda1((a : number) => a + 1, [t]))
+        kill = s.map(lambda1((a : number) => a + 1, [t]))
                 .listen(a => out.push(a));
     s.send(7);
     t.send("banana");
@@ -281,6 +282,7 @@ test("defer", () => {
     s.send("C");
     s.send("B");
     s.send("A");
+    kill();
     assertEquals(["C","B","A"], out);
 });
 
@@ -341,14 +343,16 @@ test("mapC", () => {
 });
 
 test("mapCLateListen", () => {
-    const c = new CellSink<number>(6),
-        out : string[] = [],
-        cm = c.map(a => ""+a);
-    c.send(2);
-    const kill = cm.listen(a => out.push(a));
-    c.send(8);
-    kill();
-    assertEquals(["2", "8"], out);
+    shouldThrow("invoked before listeners", () => {
+        const c = new CellSink<number>(6),
+            out : string[] = [],
+            cm = c.map(a => ""+a);
+        c.send(2);
+        const kill = cm.listen(a => out.push(a));
+        c.send(8);
+        kill();
+        assertEquals(["2", "8"], out);
+    });
 });
 
 test("apply", () => {
@@ -415,7 +419,7 @@ test("holdIsDelayed", () => {
 });
 
 class SB {
-    constructor(a : string, b : string, sw : Cell<string>) {
+    constructor(a : string, b : string, sw : string) {
         this.a = a;
         this.b = b;
         this.sw = sw;
@@ -423,7 +427,7 @@ class SB {
 
     a : string;
     b : string;
-    sw : Cell<string>;
+    sw : string;
 }
 
 test("switchC", () => {
@@ -432,20 +436,22 @@ test("switchC", () => {
         // single transaction.
         ba = esb.map(s => s.a).filterNotNull().hold("A"),
         bb = esb.map(s => s.b).filterNotNull().hold("a"),
-        bsw = esb.map(s => s.sw).filterNotNull().hold(ba),
+        bsw_str = esb.map(s => s.sw).filterNotNull().hold("ba"),
+        bsw = bsw_str.map(lambda1(s =>
+            s == "ba" ? ba : bb, [ba, bb])),
         bo = Cell.switchC(bsw),
         out : string[] = [],
         kill = bo.listen(c => out.push(c));
     esb.send(new SB("B", "b", null));
-    esb.send(new SB("C", "c", bb));
+    esb.send(new SB("C", "c", "bb"));
     esb.send(new SB("D", "d", null));
-    esb.send(new SB("E", "e", ba));
+    esb.send(new SB("E", "e", "ba"));
     esb.send(new SB("F", "f", null));
-    esb.send(new SB(null, null, bb));
-    esb.send(new SB(null, null, ba));
-    esb.send(new SB("G", "g", bb));
-    esb.send(new SB("H", "h", ba));
-    esb.send(new SB("I", "i", ba));
+    esb.send(new SB(null, null, "bb"));
+    esb.send(new SB(null, null, "ba"));
+    esb.send(new SB("G", "g", "bb"));
+    esb.send(new SB("H", "h", "ba"));
+    esb.send(new SB("I", "i", "ba"));
     kill();
     assertEquals(["A", "B", "c", "d", "E", "F", "f", "F", "g", "H", "I"], out);
 });
