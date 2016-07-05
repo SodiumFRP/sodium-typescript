@@ -432,7 +432,7 @@ class SB {
 
 test("switchC", () => {
     const esb = new StreamSink<SB>(),
-        // Split each field out of SB so we can update multiple behaviours in a
+        // Split each field out of SB so we can update multiple cells in a
         // single transaction.
         ba = esb.map(s => s.a).filterNotNull().hold("A"),
         bb = esb.map(s => s.b).filterNotNull().hold("a"),
