@@ -437,6 +437,11 @@ test("switchC", () => {
         ba = esb.map(s => s.a).filterNotNull().hold("A"),
         bb = esb.map(s => s.b).filterNotNull().hold("a"),
         bsw_str = esb.map(s => s.sw).filterNotNull().hold("ba"),
+        // ****
+        // NOTE! Because this lambda contains references to Sodium objects, we
+        // must declare them explicitly using lambda1() so that Sodium knows
+        // about the dependency, otherwise it can't manage the memory.
+        // ****
         bsw = bsw_str.map(lambda1(s => s == "ba" ? ba : bb, [ba, bb])),
         bo = Cell.switchC(bsw),
         out : string[] = [],
