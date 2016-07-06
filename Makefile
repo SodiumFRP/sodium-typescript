@@ -20,4 +20,4 @@ clean:
 	rm -f $(SOURCES:.ts=.js)
 
 run: all
-	node suite
+	node --stack-trace-limit=1000 suite

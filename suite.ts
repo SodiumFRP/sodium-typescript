@@ -418,7 +418,7 @@ test("holdIsDelayed", () => {
     assertEquals(["2 0", "3 2"], out);
 });
 
-class SB {
+class SC {
     constructor(a : string, b : string, sw : string) {
         this.a = a;
         this.b = b;
@@ -431,31 +431,70 @@ class SB {
 }
 
 test("switchC", () => {
-    const esb = new StreamSink<SB>(),
-        // Split each field out of SB so we can update multiple cells in a
+    const ssc = new StreamSink<SC>(),
+        // Split each field out of SC so we can update multiple cells in a
         // single transaction.
-        ba = esb.map(s => s.a).filterNotNull().hold("A"),
-        bb = esb.map(s => s.b).filterNotNull().hold("a"),
-        bsw_str = esb.map(s => s.sw).filterNotNull().hold("ba"),
+        ca = ssc.map(s => s.a).filterNotNull().hold("A"),
+        cb = ssc.map(s => s.b).filterNotNull().hold("a"),
+        csw_str = ssc.map(s => s.sw).filterNotNull().hold("ca"),
         // ****
         // NOTE! Because this lambda contains references to Sodium objects, we
         // must declare them explicitly using lambda1() so that Sodium knows
         // about the dependency, otherwise it can't manage the memory.
         // ****
-        bsw = bsw_str.map(lambda1(s => s == "ba" ? ba : bb, [ba, bb])),
-        bo = Cell.switchC(bsw),
+        csw = csw_str.map(lambda1(s => s == "ca" ? ca : cb, [ca, cb])),
+        co = Cell.switchC(csw),
         out : string[] = [],
-        kill = bo.listen(c => out.push(c));
-    esb.send(new SB("B", "b", null));
-    esb.send(new SB("C", "c", "bb"));
-    esb.send(new SB("D", "d", null));
-    esb.send(new SB("E", "e", "ba"));
-    esb.send(new SB("F", "f", null));
-    esb.send(new SB(null, null, "bb"));
-    esb.send(new SB(null, null, "ba"));
-    esb.send(new SB("G", "g", "bb"));
-    esb.send(new SB("H", "h", "ba"));
-    esb.send(new SB("I", "i", "ba"));
+        kill = co.listen(c => out.push(c));
+    ssc.send(new SC("B", "b", null));
+    ssc.send(new SC("C", "c", "cb"));
+    ssc.send(new SC("D", "d", null));
+    ssc.send(new SC("E", "e", "ca"));
+    ssc.send(new SC("F", "f", null));
+    ssc.send(new SC(null, null, "cb"));
+    ssc.send(new SC(null, null, "ca"));
+    ssc.send(new SC("G", "g", "cb"));
+    ssc.send(new SC("H", "h", "ca"));
+    ssc.send(new SC("I", "i", "ca"));
     kill();
     assertEquals(["A", "B", "c", "d", "E", "F", "f", "F", "g", "H", "I"], out);
+});
+
+class SS {
+    constructor(a : string, b : string, sw : string) {
+        this.a = a;
+        this.b = b;
+        this.sw = sw;
+    }
+
+    a : string;
+    b : string;
+    sw : string;
+}
+
+test("switchS", () => {
+    const sss = new StreamSink<SS>(),
+          sa = sss.map(s => s.a),
+          sb = sss.map(s => s.b),
+          csw_str = sss.map(s => s.sw).filterNotNull().hold("sa"),
+          // ****
+          // NOTE! Because this lambda contains references to Sodium objects, we
+          // must declare them explicitly using lambda1() so that Sodium knows
+          // about the dependency, otherwise it can't manage the memory.
+          // ****
+          csw = csw_str.map(lambda1(sw => sw == "sa" ? sa : sb, [sa, sb])),
+          so = Cell.switchS(csw),
+          out : string[] = [],
+          kill = so.listen(x => out.push(x));
+    sss.send(new SS("A", "a", null));
+    sss.send(new SS("B", "b", null));
+    sss.send(new SS("C", "c", "sb"));
+    sss.send(new SS("D", "d", null));
+    sss.send(new SS("E", "e", "sa"));
+    sss.send(new SS("F", "f", null));
+    sss.send(new SS("G", "g", "sb"));
+    sss.send(new SS("H", "h", "sa"));
+    sss.send(new SS("I", "i", "sa"));
+    kill();
+    assertEquals(["A", "B", "C", "d", "e", "F", "G", "h", "I"], out);
 });

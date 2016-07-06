@@ -273,31 +273,61 @@ export class Cell<A> {
 	/**
 	 * Unwrap a cell inside another cell to give a time-varying cell implementation.
 	 */
-    static switchC<A>(bba : Cell<Cell<A>>) : Cell<A> {
+    static switchC<A>(cca : Cell<Cell<A>>) : Cell<A> {
 	    return transactionally(() => {
-            const za = bba.sampleLazy().map((ba : Cell<A>) => ba.sample()),
+            const za = cca.sampleLazy().map((ba : Cell<A>) => ba.sample()),
                 out = new StreamWithSend<A>();
-            let currentKill : () => void = null;
-            const bba_value = Operational.value(bba),
+            let last_ca : Cell<A> = null;
+            const cca_value = Operational.value(cca),
                   src = new Source(
-                        bba_value.getVertex__(),
+                        cca_value.getVertex__(),
                         () => {
-                            return bba_value.listen_(out.getVertex__(), (ba : Cell<A>) => {
+                            let kill2 : () => void = last_ca === null ? null :
+                                    Operational.value(last_ca).listen_(out.getVertex__(),
+                                        (a : A) => out.send_(a), false);
+                            const kill1 = cca_value.listen_(out.getVertex__(), (ca : Cell<A>) => {
                                 // Note: If any switch takes place during a transaction, then the
                                 // coalesce__() below will always cause a sample to be fetched
                                 // from the one we just switched to. So anything from the old input cell
                                 // that might have happened during this transaction will be suppressed.
-                                if (currentKill !== null)
-                                    currentKill();
-                                currentKill = Operational.value(ba).listen_(out.getVertex__(),
+                                last_ca = ca;
+                                if (kill2 !== null)
+                                    kill2();
+                                kill2 = Operational.value(ca).listen_(out.getVertex__(),
                                     (a : A) => out.send_(a), false);
                             }, false);
+                            return () => { kill1(); kill2(); }; 
                         }
                     );
             out.setVertex__(new Vertex(0, [src]));
             return out.coalesce__((l, r) => r).holdLazy(za);
         });
 	}
+
+	/**
+	 * Unwrap a stream inside a cell to give a time-varying stream implementation.
+	 */
+	static switchS<A>(csa : Cell<Stream<A>>) : Stream<A> {
+	    return transactionally(() => {
+            const out = new StreamWithSend<A>(),
+                  h2 = (a : A) => {
+                          out.send_(a);
+                      },
+                  src = new Source(
+                      csa.getVertex__(),
+                      () => {
+                          let kill2 = csa.sampleNoTrans__().listen_(out.getVertex__(), h2, false);
+                          const kill1 = csa.getStream__().listen_(out.getVertex__(), (sa : Stream<A>) => {
+                              kill2();
+                              kill2 = sa.listen_(out.getVertex__(), h2, true);
+                          }, false);
+                          return () => { kill1(); kill2(); }; 
+                      }
+                  );
+	        out.setVertex__(new Vertex(0, [src]));
+	        return out;
+	    });
+    }
 
 	/**
 	 * Listen for updates to the value of this cell. This is the observer pattern. The

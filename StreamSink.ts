@@ -2,7 +2,7 @@ import { Lambda1, Lambda1_deps, Lambda1_toFunction,
          Lambda2, Lambda2_deps, Lambda2_toFunction } from "./Lambda";
 import { StreamWithSend } from "./Stream";
 import { CoalesceHandler } from "./CoalesceHandler";
-import { transactionally } from "./Transaction";
+import { transactionally, currentTransaction } from "./Transaction";
 
 /**
  * A stream that allows values to be pushed into it, acting as an interface between the
@@ -23,7 +23,11 @@ export class StreamSink<A> extends StreamWithSend<A> {
 
     send(a : A) : void {
         transactionally<void>(
-            () => { this.coalescer.send_(a); }
+            () => {
+                if (currentTransaction.inCallback > 0)
+                    throw new Error("You are not allowed to use send() inside a Sodium callback");
+                this.coalescer.send_(a);
+            }
         )
     }
 }
