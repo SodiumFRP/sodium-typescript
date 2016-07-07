@@ -1,5 +1,5 @@
 import { Vertex } from './Vertex';
-import * as Collections from 'typescript-collections';
+import { Set, PriorityQueue } from 'typescript-collections';
 
 export class Entry {
     constructor(rank : Vertex, action : () => void) {
@@ -21,7 +21,7 @@ export class Transaction {
     inCallback : number = 0;
     private toRegen : boolean = false;
     requestRegen() : void { this.toRegen = true; }
-    prioritizedQ : Collections.PriorityQueue<Entry> = new Collections.PriorityQueue<Entry>((a, b) => {
+    prioritizedQ : PriorityQueue<Entry> = new PriorityQueue<Entry>((a, b) => {
         // Note: Low priority numbers are treated as "greater" according to this
         // comparison, so that the lowest numbers are highest priority and go first.
         if (a.rank.rank < b.rank.rank) return 1;
@@ -30,7 +30,7 @@ export class Transaction {
         if (a.seq > b.seq) return -1;
         return 0;
     });
-    private entries : Collections.Set<Entry> = new Collections.Set<Entry>((a) => a.toString());
+    private entries : Set<Entry> = new Set<Entry>((a) => a.toString());
     private lastQ : Array<() => void> = [];
     private postQ : Array<() => void> = null;
 
@@ -118,14 +118,38 @@ export class Transaction {
             this.postQ = null;
 		}
     }
+
+	/**
+	 * Add a runnable that will be executed whenever a transaction is started.
+	 * That runnable may start transactions itself, which will not cause the
+	 * hooks to be run recursively.
+	 *
+	 * The main use case of this is the implementation of a time/alarm system.
+	 */
+	static onStart(r : () => void) : void {
+        onStartHooks.push(r);
+	}
 }
 
 export let currentTransaction : Transaction = null;
+let onStartHooks : (() => void)[] = [],
+    runningOnStartHooks : boolean = false;
 
 export function transactionally<A>(f : () => A) : A {
     const transWas : Transaction = currentTransaction;
-    if (transWas === null)
+    if (transWas === null) {
+        if (!runningOnStartHooks) {
+            runningOnStartHooks = true;
+            try {
+                for (let i = 0; i < onStartHooks.length; i++)
+                    onStartHooks[i]();
+            }
+            finally {
+                runningOnStartHooks = false;
+            }
+        }
         currentTransaction = new Transaction();
+    }
     try {
         const a : A = f();
         if (transWas === null) {

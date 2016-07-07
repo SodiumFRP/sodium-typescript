@@ -69,9 +69,9 @@ export class Cell<A> {
         // We do a trick here of registering the source for the duration of the current
         // transaction so that we are guaranteed to catch any stream events that
         // occur in the same transaction.
-        src.register(Vertex.NULL);
+        this.vertex.register(Vertex.NULL);
         currentTransaction.last(() => {
-            src.deregister(Vertex.NULL);
+            this.vertex.deregister(Vertex.NULL);
         });
     }
 

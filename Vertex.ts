@@ -41,32 +41,36 @@ export class Vertex {
     rank : number;
     sources : Source[];
     targets : Vertex[] = [];
-    registrationCount : number = 0;
+    registrationCount() : number { return this.targets.length; };
     visited : boolean = false;
     register(target : Vertex) : boolean {
         let anyChanged : boolean = false;
-        if (this.registrationCount == 0) {
+        if (this.registrationCount() == 0) {
             for (let i = 0; i < this.sources.length; i++)
                 if (this.sources[i].register(this))
                     anyChanged = true;
         }
-        this.registrationCount++;
         this.targets.push(target);
         if (target.ensureBiggerThan(this.rank))
             anyChanged = true;
         return anyChanged;
     }
     deregister(target : Vertex) : void {
-        this.registrationCount--;
-        if (this.registrationCount == 0) {
-            for (let i = 0; i < this.sources.length; i++)
-                this.sources[i].deregister(this);
-        }
         for (let i = 0; i < this.targets.length; i++)
             if (this.targets[i] === target) {
                 this.targets.splice(i, 1);
                 break;
             }
+        if (this.registrationCount() == 0) {
+            for (let i = 0; i < this.sources.length; i++)
+                this.sources[i].deregister(this);
+        }
+    }
+
+    addSource(src : Source) : void {
+        this.sources.push(src);
+        if (this.registrationCount() > 0)
+            src.register(this);
     }
 
 	private ensureBiggerThan(limit : number) : boolean {
