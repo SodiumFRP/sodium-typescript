@@ -556,3 +556,17 @@ test("loopCell", () => {
     assertEquals([0, 2, 5, 6], out);
     assertEquals(6, sum_out.sample());
 });
+
+test("accum", () => {
+    const sa = new StreamSink<number>(),
+        out : number[] = [],
+        sum = sa.accum(100, (a, s) => a + s),
+        kill = sum.listen(a => out.push(a));
+    sa.send(5);
+    sa.send(7);
+    sa.send(1);
+    sa.send(2);
+    sa.send(3);
+    kill();
+    assertEquals([100, 105, 112, 113, 115, 118], out);
+});
