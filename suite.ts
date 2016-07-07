@@ -570,3 +570,46 @@ test("accum", () => {
     kill();
     assertEquals([100, 105, 112, 113, 115, 118], out);
 });
+
+test("loopValueSnapshot", () => {
+    const out : string[] = [],
+        kill = transactionally(() => {
+            const a = new Cell("lettuce"),
+               b = new CellLoop<string>(),
+               eSnap = Operational.value(a).snapshot(b, (aa, bb) => aa + " " + bb);
+            b.loop(new Cell("cheese"));
+            return eSnap.listen(x => out.push(x));
+        });
+    kill();
+    assertEquals(["lettuce cheese"], out);
+});
+
+test("loopValueHold", () => {
+    const out : string[] = [],
+        value = transactionally(() => {
+            const a = new CellLoop<string>(),
+                value_ = Operational.value(a).hold("onion");
+            a.loop(new Cell("cheese"));
+            return value_;
+        }),
+        sTick = new StreamSink<Unit>(),
+        kill = sTick.snapshot1(value).listen(x => out.push(x));
+    sTick.send(Unit.UNIT);
+    kill();
+    assertEquals(["cheese"], out);
+});
+
+test("liftLoop", () => {
+    const out : string[] = [],
+        b = new CellSink("kettle"),
+        c = transactionally(() => {
+            const a = new CellLoop<string>(),
+                c_ = a.lift(b, (aa, bb) => aa + " " + bb);
+            a.loop(new Cell("tea"));
+            return c_;
+        }),
+        kill = c.listen(x => out.push(x));
+    b.send("caddy");
+    kill();
+    assertEquals(["tea kettle", "tea caddy"], out);
+});
