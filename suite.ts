@@ -1,4 +1,4 @@
-import { lambda1, lambda2, Stream, StreamSink, StreamLoop, Cell, CellSink,
+import { lambda1, lambda2, Stream, StreamSink, StreamLoop, Cell, CellLoop, CellSink,
          Tuple2, transactionally, Unit, Operational } from "./sodium";
 
 function fail(err : string) : void {
@@ -537,4 +537,22 @@ test("switchSSimultaneous", () => {
     ss4.s.send(9);
     kill();
     assertEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], out);
+});
+
+test("loopCell", () => {
+    const sa = new StreamSink<number>(),
+        sum_out = transactionally(() => {
+                const sum = new CellLoop<number>(),
+                      sum_out_ = sa.snapshot(sum, (x, y) => x + y).hold(0);
+                sum.loop(sum_out_);
+                return sum_out_;
+            }),
+        out : number[] = [],
+        kill = sum_out.listen(a => out.push(a));
+    sa.send(2);
+    sa.send(3);
+    sa.send(1);
+    kill();
+    assertEquals([0, 2, 5, 6], out);
+    assertEquals(6, sum_out.sample());
 });

@@ -5,6 +5,7 @@ import { Source, Vertex } from "./Vertex";
 import { Transaction, transactionally, currentTransaction } from "./Transaction";
 import { CoalesceHandler } from "./CoalesceHandler";
 import { Cell } from "./Cell";
+//import { StreamLoop } from "./StreamLoop";
 import { Listener } from "./Listener";
 import { Tuple2 } from "./Tuple2";
 import { Lazy } from "./Lazy";
@@ -444,7 +445,7 @@ export class StreamWithSend<A> extends Stream<A> {
  * A forward reference for a {@link Stream} equivalent to the Stream that is referenced. 
  */
 export class StreamLoop<A> extends StreamWithSend<A> {
-    private assigned : boolean = false;
+    assigned__ : boolean = false;  // to do: Figure out how to hide this
 
     constructor()
     {
@@ -460,9 +461,9 @@ export class StreamLoop<A> extends StreamWithSend<A> {
      * or {@link Transaction#runVoid(Runnable)}.
      */
     loop(sa_out : Stream<A>) : void {
-        if (this.assigned)
+        if (this.assigned__)
             throw new Error("StreamLoop looped more than once");
-        this.assigned = true;
+        this.assigned__ = true;
         this.vertex.sources.push(
             new Source(
                 sa_out.getVertex__(),

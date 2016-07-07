@@ -1,12 +1,13 @@
 SOURCES=\
     Cell.ts \
     CellSink.ts \
+    CellLoop.ts \
     CoalesceHandler.ts \
     Lambda.ts \
     Lazy.ts \
     Listener.ts \
-    StreamSink.ts \
     Stream.ts \
+    StreamSink.ts \
     suite.ts \
     Transaction.ts \
     Tuple2.ts \
