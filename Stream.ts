@@ -416,7 +416,7 @@ export class StreamWithSend<A> extends Stream<A> {
         // We throw this error if we send into FRP logic that has been constructed
         // but nothing is listening to it yet. We need to do it this way because
         // it's the only way to manage memory in a language with no finalizers.
-        if (this.vertex.registrationCount() == 0)
+        if (this.vertex.refCount() == 0)
             throw new Error("send() was invoked before listeners were registered");
 		if (this.firings.length == 0)
 			currentTransaction.last(() => {

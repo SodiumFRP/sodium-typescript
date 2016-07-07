@@ -27,6 +27,7 @@ const sys = new SecondsTimerSystem(),
 
 let tick = null;
 tick = () => {
+    setTimeout(() => console.log("keep process alive"), 60000);
     sMain.send(Unit.UNIT);
     if ((sys.time.sample() - t0) < 5.5)
         setTimeout(tick, 990);
