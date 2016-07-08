@@ -1,5 +1,7 @@
 import { TimerSystem, SecondsTimerSystem, Cell, CellLoop, Stream, StreamSink,
     Unit, transactionally, StreamLoop } from "./sodium";
+import { setVerbose, describeAll, Vertex, getTotalRegistrations } from "./Vertex";
+import { Set } from "typescript-collections";
 
 function periodic(sys : TimerSystem, period : number) {
     const time = sys.time,
@@ -11,12 +13,13 @@ function periodic(sys : TimerSystem, period : number) {
     return sAlarm;
 }
 
+let sTick : Stream<number> = null;
 const sys = new SecondsTimerSystem(),
     time = sys.time,
     sMain = new StreamSink<Unit>(),
-    t0 = time.sample(),
     kill = transactionally(() => {
-        const kill1 = periodic(sys, 1).listen(t => {
+        const t0 = time.sample(),
+            kill1 = periodic(sys, 1).listen(t => {
                 console.log((t - t0).toFixed(3)+" timer");
             }),
             kill2 = sMain.snapshot1(time).listen(t => {
@@ -25,16 +28,13 @@ const sys = new SecondsTimerSystem(),
         return () => { kill1(); kill2(); };
     });
 
+const t0 = time.sample();
 let tick = null;
 tick = () => {
-    setTimeout(() => console.log("keep process alive"), 60000);
     sMain.send(Unit.UNIT);
-    if ((sys.time.sample() - t0) < 5.5)
+    if ((sys.time.sample() - t0) < 10.5)
         setTimeout(tick, 990);
     else {
-        // TO DO: This does not deregister all the listeners for periodic()
-        // You'll see that "tick" keeps going.
-        // It must be able to do this!
         kill();
     }
 };

@@ -13,7 +13,7 @@ import { LazyCell } from "./LazyCell";
 
 export class Stream<A> {
     constructor(vertex? : Vertex) {
-        this.vertex = vertex ? vertex : new Vertex(0, []);
+        this.vertex = vertex ? vertex : new Vertex("Stream", 0, []);
     }
 
     getVertex__() : Vertex {
@@ -35,7 +35,7 @@ export class Stream<A> {
     map<B>(f : ((a : A) => B) | Lambda1<A,B>) : Stream<B> {
         const out = new StreamWithSend<B>(null);
         const ff = Lambda1_toFunction(f);
-        out.vertex = new Vertex(0, [
+        out.vertex = new Vertex("map", 0, [
                 new Source(
                     this.vertex,
                     () => {
@@ -55,7 +55,7 @@ export class Stream<A> {
      */
     mapTo<B>(b : B) : Stream<B> {
         const out = new StreamWithSend<B>(null);
-        out.vertex = new Vertex(0, [
+        out.vertex = new Vertex("mapTo", 0, [
                 new Source(
                     this.vertex,
                     () => {
@@ -90,7 +90,7 @@ export class Stream<A> {
 
     private merge_(s : Stream<A>) : Stream<A> {
         const out = new StreamWithSend<A>();
-        const left = new Vertex(0, []);
+        const left = new Vertex("merge", 0, []);
         left.sources.push(new Source(this.vertex, () => {
             return this.listen_(left, (a : A) => {
                     out.send_(a);
@@ -156,7 +156,7 @@ export class Stream<A> {
     filter(f : ((a : A) => boolean) | Lambda1<A,boolean>) : Stream<A> {
         const out = new StreamWithSend<A>(null);
         const ff = Lambda1_toFunction(f);
-        out.vertex = new Vertex(0, [
+        out.vertex = new Vertex("filter", 0, [
                 new Source(
                     this.vertex,
                     () => {
@@ -177,7 +177,7 @@ export class Stream<A> {
      */
     filterNotNull() : Stream<A> {
         const out = new StreamWithSend<A>(null);
-        out.vertex = new Vertex(0, [
+        out.vertex = new Vertex("filterNotNull", 0, [
                 new Source(
                     this.vertex,
                     () => {
@@ -208,7 +208,7 @@ export class Stream<A> {
 	 */
 	snapshot1<B>(c : Cell<B>) : Stream<B> {
         const out = new StreamWithSend<B>(null);
-        out.vertex = new Vertex(0, [
+        out.vertex = new Vertex("snapshot1", 0, [
                 new Source(
                     this.vertex,
                     () => {
@@ -217,12 +217,7 @@ export class Stream<A> {
                         }, false);
                     }
                 ),
-                new Source(
-                    c.getVertex__(),
-                    () => {
-                        return () => { };
-                    }
-                )
+                new Source(c.getVertex__(), null)
             ]
         );
         return out;
@@ -242,7 +237,7 @@ export class Stream<A> {
 	{
         const out = new StreamWithSend<C>(null);
         const ff = Lambda2_toFunction(f);
-        out.vertex = new Vertex(0, [
+        out.vertex = new Vertex("snapshot", 0, [
                 new Source(
                     this.vertex,
                     () => {
@@ -251,12 +246,7 @@ export class Stream<A> {
                         }, false);
                     }
                 ),
-                new Source(
-                    c.getVertex__(),
-                    () => {
-                        return () => { };
-                    }
-                )
+                new Source(c.getVertex__(), null)
             ].concat(toSources(Lambda2_deps(f)))
         );
         return out;
@@ -374,9 +364,8 @@ export class Stream<A> {
     listen_(target : Vertex,
             h : (a : A) => void,
             suppressEarlierFirings : boolean) : () => void {
-        if (this.listeners.length == 0)
-            if (this.vertex.register(target))
-                currentTransaction.requestRegen();
+        if (this.vertex.register(target))
+            currentTransaction.requestRegen();
         const listener = new Listener<A>(h, target);
         this.listeners.push(listener);
         if (!suppressEarlierFirings && this.firings.length != 0) {
@@ -389,16 +378,16 @@ export class Stream<A> {
             });
         }
         return () => {
-            if (this.listeners.length != 0) {
-                for (let i = 0; i < this.listeners.length; i++) {
-                    if (this.listeners[i] == listener) {
-                        this.listeners.splice(i, 1);
-                        break;
-                    }
+            let removed = false;
+            for (let i = 0; i < this.listeners.length; i++) {
+                if (this.listeners[i] == listener) {
+                    this.listeners.splice(i, 1);
+                    removed = true;
+                    break;
                 }
-                if (this.listeners.length == 0)
-                    this.vertex.deregister(target);
             }
+            if (removed)
+                this.vertex.deregister(target);
         };
     }
 }
@@ -450,6 +439,7 @@ export class StreamLoop<A> extends StreamWithSend<A> {
     constructor()
     {
         super();
+        this.vertex.name = "StreamLoop";
     	if (currentTransaction === null)
     	    throw new Error("StreamLoop/CellLoop must be used within an explicit transaction");
     }

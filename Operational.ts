@@ -16,7 +16,7 @@ export class Operational {
     static updates<A>(c : Cell<A>) : Stream<A> {
         /*  Don't think this is needed
         const out = new StreamWithSend<A>(null);
-        out.setVertex__(new Vertex(0, [
+        out.setVertex__(new Vertex("updates", 0, [
                 new Source(
                     c.getStream__().getVertex__(),
                     () => {
@@ -78,7 +78,7 @@ export class Operational {
 	 */
 	static split<A>(s : Stream<Array<A>>) : Stream<A> {
 	    const out = new StreamWithSend<A>(null);
-        out.setVertex__(new Vertex(0, [
+        out.setVertex__(new Vertex("split", 0, [
                 new Source(
                     s.getVertex__(),
                     () => {

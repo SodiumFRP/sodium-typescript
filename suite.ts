@@ -1,5 +1,6 @@
 import { lambda1, lambda2, Stream, StreamSink, StreamLoop, Cell, CellLoop, CellSink,
          Tuple2, transactionally, Unit, Operational } from "./sodium";
+import { getTotalRegistrations } from "./Vertex";
 
 function fail(err : string) : void {
     throw new Error(err);
@@ -31,6 +32,8 @@ function test(name : string, t : () => void)
     let pass = true;
     try {
         t();
+        if (getTotalRegistrations() != 0)
+            throw new Error("listeners were not deregistered!");
         current_test = null
         console.log(name + " - PASS");
     }

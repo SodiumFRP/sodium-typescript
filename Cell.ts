@@ -41,7 +41,7 @@ export class Cell<A> {
         this.value = initValue;
         if (!str) {
             this.str = new Stream<A>();
-            this.vertex = new Vertex(0, []);
+            this.vertex = new Vertex("ConstCell", 0, []);
         }
         else
             transactionally(() => this.setStream(str));
@@ -65,7 +65,7 @@ export class Cell<A> {
                     }, false);
                 }
             );
-        this.vertex = new Vertex(0, [src]);
+        this.vertex = new Vertex("Cell", 0, [src]);
         // We do a trick here of registering the source for the duration of the current
         // transaction so that we are guaranteed to catch any stream events that
         // occur in the same transaction.
@@ -261,7 +261,7 @@ export class Cell<A> {
                             }, false);
                         }
                     );
-            out.setVertex__(new Vertex(0,
+            out.setVertex__(new Vertex("apply", 0,
                 [src1, src2].concat(sources ? sources : []) 
             ));
             return out.coalesce__((l, r) => r).holdLazy(new Lazy<B>(() =>
@@ -299,7 +299,7 @@ export class Cell<A> {
                             return () => { kill1(); kill2(); }; 
                         }
                     );
-            out.setVertex__(new Vertex(0, [src]));
+            out.setVertex__(new Vertex("switchC", 0, [src]));
             return out.coalesce__((l, r) => r).holdLazy(za);
         });
 	}
@@ -324,7 +324,7 @@ export class Cell<A> {
                           return () => { kill1(); kill2(); }; 
                       }
                   );
-	        out.setVertex__(new Vertex(0, [src]));
+	        out.setVertex__(new Vertex("switchS", 0, [src]));
 	        return out;
 	    });
     }

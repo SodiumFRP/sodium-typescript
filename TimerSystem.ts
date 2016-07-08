@@ -117,7 +117,7 @@ export class TimerSystem {
                     }
                 }
             };
-        sAlarm.setVertex__(new Vertex(0, [
+        sAlarm.setVertex__(new Vertex("at", 0, [
                 new Source(
                     tAlarm.getVertex__(),
                     () => {
@@ -130,7 +130,6 @@ export class TimerSystem {
                             updateTimer();
                         }, false);
                         return () => {
-                            console.log("terminate");
                             active = false;
                             updateTimer();
                             kill();

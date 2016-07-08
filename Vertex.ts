@@ -1,3 +1,10 @@
+import { Set } from "typescript-collections";
+
+let totalRegistrations : number = 0;
+export function getTotalRegistrations() : number {
+    return totalRegistrations;
+}
+
 export class Source {
     constructor(
         origin : Vertex,
@@ -13,79 +20,110 @@ export class Source {
     private registered : boolean = false;
     private deregister_ : () => void = null;
 
-    register(target : Vertex) : boolean {
-        let anyChanged = false;
+    register(target : Vertex) : void {
         if (!this.registered) {
             this.registered = true;
-            if (this.origin.increment(target))
-                anyChanged = true;
             if (this.register_ !== null)
                 this.deregister_ = this.register_();
+            else {
+                this.origin.increment(target);
+                this.deregister_ = () => this.origin.decrement(target);
+            }
         }
-        return anyChanged;
     }
     deregister(target : Vertex) : void {
         if (this.registered) {
             this.registered = false;
             if (this.deregister_ !== null)
                 this.deregister_();
-            this.origin.decrement(target);
         }
     }
 }
 
-enum Color { black, gray, white, purple, green };
+enum Color { black, gray, white, purple };
 let roots : Vertex[] = [];
+let nextID : number = 0;
+let verbose : boolean = false;
+
+export function setVerbose(v : boolean) : void { verbose = v; }
+
+export function describeAll(v : Vertex, visited : Set<number>)
+{
+    if (visited.contains(v.id)) return;
+    console.log(v.descr());
+    visited.add(v.id);
+    let chs = v.children();
+    for (let i = 0; i < chs.length; i++)
+        describeAll(chs[i], visited);
+}
 
 export class Vertex {
-    static NULL : Vertex = new Vertex(1e12, []);
+    static NULL : Vertex = new Vertex("user", 1e12, []);
+    id : number;
 
-	constructor(rank : number, sources : Source[]) {
+	constructor(name : string, rank : number, sources : Source[]) {
+	    this.name = name;
 		this.rank = rank;
 		this.sources = sources;
+		this.id = nextID++;
 	}
+	name : string;
     rank : number;
     sources : Source[];
     targets : Vertex[] = [];
+    childrn : Vertex[] = [];
     refCount() : number { return this.targets.length; };
     visited : boolean = false;
     register(target : Vertex) : boolean {
         return this.increment(target);
     }
     deregister(target : Vertex) : void {
+        if (verbose)
+            console.log("deregister "+this.descr()+" => "+target.descr());
         this.decrement(target);
-        //let anyChanged = Vertex.collectCycles();
+        Vertex.collectCycles();
     }
     private incRefCount(target : Vertex) : boolean {
         let anyChanged : boolean = false;
+        if (this.refCount() == 0) {
+            for (let i = 0; i < this.sources.length; i++)
+                this.sources[i].register(this);
+        }
         this.targets.push(target);
+        target.childrn.push(this);
         if (target.ensureBiggerThan(this.rank))
             anyChanged = true;
-        return anyChanged;
-    }
-
-    private allocate() : boolean {
-        let anyChanged = false;
-        for (let i = 0; i < this.sources.length; i++)
-            if (this.sources[i].register(this))
-                anyChanged = true;
+        totalRegistrations++;
         return anyChanged;
     }
 
     private decRefCount(target : Vertex) : void {
+        if (verbose)
+            console.log("DEC "+this.descr());
+        let matched = false;
+        for (let i = 0; i < target.childrn.length; i++)
+            if (target.childrn[i] === this) {
+                target.childrn.splice(i, 1);
+            }
         for (let i = 0; i < this.targets.length; i++)
             if (this.targets[i] === target) {
                 this.targets.splice(i, 1);
+                matched = true;
                 break;
             }
+        if (matched) {
+            if (this.refCount() == 0) {
+                for (let i = 0; i < this.sources.length; i++)
+                    this.sources[i].deregister(this);
+            }
+            totalRegistrations--;
+        }
     }
 
-    addSource(src : Source) : boolean {
+    addSource(src : Source) : void {
         this.sources.push(src);
         if (this.refCount() > 0)
-            return src.register(this);
-        else
-            return false;
+            src.register(this);
     }
 
 	private ensureBiggerThan(limit : number) : boolean {
@@ -100,6 +138,22 @@ export class Vertex {
 		return true;
 	}
 
+	descr() : string {
+        let colStr : string = null;
+        switch (this.color) {
+        case Color.black: colStr = "black"; break;
+        case Color.gray:  colStr = "gray"; break;
+        case Color.white: colStr = "white"; break;
+        case Color.purple: colStr = "purple"; break;
+        }
+        let str = this.id+" "+this.name+" ["+this.refCount()+"/"+this.refCountAdj+"] "+colStr+" ->";
+        let chs = this.children();
+        for (let i = 0; i < chs.length; i++) {
+            str = str + " " + chs[i].id;
+        }
+        return str;
+	}
+
 	// --------------------------------------------------------
 	// Synchronous Cycle Collection algorithm presented in "Concurrent
 	// Cycle Collection in Reference Counted Systems" by David F. Bacon
@@ -107,22 +161,12 @@ export class Vertex {
 
     color : Color = Color.black;
     buffered : boolean = false;
+    refCountAdj : number = 0;
 
-	children() : Vertex[] {
-	    const chs : Vertex[] = [];
-	    for (let i = 0; i < this.sources.length; i++)
-	        chs.push(this.sources[i].origin);
-	    return chs;
-	}
+	children() : Vertex[] { return this.childrn; }
 
 	increment(referrer : Vertex) : boolean {
-	    let anyChanged = false;
-        if (this.refCount() == 0)
-            if (this.allocate())
-                anyChanged = true;
-	    if (this.incRefCount(referrer))
-	        anyChanged = true;
-	    return anyChanged;
+	    return this.incRefCount(referrer);
 	}
 
 	decrement(referrer : Vertex) : void {
@@ -134,14 +178,14 @@ export class Vertex {
 	}
 
     release() : void {
-        for (let i = 0; i < this.sources.length; i++)
-            this.sources[i].deregister(this);
         this.color = Color.black;
         if (!this.buffered)
             this.free();
     }
 
     free() : void {
+        while (this.targets.length > 0)
+            this.decRefCount(this.targets[0]);
     }
 
 	possibleRoots() : void {
@@ -154,16 +198,17 @@ export class Vertex {
         }
 	}
 
-	static collectCycles() : boolean {
+	static collectCycles() : void {
 	    Vertex.markRoots();
-	    const anyChanged = Vertex.scanRoots();
+	    Vertex.scanRoots();
 	    Vertex.collectRoots();
-	    return anyChanged;
 	}
 
 	static markRoots() : void {
 	    const newRoots : Vertex[] = [];
 	    for (let i = 0; i < roots.length; i++) {
+            if (verbose)
+                console.log("markRoots "+roots[i].descr());  // ###
 	        if (roots[i].color == Color.purple) {
 	            roots[i].markGray();
 	            newRoots.push(roots[i]);
@@ -177,18 +222,14 @@ export class Vertex {
 	    roots = newRoots;
 	}
 
-	static scanRoots() : boolean {
-	    let anyChanged = false;
+	static scanRoots() : void {
 	    for (let i = 0; i < roots.length; i++)
-	        if (roots[i].scan())
-	            anyChanged = true;
-        return anyChanged;
+	        roots[i].scan();
 	}
 
 	static collectRoots() : void {
 	    for (let i = 0; i < roots.length; i++) {
 	        roots[i].buffered = false;
-	        console.log("collect a cycle");
 	        roots[i].collectWhite();
 	    }
 	    roots = [];
@@ -199,48 +240,49 @@ export class Vertex {
 	        this.color = Color.gray;
 	        let chs = this.children();
 	        for (let i = 0; i < chs.length; i++) {
-	            chs[i].decRefCount(this);
+	            chs[i].refCountAdj--;
+                if (verbose)
+                    console.log("markGray "+this.descr());
 	            chs[i].markGray();
             }
 	    }
 	}
-	
-	scan() : boolean {
-	    let anyChanged = false;
+
+	scan() : void {
+	    if (verbose)
+            console.log("scan "+this.descr());
 	    if (this.color == Color.gray) {
-	        if (this.refCount() > 0) {
-	            if (this.scanBlack())
-	                anyChanged = true;
-            }
+	        if (this.refCount()+this.refCountAdj > 0)
+	            this.scanBlack();
 	        else {
 	            this.color = Color.white;
+                if (verbose)
+                    console.log("scan WHITE "+this.descr());
                 let chs = this.children();
-                for (let i = 0; i < chs.length; i++) {
-                    if (chs[i].scan())
-                        anyChanged = true;
-                }
+                for (let i = 0; i < chs.length; i++)
+                    chs[i].scan();
 	        }
 	    }
-	    return anyChanged;
 	}
 
-	scanBlack() : boolean {
-	    let anyChanged = false;
+	scanBlack() : void {
 	    this.color = Color.black;
         let chs = this.children();
         for (let i = 0; i < chs.length; i++) {
-            if (chs[i].incRefCount(this))
-                anyChanged = true;
+            chs[i].refCountAdj++;
+            if (verbose)
+                console.log("scanBlack "+this.descr());
             if (chs[i].color != Color.black)
-                if (chs[i].scanBlack())
-                    anyChanged = true;
+                chs[i].scanBlack();
         }
-        return anyChanged;
 	}
 
 	collectWhite() : void {
 	    if (this.color == Color.white && !this.buffered) {
+            if (verbose)
+                console.log("collectWhite "+this.descr());
 	        this.color = Color.black;
+	        this.refCountAdj = 0;
             let chs = this.children();
             for (let i = 0; i < chs.length; i++)
                 chs[i].collectWhite();
