@@ -8,7 +8,7 @@ function periodic(sys : TimerSystem, period : number) {
           oAlarm = new CellLoop<number>(),
           sAlarm = sys.at(oAlarm);
     oAlarm.loop(
-        sAlarm.map(t => { console.log("tick"); return t + period; })
+        sAlarm.map(t => t + period)
               .hold(time.sample() + period));
     return sAlarm;
 }
