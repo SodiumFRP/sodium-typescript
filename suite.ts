@@ -1,5 +1,6 @@
-import { lambda1, lambda2, Stream, StreamSink, StreamLoop, Cell, CellLoop, CellSink,
-         Tuple2, transactionally, Unit, Operational } from "./sodium";
+import { lambda1, lambda2, lambda3, lambda4, lambda5, lambda6,
+         Stream, StreamLoop, StreamSink, Cell, CellLoop, CellSink,
+         transactionally, Tuple2, Unit, Operational } from "./sodium";
 import { getTotalRegistrations } from "./Vertex";
 
 function fail(err : string) : void {

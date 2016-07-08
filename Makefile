@@ -11,6 +11,7 @@ SOURCES=\
     Stream.ts \
     StreamSink.ts \
     sodium.ts \
+    sodium-time.ts \
     TimerSystem.ts \
     MillisecondsTimerSystem.ts \
     SecondsTimerSystem.ts \
@@ -29,6 +30,9 @@ clean:
 # Run the test suite
 suite: all
 	node --stack-trace-limit=1000 suite
+
+# Alias for suite
+test: suite
 
 # Run the program that tests timers
 test-timers: all
