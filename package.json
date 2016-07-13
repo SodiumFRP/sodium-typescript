@@ -19,11 +19,13 @@
   ],
   "main": "dist/sodium-frp.js",
   "scripts": {
-    "build": "rimraf dist/ && tsc"
+    "build": "rimraf dist/ && tsc",
+    "build:minify": "uglifyjs --compress --mangle --in-source-map dist/sodium-frp.js.map -o dist/sodium-frp.min.js -- dist/sodium-frp.js"
   },
   "devDependencies": {
     "rimraf": "^2.5.3",
     "typescript": "^1.8.10",
-    "typescript-collections": "^1.1.2"
+    "typescript-collections": "^1.1.2",
+    "uglify-js": "^2.7.0"
   }
 }
