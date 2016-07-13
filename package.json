@@ -17,7 +17,7 @@
     "functional",
     "reactive"
   ],
-  "main": "dist/sodium.js",
+  "main": "dist/sodium-frp.js",
   "scripts": {
     "build": "rimraf dist/ && tsc"
   },
