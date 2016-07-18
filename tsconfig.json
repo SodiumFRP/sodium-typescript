@@ -1,12 +1,14 @@
 {
 	"compilerOptions": {
 		"target": "es5",
-		"module": "amd",
+		"module": "commonjs",
 		"noImplicitAny": true,
-		"removeComments": true,
+		"removeComments": false,
 		"preserveConstEnums": true,
-		"outFile": "./dist/sodium-frp.js",
-		"sourceMap": true
+		"outDir": "dist",
+		"sourceMap": true,
+		"declaration": true,
+		"moduleResolution": "node"
 	},
 	"exclude": [
 		"node_modules"

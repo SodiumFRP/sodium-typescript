@@ -40,7 +40,7 @@ export class Source {
     }
 }
 
-enum Color { black, gray, white, purple };
+export enum Color { black, gray, white, purple };
 let roots : Vertex[] = [];
 let nextID : number = 0;
 let verbose : boolean = false;

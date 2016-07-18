@@ -1,7 +1,7 @@
 import { lambda1, lambda2, lambda3, lambda4, lambda5, lambda6,
          Stream, StreamLoop, StreamSink, Cell, CellLoop, CellSink,
-         transactionally, Tuple2, Unit, Operational } from "./sodium";
-import { getTotalRegistrations } from "./Vertex";
+         transactionally, Tuple2, Unit, Operational } from "../lib/sodium";
+import { getTotalRegistrations } from "../lib/Vertex";
 
 function fail(err : string) : void {
     throw new Error(err);
@@ -266,7 +266,7 @@ test("accum", () => {
 });
 
 test("once", () => {
-    
+
     const s = new StreamSink<string>(),
         out : string[] = [],
         kill = s.once().listen(a => out.push(a));
