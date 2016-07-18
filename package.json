@@ -17,10 +17,11 @@
     "functional",
     "reactive"
   ],
-  "main": "dist/sodium-frp.js",
+  "main": "dist/lib/sodium.js",
   "scripts": {
-    "build": "rimraf dist/ && tsc",
-    "build:minify": "uglifyjs --compress --mangle --in-source-map dist/sodium-frp.js.map -o dist/sodium-frp.min.js -- dist/sodium-frp.js"
+    "clean": "rimraf ./dist",
+    "build": "npm run clean && tsc",
+    "test": "node ./dist/test/suite.js && node ./dist/test/test-timers.js"
   },
   "devDependencies": {
     "rimraf": "^2.5.3",
