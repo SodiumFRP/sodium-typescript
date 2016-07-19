@@ -629,8 +629,10 @@ const name = "fromAsync",
      sa = new StreamSink<number>(),
      kill = action(sa).listen(b => out.push(b));
 sa.send(5);
+assertEquals([], out);
 setTimeout(() => {
         sa.send(9);
+        assertEquals([6], out);
         setTimeout(() => {
             assertEquals([6, 10], out);
             console.log(name + " - PASS");

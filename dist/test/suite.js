@@ -463,8 +463,10 @@ var name = "fromAsync", action = sodium_frp_io_1.IOAction.fromAsync(function (a,
     }, 1);
 }), out = [], sa = new sodium_frp_1.StreamSink(), kill = action(sa).listen(function (b) { return out.push(b); });
 sa.send(5);
+assertEquals([], out);
 setTimeout(function () {
     sa.send(9);
+    assertEquals([6], out);
     setTimeout(function () {
         assertEquals([6, 10], out);
         console.log(name + " - PASS");
