@@ -28,14 +28,18 @@ function shouldThrow(substr : string, f : () => void) : void {
 
 let current_test : string = null;
 
+function checkMemory() : void {
+    if (getTotalRegistrations() != 0)
+        throw new Error("listeners were not deregistered!");
+}
+
 function test(name : string, t : () => void)
 {
     current_test = name;
     let pass = true;
     try {
         t();
-        if (getTotalRegistrations() != 0)
-            throw new Error("listeners were not deregistered!");
+        checkMemory();
         current_test = null
         console.log(name + " - PASS");
     }
@@ -635,7 +639,8 @@ setTimeout(() => {
         assertEquals([6], out);
         setTimeout(() => {
             assertEquals([6, 10], out);
-            console.log(name + " - PASS");
             kill();
+            checkMemory();
+            console.log(name + " - PASS");
         }, 100);
     }, 100);

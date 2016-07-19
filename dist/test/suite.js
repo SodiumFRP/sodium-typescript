@@ -22,13 +22,16 @@ function shouldThrow(substr, f) {
     fail("should throw exception");
 }
 var current_test = null;
+function checkMemory() {
+    if (Vertex_1.getTotalRegistrations() != 0)
+        throw new Error("listeners were not deregistered!");
+}
 function test(name, t) {
     current_test = name;
     var pass = true;
     try {
         t();
-        if (Vertex_1.getTotalRegistrations() != 0)
-            throw new Error("listeners were not deregistered!");
+        checkMemory();
         current_test = null;
         console.log(name + " - PASS");
     }
@@ -469,8 +472,9 @@ setTimeout(function () {
     assertEquals([6], out);
     setTimeout(function () {
         assertEquals([6, 10], out);
-        console.log(name + " - PASS");
         kill();
+        checkMemory();
+        console.log(name + " - PASS");
     }, 100);
 }, 100);
 //# sourceMappingURL=suite.js.map
