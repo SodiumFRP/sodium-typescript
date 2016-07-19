@@ -3,7 +3,7 @@
 Here's a recommended import statement:
 import { lambda1, lambda2, lambda3, lambda4, lambda5, lambda6,
          Stream, StreamLoop, StreamSink, Cell, CellLoop, CellSink,
-         transactionally, Tuple2, Unit, Operational } from "sodium";
+         transactionally, Tuple2, Unit, Operational } from "sodium-frp";
 */
 var Lambda_1 = require("./Lambda");
 exports.lambda1 = Lambda_1.lambda1;
@@ -31,4 +31,4 @@ var Unit_1 = require("./Unit");
 exports.Unit = Unit_1.Unit;
 var Operational_1 = require("./Operational");
 exports.Operational = Operational_1.Operational;
-//# sourceMappingURL=sodium.js.map
+//# sourceMappingURL=sodium-frp.js.map

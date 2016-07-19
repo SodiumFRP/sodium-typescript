@@ -129,7 +129,7 @@ var Cell = (function () {
      * @param fn Function to apply. It must be <em>referentially transparent</em>.
      */
     Cell.prototype.lift3 = function (b, c, fn0) {
-        var fn = Lambda_1.Lambda3_toFunction(fn0), cf = this.map(function (aa) { return function (bb) { return function (cc) { return fn(aa, bb, cc); }; }; });
+        var fn = Lambda_1.Lambda3_toFunction(fn0), mf = function (aa) { return function (bb) { return function (cc) { return fn(aa, bb, cc); }; }; }, cf = this.map(mf);
         return Cell.apply(Cell.apply(cf, b), c, Lambda_1.toSources(Lambda_1.Lambda3_deps(fn0)));
     };
     /**
@@ -138,7 +138,7 @@ var Cell = (function () {
      * @param fn Function to apply. It must be <em>referentially transparent</em>.
      */
     Cell.prototype.lift4 = function (b, c, d, fn0) {
-        var fn = Lambda_1.Lambda4_toFunction(fn0), cf = this.map(function (aa) { return function (bb) { return function (cc) { return function (dd) { return fn(aa, bb, cc, dd); }; }; }; });
+        var fn = Lambda_1.Lambda4_toFunction(fn0), mf = function (aa) { return function (bb) { return function (cc) { return function (dd) { return fn(aa, bb, cc, dd); }; }; }; }, cf = this.map(mf);
         return Cell.apply(Cell.apply(Cell.apply(cf, b), c), d, Lambda_1.toSources(Lambda_1.Lambda4_deps(fn0)));
     };
     /**
@@ -147,7 +147,7 @@ var Cell = (function () {
      * @param fn Function to apply. It must be <em>referentially transparent</em>.
      */
     Cell.prototype.lift5 = function (b, c, d, e, fn0) {
-        var fn = Lambda_1.Lambda5_toFunction(fn0), cf = this.map(function (aa) { return function (bb) { return function (cc) { return function (dd) { return function (ee) { return fn(aa, bb, cc, dd, ee); }; }; }; }; });
+        var fn = Lambda_1.Lambda5_toFunction(fn0), mf = function (aa) { return function (bb) { return function (cc) { return function (dd) { return function (ee) { return fn(aa, bb, cc, dd, ee); }; }; }; }; }, cf = this.map(mf);
         return Cell.apply(Cell.apply(Cell.apply(Cell.apply(cf, b), c), d), e, Lambda_1.toSources(Lambda_1.Lambda5_deps(fn0)));
     };
     /**
@@ -156,7 +156,7 @@ var Cell = (function () {
      * @param fn Function to apply. It must be <em>referentially transparent</em>.
      */
     Cell.prototype.lift6 = function (b, c, d, e, f, fn0) {
-        var fn = Lambda_1.Lambda6_toFunction(fn0), cf = this.map(function (aa) { return function (bb) { return function (cc) { return function (dd) { return function (ee) { return function (ff) { return fn(aa, bb, cc, dd, ee, ff); }; }; }; }; }; });
+        var fn = Lambda_1.Lambda6_toFunction(fn0), mf = function (aa) { return function (bb) { return function (cc) { return function (dd) { return function (ee) { return function (ff) { return fn(aa, bb, cc, dd, ee, ff); }; }; }; }; }; }, cf = this.map(mf);
         return Cell.apply(Cell.apply(Cell.apply(Cell.apply(Cell.apply(cf, b), c), d), e), f, Lambda_1.toSources(Lambda_1.Lambda6_deps(fn0)));
     };
     /**

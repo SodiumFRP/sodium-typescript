@@ -1,7 +1,7 @@
 import { lambda1, lambda2, lambda3, lambda4, lambda5, lambda6,
          Stream, StreamLoop, StreamSink, Cell, CellLoop, CellSink,
-         transactionally, Tuple2, Unit, Operational } from "../lib/sodium";
-import { TimerSystem, SecondsTimerSystem, MillisecondsTimerSystem } from "../lib/sodium-time";
+         transactionally, Tuple2, Unit, Operational } from "../lib/sodium-frp";
+import { TimerSystem, SecondsTimerSystem, MillisecondsTimerSystem } from "../lib/sodium-frp-time";
 
 function periodic(sys : TimerSystem, period : number) {
     const time = sys.time,
@@ -29,7 +29,7 @@ const sys = new SecondsTimerSystem(),
     });
 
 const t0 = time.sample();
-let tick = null;
+let tick : () => void = null;
 tick = () => {
     sMain.send(Unit.UNIT);
     if ((sys.time.sample() - t0) < 10.5)

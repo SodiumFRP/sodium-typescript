@@ -17,7 +17,7 @@
     "functional",
     "reactive"
   ],
-  "main": "dist/lib/sodium.js",
+  "main": "dist/lib/sodium-frp-all.js",
   "scripts": {
     "clean": "rimraf ./dist",
     "build": "npm run clean && tsc",

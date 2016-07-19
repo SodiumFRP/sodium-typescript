@@ -148,7 +148,7 @@ export class Cell<A> {
 	          fn0 : ((a : A, b : B) => C) |
 	                Lambda2<A,B,C>) : Cell<C> {
         const fn = Lambda2_toFunction(fn0),
-            cf = this.map(aa => bb => fn(aa, bb));
+            cf = this.map((aa : A) => (bb : B) => fn(aa, bb));
         return Cell.apply(cf, b,
             toSources(Lambda2_deps(fn0)));
 	}
@@ -162,7 +162,9 @@ export class Cell<A> {
 	             fn0 : ((a : A, b : B, c : C) => D) |
 	                   Lambda3<A,B,C,D>) : Cell<D> {
         const fn = Lambda3_toFunction(fn0),
-            cf = this.map(aa => bb => cc => fn(aa, bb, cc));
+            mf : (aa : A) => (bb : B) => (cc : C) => D =
+                 (aa : A) => (bb : B) => (cc : C) => fn(aa, bb, cc),
+            cf = this.map(mf);
         return Cell.apply(
                    Cell.apply<B, (c : C) => D>(cf, b),
                    c,
@@ -178,7 +180,9 @@ export class Cell<A> {
 	               fn0 : ((a : A, b : B, c : C, d : D) => E) |
 	                     Lambda4<A,B,C,D,E>) : Cell<E> {
         const fn = Lambda4_toFunction(fn0),
-            cf = this.map(aa => bb => cc => dd => fn(aa, bb, cc, dd));
+            mf : (aa : A) => (bb : B) => (cc : C) => (dd : D) => E =
+                 (aa : A) => (bb : B) => (cc : C) => (dd : D) => fn(aa, bb, cc, dd),
+            cf = this.map(mf);
         return Cell.apply(
                    Cell.apply(
                        Cell.apply<B, (c : C) => (d : D) => E>(cf, b),
@@ -196,7 +200,9 @@ export class Cell<A> {
 	                 fn0 : ((a : A, b : B, c : C, d : D, e : E) => F) |
 	                       Lambda5<A,B,C,D,E,F>) : Cell<F> {
         const fn = Lambda5_toFunction(fn0),
-            cf = this.map(aa => bb => cc => dd => ee => fn(aa, bb, cc, dd, ee));
+            mf : (aa : A) => (bb : B) => (cc : C) => (dd : D) => (ee : E) => F =
+                 (aa : A) => (bb : B) => (cc : C) => (dd : D) => (ee : E) => fn(aa, bb, cc, dd, ee),
+            cf = this.map(mf);
         return Cell.apply(
                    Cell.apply(
                        Cell.apply(
@@ -216,7 +222,9 @@ export class Cell<A> {
 	                   fn0 : ((a : A, b : B, c : C, d : D, e : E, f : F) => G) |
 	                         Lambda6<A,B,C,D,E,F,G>) : Cell<G> {
         const fn = Lambda6_toFunction(fn0),
-            cf = this.map(aa => bb => cc => dd => ee => ff => fn(aa, bb, cc, dd, ee, ff));
+            mf : (aa : A) => (bb : B) => (cc : C) => (dd : D) => (ee : E) => (ff : F) => G =
+                 (aa : A) => (bb : B) => (cc : C) => (dd : D) => (ee : E) => (ff : F) => fn(aa, bb, cc, dd, ee, ff),
+            cf = this.map(mf);
         return Cell.apply(
                    Cell.apply(
                        Cell.apply(

@@ -2,7 +2,7 @@
 Here's a recommended import statement:
 import { lambda1, lambda2, lambda3, lambda4, lambda5, lambda6,
          Stream, StreamLoop, StreamSink, Cell, CellLoop, CellSink,
-         transactionally, Tuple2, Unit, Operational } from "sodium";
+         transactionally, Tuple2, Unit, Operational } from "sodium-frp";
 */
 export { lambda1, lambda2, lambda3, lambda4, lambda5, lambda6 } from "./Lambda";
 export { Stream, StreamLoop } from "./Stream";
