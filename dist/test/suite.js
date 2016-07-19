@@ -1,5 +1,6 @@
 "use strict";
 var sodium_frp_1 = require("../lib/sodium-frp");
+var sodium_frp_io_1 = require("../lib/sodium-frp-io");
 var Vertex_1 = require("../lib/Vertex");
 function fail(err) {
     throw new Error(err);
@@ -456,4 +457,18 @@ test("liftLoop", function () {
     kill();
     assertEquals(["tea kettle", "tea caddy"], out);
 });
+var name = "fromAsync", action = sodium_frp_io_1.IOAction.fromAsync(function (a, result) {
+    setTimeout(function () {
+        result(a + 1);
+    }, 1);
+}), out = [], sa = new sodium_frp_1.StreamSink(), kill = action(sa).listen(function (b) { return out.push(b); });
+sa.send(5);
+setTimeout(function () {
+    sa.send(9);
+    setTimeout(function () {
+        assertEquals([6, 10], out);
+        console.log(name + " - PASS");
+        kill();
+    }, 100);
+}, 100);
 //# sourceMappingURL=suite.js.map

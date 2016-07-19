@@ -1,6 +1,7 @@
 import { lambda1, lambda2, lambda3, lambda4, lambda5, lambda6,
          Stream, StreamLoop, StreamSink, Cell, CellLoop, CellSink,
          transactionally, Tuple2, Unit, Operational } from "../lib/sodium-frp";
+import { IOAction } from "../lib/sodium-frp-io";
 import { getTotalRegistrations } from "../lib/Vertex";
 
 function fail(err : string) : void {
@@ -617,3 +618,22 @@ test("liftLoop", () => {
     kill();
     assertEquals(["tea kettle", "tea caddy"], out);
 });
+
+const name = "fromAsync",
+     action = IOAction.fromAsync((a : number, result : (b : number) => void) => {
+            setTimeout(() => {
+                    result(a + 1);
+                }, 1);
+        }),
+     out : number[] = [],
+     sa = new StreamSink<number>(),
+     kill = action(sa).listen(b => out.push(b));
+sa.send(5);
+setTimeout(() => {
+        sa.send(9);
+        setTimeout(() => {
+            assertEquals([6, 10], out);
+            console.log(name + " - PASS");
+            kill();
+        }, 100);
+    }, 100);
