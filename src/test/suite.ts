@@ -1,8 +1,23 @@
-import { lambda1, lambda2, lambda3, lambda4, lambda5, lambda6,
-         Stream, StreamLoop, StreamSink, Cell, CellLoop, CellSink,
-         transactionally, Tuple2, Unit, Operational } from "../lib/sodium-frp";
-import { IOAction } from "../lib/sodium-frp-io";
-import { getTotalRegistrations } from "../lib/Vertex";
+import {
+    lambda1,
+    lambda2,
+    lambda3,
+    lambda4,
+    lambda5,
+    lambda6,
+    Stream,
+    StreamLoop,
+    StreamSink,
+    Cell,
+    CellLoop,
+    CellSink,
+    transactionally,
+    Tuple2,
+    Unit,
+    Operational,
+    IOAction,
+    getTotalRegistrations
+} from "../lib/Sodium";
 
 function fail(err : string) : void {
     throw new Error(err);
