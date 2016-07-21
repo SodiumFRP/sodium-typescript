@@ -1,5 +1,9 @@
 "use strict";
-var Sodium_1 = require("../lib/Sodium");
+// Original
+// var Sodium_1 = require("../lib/Sodium");
+
+var Sodium_1 = Sodium; // Global Sodium namespace `Sodium.XXX`
+
 function fail(err) {
     throw new Error(err);
 }
@@ -320,10 +324,10 @@ var SC = (function () {
     return SC;
 }());
 test("switchC", function () {
-    var ssc = new Sodium_1.StreamSink(), 
+    var ssc = new Sodium_1.StreamSink(),
     // Split each field out of SC so we can update multiple cells in a
     // single transaction.
-    ca = ssc.map(function (s) { return s.a; }).filterNotNull().hold("A"), cb = ssc.map(function (s) { return s.b; }).filterNotNull().hold("a"), csw_str = ssc.map(function (s) { return s.sw; }).filterNotNull().hold("ca"), 
+    ca = ssc.map(function (s) { return s.a; }).filterNotNull().hold("A"), cb = ssc.map(function (s) { return s.b; }).filterNotNull().hold("a"), csw_str = ssc.map(function (s) { return s.sw; }).filterNotNull().hold("ca"),
     // ****
     // NOTE! Because this lambda contains references to Sodium objects, we
     // must declare them explicitly using lambda1() so that Sodium knows
@@ -352,7 +356,7 @@ var SS = (function () {
     return SS;
 }());
 test("switchS", function () {
-    var sss = new Sodium_1.StreamSink(), sa = sss.map(function (s) { return s.a; }), sb = sss.map(function (s) { return s.b; }), csw_str = sss.map(function (s) { return s.sw; }).filterNotNull().hold("sa"), 
+    var sss = new Sodium_1.StreamSink(), sa = sss.map(function (s) { return s.a; }), sb = sss.map(function (s) { return s.b; }), csw_str = sss.map(function (s) { return s.sw; }).filterNotNull().hold("sa"),
     // ****
     // NOTE! Because this lambda contains references to Sodium objects, we
     // must declare them explicitly using lambda1() so that Sodium knows
@@ -378,7 +382,7 @@ var SS2 = (function () {
     return SS2;
 }());
 test("switchSSimultaneous", function () {
-    var ss1 = new SS2(), ss2 = new SS2(), ss3 = new SS2(), ss4 = new SS2(), css = new Sodium_1.CellSink(ss1), 
+    var ss1 = new SS2(), ss2 = new SS2(), ss3 = new SS2(), ss4 = new SS2(), css = new Sodium_1.CellSink(ss1),
     // ****
     // NOTE! Because this lambda contains references to Sodium objects, we
     // must declare them explicitly using lambda1() so that Sodium knows

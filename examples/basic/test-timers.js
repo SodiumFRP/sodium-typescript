@@ -1,5 +1,9 @@
 "use strict";
-var Sodium_1 = require("../lib/Sodium");
+// Original
+// var Sodium_1 = require("../lib/Sodium");
+
+var Sodium_1 = Sodium; // Global Sodium namespace `Sodium.XXX`
+
 function periodic(sys, period) {
     var time = sys.time, oAlarm = new Sodium_1.CellLoop(), sAlarm = sys.at(oAlarm);
     oAlarm.loop(sAlarm.map(function (t) { return t + period; })

@@ -1,5 +1,5 @@
 {
-  "name": "sodium-frp",
+  "name": "sodiumjs",
   "version": "0.9.0",
   "description": "A Functional Reactive Programming (FRP) library for JavaScript",
   "author": "Stephen Blackheath",
@@ -17,16 +17,22 @@
     "functional",
     "reactive"
   ],
-  "main": "dist/lib/sodium-frp-all.js",
+  "main": "dist/lib/sodium.umd.js",
   "scripts": {
-    "clean": "rimraf ./dist",
-    "build": "npm run clean && tsc",
+    "prebuild": "rimraf ./dist",
+    "build:umd": "webpack --progress --colors --mode=dev && rimraf ./dist/lib/src",
+    "build": "npm run prebuild && npm run build:umd && tsc",
+    "prerelease": "npm run build",
     "test": "node ./dist/test/suite.js && node ./dist/test/test-timers.js"
   },
+  "dependencies": {
+    "typescript-collections": "^1.1.2"
+  },
   "devDependencies": {
+    "awesome-typescript-loader": "^2.1.0",
     "rimraf": "^2.5.3",
     "typescript": "^1.8.10",
-    "typescript-collections": "^1.1.2",
-    "uglify-js": "^2.7.0"
+    "uglify-js": "^2.7.0",
+    "webpack": "^1.13.1"
   }
 }
