@@ -11,7 +11,9 @@
 		"moduleResolution": "node",
 		"diagnostics": true
 	},
-	"exclude": [
-		"node_modules"
+	"files": [
+		"./src/lib/Sodium.ts",
+		"./src/test/suite.ts",
+		"./src/test/test-timers.ts"
 	]
 }
