@@ -15,7 +15,9 @@
   "keywords": [
     "frp",
     "functional",
-    "reactive"
+    "reactive",
+    "typescript",
+    "sodium"
   ],
   "main": "./dist/lib/Sodium.js",
   "typings": "./dist/lib/Sodium.d.ts",
