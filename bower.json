@@ -29,6 +29,6 @@
     "node"
   ],
   "dependencies": {
-    "typescript-collections": "github:rixrix/typescript-collections"
+    "typescript-collections": "rixrix/typescript-collections"
   }
 }
