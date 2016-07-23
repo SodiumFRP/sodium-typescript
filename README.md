@@ -1,3 +1,5 @@
+> **Warning: The library is still pending for release to npm and bower**
+
 # Sodium
 
 A Functional Reactive Programming (FRP) library for TypeScript/JavaScript
@@ -8,32 +10,36 @@ Install [Node.js® and npm](https://nodejs.org/en/download/current/) if they are
 
 ## Installation
 
-Warning: The library is still pending for release to npm and bower
-
-via NPM
+### via NPM
 ```
 $> npm install sodiumjs
 $> npm install -g sodiumjs
 ```
 
-via Bower
+### via Bower
 ```
 $> bower install sodiumjs
 ```
 
 ## How to use
 
-ES6
+### ES6
 ```
-TBA
-```
-
-Typescript Import
-```
-TBA
+import { Cell } from 'sodiumjs';
+...
+const c = new Cell(12);
 ```
 
-In a browser, use the UMD format `sodium.umd.js` from `dist/lib` directory
+### TypeScript
+```
+import { Cell } from 'sodiumjs';
+...
+const c = new Cell<number>(12);
+```
+
+### In a browser
+Use the [UMD(Universal Module Definition)](https://github.com/umdjs/umd) format `sodium.umd.js` from `dist/lib` directory
+
 ```
 <script src="dist/lib/sodium.umd.js"></script>
 <script>

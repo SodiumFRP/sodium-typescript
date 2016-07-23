@@ -17,7 +17,8 @@
     "functional",
     "reactive"
   ],
-  "main": "dist/lib/sodium.umd.js",
+  "main": "./dist/lib/Sodium.js",
+  "typings": "./dist/lib/Sodium.d.ts",
   "scripts": {
     "prebuild": "rimraf ./dist",
     "build:umd": "webpack --progress --colors --mode=dev && rimraf ./dist/lib/src",
@@ -26,7 +27,7 @@
     "test": "node ./dist/test/suite.js && node ./dist/test/test-timers.js"
   },
   "dependencies": {
-    "typescript-collections": "^1.1.2"
+    "typescript-collections": "github:rixrix/typescript-collections"
   },
   "devDependencies": {
     "awesome-typescript-loader": "^2.1.0",
