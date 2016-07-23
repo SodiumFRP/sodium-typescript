@@ -1,5 +1,3 @@
-> **Warning: The library is still pending for release to npm and bower**
-
 # Sodium
 
 A Functional Reactive Programming (FRP) library for TypeScript/JavaScript
