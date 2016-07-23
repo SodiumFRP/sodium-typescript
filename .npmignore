@@ -1,4 +1,4 @@
-src
+src/test
 dist/test
 tsconfig.json
 webpack.config.js
