@@ -96,8 +96,7 @@ module.exports = {
             {
                 test: /\.ts$/,
                 loader: 'awesome-typescript-loader',
-                exclude: /(node_modules|bower_components|dist)/,
-                noParse: /node_modules\/typescript-collections\/dist\/lib\/umd.js/
+                exclude: /(node_modules|bower_components|dist)/
             }
         ]
     },
