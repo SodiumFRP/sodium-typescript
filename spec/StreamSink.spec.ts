@@ -9,12 +9,19 @@ import {
     Tuple2,
     Operational,
     Cell,
-    CellLoop
+    CellLoop,
+    getTotalRegistrations
 } from '../src/lib/Sodium';
 
 describe('StreamSink', () => {
 
-    it('should test .map()', () => {
+    afterEach(() => {
+        if (getTotalRegistrations() != 0) {
+            throw new Error('listeners were not deregistered');
+        }
+    });
+
+    it('should test map()', () => {
         const s = new StreamSink<number>();
         const out : number[] = [];
         const kill = s.map(a => a + 1)
@@ -23,6 +30,35 @@ describe('StreamSink', () => {
         kill();
 
         expect([8]).toEqual(out);
+    });
+
+    it('should throw an error send_with_no_listener_1', () => {
+        const s = new StreamSink<number>();
+
+        try {
+            s.send(7);
+        } catch (e) {
+            expect(e.message).toBe('send() was invoked before listeners were registered');
+        }
+
+    });
+
+    it('should (not?) throw an error send_with_no_listener_2', () => {
+        const s = new StreamSink<number>();
+        const out : number[] = [];
+        const kill = s.map(a => a + 1)
+                    .listen(a => out.push(a));
+
+        s.send(7);
+        kill();
+
+        try {
+            // TODO: the message below is bit misleading, need to verify with Stephen B.
+            //       - "this should not throw, because once() uses this mechanism"
+            s.send(9);
+        } catch (e) {
+            expect(e.message).toBe('send() was invoked before listeners were registered');
+        }
     });
 
     it('should map_tack', () => {
@@ -39,7 +75,7 @@ describe('StreamSink', () => {
         expect([8]).toEqual(out);
     });
 
-    it('should do mapTo', () => {
+    it('should test mapTo()', () => {
         const s = new StreamSink<number>(),
         out : string[] = [],
         kill = s.mapTo("fusebox")
@@ -52,7 +88,7 @@ describe('StreamSink', () => {
         expect(['fusebox', 'fusebox']).toEqual(out);
     });
 
-    it('should mergeNonSimultaneous', () => {
+    it('should do mergeNonSimultaneous', () => {
         const s1 = new StreamSink<number>(),
             s2 = new StreamSink<number>(),
             out : number[] = [];
@@ -68,7 +104,7 @@ describe('StreamSink', () => {
         expect([7,9,8]).toEqual(out);
     });
 
-    it('should mergeSimultaneous', () => {
+    it('should do mergeSimultaneous', () => {
         const s1 = new StreamSink<number>((l : number, r : number) => { return r; }),
             s2 = new StreamSink<number>((l : number, r : number) => { return r; }),
             out : number[] = [],
@@ -122,7 +158,7 @@ describe('StreamSink', () => {
         expect([2, 48]).toEqual(out);
     });
 
-    it('should do filter', () => {
+    it('should test filter()', () => {
         const s = new StreamSink<number>(),
         out : number[] = [],
         kill = s.filter(a => a < 10)
@@ -136,7 +172,7 @@ describe('StreamSink', () => {
         expect([2, 9]).toEqual(out);
     });
 
-    it('should do filterNotNull', () => {
+    it('should test filterNotNull()', () => {
         const s = new StreamSink<string>(),
         out : string[] = [],
         kill = s.filterNotNull()
@@ -150,7 +186,7 @@ describe('StreamSink', () => {
         expect(["tomato", "peach"]).toEqual(out);
     });
 
-    it('should do merge', () => {
+    it('should test merge()', () => {
         const sa = new StreamSink<number>(),
         sb = sa.map(x => Math.floor(x / 10))
                 .filter(x => x != 0),
@@ -166,7 +202,7 @@ describe('StreamSink', () => {
         expect([2, 7]).toEqual(out);
     });
 
-    it('should do loopStream', () => {
+    it('should test loop()', () => {
         const sa = new StreamSink<number>(),
             sc = transactionally(() => {
                 const sb = new StreamLoop<number>(),
@@ -187,7 +223,7 @@ describe('StreamSink', () => {
         expect([2, 7]).toEqual(out);
     });
 
-    it('should test gate', () => {
+    it('should test gate()', () => {
         const s = new StreamSink<string>(),
             pred = new CellSink<boolean>(true),
             out : string[] = [],
@@ -203,7 +239,7 @@ describe('StreamSink', () => {
         expect(["H", "I"]).toEqual(out);
     });
 
-    it('should test collect', () => {
+    it('should test collect()', () => {
         const ea = new StreamSink<number>(),
             out : number[] = [],
             sum = ea.collect(0, (a, s) => new Tuple2(a+s+100, a+s)),
@@ -219,11 +255,11 @@ describe('StreamSink', () => {
         expect([105,112,113,115,118]).toEqual(out);
     });
 
-    it('should test accum', () => {
-            const ea = new StreamSink<number>(),
-        out : number[] = [],
-        sum = ea.accum(100, (a, s) => a + s),
-        kill = sum.listen(a => out.push(a));
+    it('should test accum()', () => {
+        const ea = new StreamSink<number>(),
+            out : number[] = [],
+            sum = ea.accum(100, (a, s) => a + s),
+            kill = sum.listen(a => out.push(a));
 
         ea.send(5);
         ea.send(7);
@@ -235,7 +271,7 @@ describe('StreamSink', () => {
         expect([100,105,112,113,115,118]).toEqual(out);
     });
 
-    it('should test once', () => {
+    it('should test once()', () => {
         const s = new StreamSink<string>(),
         out : string[] = [],
         kill = s.once().listen(a => out.push(a));
@@ -248,7 +284,7 @@ describe('StreamSink', () => {
         expect(["A"]).toEqual(out);
     });
 
-    it('should test defer', () => {
+    it('should test defer()', () => {
         const s = new StreamSink<string>(),
         c = s.hold(" "),
         out : string[] = [],
@@ -263,7 +299,7 @@ describe('StreamSink', () => {
         expect(["C","B","A"]).toEqual(out);
     });
 
-    it('should test hold', () => {
+    it('should test hold()', () => {
         const s = new StreamSink<number>(),
         c = s.hold(0),
         out : number[] = [],
@@ -277,7 +313,7 @@ describe('StreamSink', () => {
         expect([2, 9]).toEqual(out);
     });
 
-    it('should test holdIsDelayed', () => {
+    it('should do holdIsDelayed', () => {
         const s = new StreamSink<number>(),
         h = s.hold(0),
         sPair = s.snapshot(h, (a, b) => a + " " + b),
@@ -291,7 +327,7 @@ describe('StreamSink', () => {
         expect(["2 0", "3 2"]).toEqual(out);
     });
 
-    it('should test switchC', () => {
+    it('should test switchC()', () => {
         class SC {
             constructor(a : string, b : string, sw : string) {
                 this.a = a;
@@ -336,7 +372,7 @@ describe('StreamSink', () => {
 
     });
 
-    it('should test switchS', () => {
+    it('should test switchS()', () => {
         class SS {
             constructor(a : string, b : string, sw : string) {
                 this.a = a;
@@ -377,7 +413,7 @@ describe('StreamSink', () => {
         expect(["A", "B", "C", "d", "e", "F", "G", "h", "I"]).toEqual(out);
     });
 
-    it('should test switchSSimultaneous', () => {
+    it('should do switchSSimultaneous', () => {
         class SS2 {
             s : StreamSink<number> = new StreamSink<number>();
         }
@@ -437,22 +473,6 @@ describe('StreamSink', () => {
 
         expect([0, 2, 5, 6]).toEqual(out);
         expect(6).toEqual(sum_out.sample());
-    });
-
-    it('should test accum', () => {
-        const sa = new StreamSink<number>(),
-        out : number[] = [],
-        sum = sa.accum(100, (a, s) => a + s),
-        kill = sum.listen(a => out.push(a));
-
-        sa.send(5);
-        sa.send(7);
-        sa.send(1);
-        sa.send(2);
-        sa.send(3);
-        kill();
-
-        expect([100, 105, 112, 113, 115, 118]).toEqual(out);
     });
 
 });

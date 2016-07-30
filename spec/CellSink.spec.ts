@@ -5,10 +5,17 @@ import {
     StreamSink,
     CellSink,
     transactionally,
-    Tuple2
+    Tuple2,
+    getTotalRegistrations
 } from '../src/lib/Sodium';
 
 describe('CellSink', () => {
+    afterEach(() => {
+        if (getTotalRegistrations() != 0) {
+            throw new Error('listeners were not deregistered');
+        }
+    });
+
     it('should test snapshot', () => {
         const c = new CellSink<number>(0),
         s = new StreamSink<number>(),
@@ -50,22 +57,24 @@ describe('CellSink', () => {
         expect(["6", "8"]).toEqual(out);
     });
 
-    it("shoudl test mapCLateListen", () => {
-        /*
-        shouldThrow("invoked before listeners", () => {
-            const c = new CellSink<number>(6),
-                out : string[] = [],
-                cm = c.map(a => ""+a);
+    it("should throw an error on mapCLateListen", () => {
+        const c = new CellSink<number>(6),
+            out : string[] = [],
+            cm = c.map(a => ""+a);
+
+        try {
             c.send(2);
             const kill = cm.listen(a => out.push(a));
             c.send(8);
             kill();
-            assertEquals(["2", "8"], out);
-        });
-        */
+        } catch (e) {
+            expect(e.message).toBe('send() was invoked before listeners were registered');
+        }
+
+        //assertEquals(["2", "8"], out);
     });
 
-    it("shoudl test apply", () => {
+    it("should test apply", () => {
         const cf = new CellSink<(a : number) => string>(a => "1 "+a),
             ca = new CellSink<number>(5),
             out : string[] = [],
@@ -104,7 +113,7 @@ describe('CellSink', () => {
         expect(["3 5", "6 10"]).toEqual(out);
     });
 
-    it("liftFromSimultaneous", () => {
+    it("should test liftFromSimultaneous", () => {
         const t = transactionally(() => {
             const b1 = new CellSink(3),
                 b2 = new CellSink(5);

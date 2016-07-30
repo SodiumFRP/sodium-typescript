@@ -18,7 +18,8 @@ module.exports = function(config) {
     plugins: [
         require('karma-jasmine'),
         require('karma-phantomjs-launcher'),
-        require('karma-webpack')
+        require('karma-webpack'),
+        require('karma-spec-reporter')
     ],
 
     // list of files / patterns to load in the browser
@@ -49,8 +50,16 @@ module.exports = function(config) {
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress'],
+    reporters: ['spec'],
 
+    specReporter: {
+        maxLogLines: 5,         // limit number of lines logged per test
+        suppressErrorSummary: true,  // do not print error summary
+        suppressFailed: false,  // do not print information about failed tests
+        suppressPassed: false,  // do not print information about passed tests
+        suppressSkipped: true,  // do not print information about skipped tests
+        showSpecTiming: true // print the time elapsed for each spec
+      },
 
     // web server port
     port: 9876,

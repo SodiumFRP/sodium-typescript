@@ -7,10 +7,18 @@ import {
     transactionally,
     StreamSink,
     Unit,
-    CellSink
+    CellSink,
+    getTotalRegistrations
 } from '../src/lib/Sodium';
 
 describe('Cell', () => {
+
+    afterEach(() => {
+        if (getTotalRegistrations() != 0) {
+            throw new Error('listeners were not deregistered');
+        }
+    });
+
     it('should test loopValueSnapshot', () => {
         const out : string[] = [],
             kill = transactionally(() => {
