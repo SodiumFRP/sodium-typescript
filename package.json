@@ -22,12 +22,12 @@
   "main": "./dist/lib/Sodium.js",
   "typings": "./dist/lib/Sodium.d.ts",
   "scripts": {
-    "prebuild": "rimraf ./dist",
-    "build:umd": "webpack --progress --colors --mode=dev && rimraf ./dist/lib/src",
-    "build": "npm run prebuild && npm run build:umd && tsc",
+    "clean": "rimraf ./dist",
+    "build:umd": "webpack --progress --colors --build=dev && webpack --progress --colors --build=prod && rimraf ./dist/lib/src",
+    "build:ts": "tsc",
+    "build": "npm run clean && npm run build:umd && npm run build:ts",
     "prerelease": "npm run build",
-    "test": "node ./dist/test/suite.js && node ./dist/test/test-timers.js",
-    "karma": "karma start"
+    "test": "karma start"
   },
   "dependencies": {
     "typescript-collections": "github:rixrix/typescript-collections"
@@ -48,6 +48,7 @@
     "rimraf": "^2.5.3",
     "typescript": "^1.8.10",
     "uglify-js": "^2.7.0",
-    "webpack": "^1.13.1"
+    "webpack": "^1.13.1",
+    "yargs": "^4.8.1"
   }
 }
