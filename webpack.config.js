@@ -1,6 +1,6 @@
 var webpack = require('webpack');
 var path = require('path');
-var env = require('yargs').argv.mode;
+var argv = require('yargs').argv;
 var UglifyJsPlugin = webpack.optimize.UglifyJsPlugin;
 
 var libraryName = 'Sodium';
@@ -10,7 +10,7 @@ var sourceEntryPoint = './src/lib/Sodium.ts';
 
 var plugins = [], outputFile;
 
-if (env === 'build') {
+if (argv.build == 'prod') {
     plugins.push(new UglifyJsPlugin({ minimize: true }));
     outputFile = libraryName.toLowerCase() + '.umd.min.js';
 } else {

@@ -1,0 +1,10 @@
+language: node_js
+node_js:
+ - "6"
+ - "5"
+ - "4"
+install:
+ - npm install
+script:
+ - npm run prerelease
+ - npm run test

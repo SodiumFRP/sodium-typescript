@@ -1,3 +1,8 @@
+[![Build Status](https://travis-ci.org/SodiumFRP/sodium-typescript.svg?branch=master)](https://travis-ci.org/SodiumFRP/sodium-typescript)
+[![npm version](https://badge.fury.io/js/sodiumjs.svg)](https://badge.fury.io/js/sodiumjs)
+[![Bower version](https://badge.fury.io/bo/sodiumjs.svg)](https://badge.fury.io/bo/sodiumjs)
+[![Downloads](http://img.shields.io/npm/dm/sodiumjs.svg)](https://npmjs.org/package/sodiumjs)
+
 # Sodium
 
 A Functional Reactive Programming (FRP) library for TypeScript/JavaScript
