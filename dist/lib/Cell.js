@@ -31,7 +31,7 @@ var Cell = (function () {
             this.vertex = new Vertex_1.Vertex("ConstCell", 0, []);
         }
         else
-            Transaction_1.transactionally(function () { return _this.setStream(str); });
+            Transaction_1.Transaction.transactionally(function () { return _this.setStream(str); });
     }
     Cell.prototype.setStream = function (str) {
         var _this = this;
@@ -39,7 +39,7 @@ var Cell = (function () {
         var me = this, src = new Vertex_1.Source(str.getVertex__(), function () {
             return str.listen_(me.vertex, function (a) {
                 if (me.valueUpdate == null) {
-                    Transaction_1.currentTransaction.last(function () {
+                    Transaction_1.Transaction.currentTransaction.last(function () {
                         me.value = me.valueUpdate;
                         me.lazyInitValue = null;
                         me.valueUpdate = null;
@@ -53,7 +53,7 @@ var Cell = (function () {
         // transaction so that we are guaranteed to catch any stream events that
         // occur in the same transaction.
         this.vertex.register(Vertex_1.Vertex.NULL);
-        Transaction_1.currentTransaction.last(function () {
+        Transaction_1.Transaction.currentTransaction.last(function () {
             _this.vertex.deregister(Vertex_1.Vertex.NULL);
         });
     };
@@ -75,7 +75,7 @@ var Cell = (function () {
      */
     Cell.prototype.sample = function () {
         var _this = this;
-        return Transaction_1.transactionally(function () { return _this.sampleNoTrans__(); });
+        return Transaction_1.Transaction.transactionally(function () { return _this.sampleNoTrans__(); });
     };
     Cell.prototype.sampleNoTrans__ = function () {
         return this.value;
@@ -87,11 +87,11 @@ var Cell = (function () {
      */
     Cell.prototype.sampleLazy = function () {
         var me = this;
-        return Transaction_1.transactionally(function () { return me.sampleLazyNoTrans__(); });
+        return Transaction_1.Transaction.transactionally(function () { return me.sampleLazyNoTrans__(); });
     };
     Cell.prototype.sampleLazyNoTrans__ = function () {
         var me = this, s = new LazySample(me);
-        Transaction_1.currentTransaction.last(function () {
+        Transaction_1.Transaction.currentTransaction.last(function () {
             s.value = me.valueUpdate != null ? me.valueUpdate : me.sampleNoTrans__();
             s.hasValue = true;
             s.cell = null;
@@ -110,7 +110,7 @@ var Cell = (function () {
      */
     Cell.prototype.map = function (f) {
         var c = this;
-        return Transaction_1.transactionally(function () {
+        return Transaction_1.Transaction.transactionally(function () {
             return Operational_1.Operational.updates(c).map(f).holdLazy(c.sampleLazy().map(Lambda_1.Lambda1_toFunction(f)));
         });
     };
@@ -164,7 +164,7 @@ var Cell = (function () {
      * primitive for all function lifting.
      */
     Cell.apply = function (cf, ca, sources) {
-        return Transaction_1.transactionally(function () {
+        return Transaction_1.Transaction.transactionally(function () {
             var state = new ApplyState(), out = new Stream_1.StreamWithSend(), cf_value = Operational_1.Operational.value(cf), ca_value = Operational_1.Operational.value(ca), src1 = new Vertex_1.Source(cf_value.getVertex__(), function () {
                 return cf_value.listen_(out.getVertex__(), function (f) {
                     state.f = f;
@@ -190,7 +190,7 @@ var Cell = (function () {
      * Unwrap a cell inside another cell to give a time-varying cell implementation.
      */
     Cell.switchC = function (cca) {
-        return Transaction_1.transactionally(function () {
+        return Transaction_1.Transaction.transactionally(function () {
             var za = cca.sampleLazy().map(function (ba) { return ba.sample(); }), out = new Stream_1.StreamWithSend();
             var last_ca = null;
             var cca_value = Operational_1.Operational.value(cca), src = new Vertex_1.Source(cca_value.getVertex__(), function () {
@@ -216,7 +216,7 @@ var Cell = (function () {
      * Unwrap a stream inside a cell to give a time-varying stream implementation.
      */
     Cell.switchS = function (csa) {
-        return Transaction_1.transactionally(function () {
+        return Transaction_1.Transaction.transactionally(function () {
             var out = new Stream_1.StreamWithSend(), h2 = function (a) {
                 out.send_(a);
             }, src = new Vertex_1.Source(csa.getVertex__(), function () {
@@ -245,7 +245,7 @@ var Cell = (function () {
      */
     Cell.prototype.listen = function (h) {
         var _this = this;
-        return Transaction_1.transactionally(function () {
+        return Transaction_1.Transaction.transactionally(function () {
             return Operational_1.Operational.value(_this).listen(h);
         });
     };

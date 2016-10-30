@@ -36,7 +36,7 @@ var TimerSystem = (function () {
                 return 1;
             return 0;
         });
-        Transaction_1.transactionally(function () {
+        Transaction_1.Transaction.transactionally(function () {
             _this.impl = impl;
             var timeSnk = new CellSink_1.CellSink(impl.now());
             _this.time = timeSnk;
@@ -55,7 +55,7 @@ var TimerSystem = (function () {
                     }
                     if (ev != null) {
                         timeSnk.send(ev.t);
-                        Transaction_1.transactionally(function () { return ev.sAlarm.send_(ev.t); });
+                        Transaction_1.Transaction.transactionally(function () { return ev.sAlarm.send_(ev.t); });
                     }
                     else
                         return "break";
@@ -93,7 +93,7 @@ var TimerSystem = (function () {
                     cancelCurrent = _this.impl.setTimer(tAl, function () {
                         // Open and close a transaction to trigger queued
                         // events to run.
-                        Transaction_1.transactionally(function () { });
+                        Transaction_1.Transaction.transactionally(function () { });
                     });
                 }
             }
@@ -102,7 +102,7 @@ var TimerSystem = (function () {
             new Vertex_1.Source(tAlarm.getVertex__(), function () {
                 active = true;
                 sampled = false;
-                Transaction_1.currentTransaction.prioritized(sAlarm.getVertex__(), updateTimer);
+                Transaction_1.Transaction.currentTransaction.prioritized(sAlarm.getVertex__(), updateTimer);
                 var kill = tAlarm.getStream__().listen_(sAlarm.getVertex__(), function (oAlarm) {
                     tAl = oAlarm;
                     sampled = true;

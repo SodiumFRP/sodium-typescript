@@ -4,7 +4,7 @@ import {
     Cell,
     StreamSink,
     CellSink,
-    transactionally,
+    Transaction,
     Tuple2,
     getTotalRegistrations
 } from '../src/lib/Sodium';
@@ -114,7 +114,7 @@ describe('CellSink', () => {
     });
 
     it("should test liftFromSimultaneous", () => {
-        const t = transactionally(() => {
+        const t = Transaction.transactionally(() => {
             const b1 = new CellSink(3),
                 b2 = new CellSink(5);
             b2.send(7);

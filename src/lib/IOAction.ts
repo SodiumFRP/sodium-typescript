@@ -1,6 +1,6 @@
 import { Stream, StreamWithSend } from "./Stream";
 import { Vertex, Source } from "./Vertex";
-import { transactionally } from "./Transaction";
+import { Transaction } from "./Transaction";
 
 export class IOAction {
     /*!
@@ -18,7 +18,7 @@ export class IOAction {
                         () => {
                             return sa.listen_(out.getVertex__(), (a : A) => {
                                 performIO(a, (b : B) => {
-                                    transactionally(() => {
+                                    Transaction.transactionally(() => {
                                         out.send_(b);
                                     });
                                 });

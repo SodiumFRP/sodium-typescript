@@ -4,7 +4,7 @@ import {
     CellLoop,
     Cell,
     Operational,
-    transactionally,
+    Transaction,
     StreamSink,
     Unit,
     CellSink,
@@ -21,7 +21,7 @@ describe('Cell', () => {
 
     it('should test loopValueSnapshot', () => {
         const out : string[] = [],
-            kill = transactionally(() => {
+            kill = Transaction.transactionally(() => {
                 const a = new Cell("lettuce"),
                 b = new CellLoop<string>(),
                 eSnap = Operational.value(a).snapshot(b, (aa, bb) => aa + " " + bb);
@@ -36,7 +36,7 @@ describe('Cell', () => {
 
     it('should test loopValueHold', () => {
         const out : string[] = [],
-            value = transactionally(() => {
+            value = Transaction.transactionally(() => {
                 const a = new CellLoop<string>(),
                     value_ = Operational.value(a).hold("onion");
                 a.loop(new Cell("cheese"));
@@ -54,7 +54,7 @@ describe('Cell', () => {
     it('should test liftLoop', () => {
         const out : string[] = [],
             b = new CellSink("kettle"),
-            c = transactionally(() => {
+            c = Transaction.transactionally(() => {
                 const a = new CellLoop<string>(),
                     c_ = a.lift(b, (aa, bb) => aa + " " + bb);
                 a.loop(new Cell("tea"));

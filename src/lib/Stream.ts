@@ -2,7 +2,7 @@ import { Lambda1, Lambda1_deps, Lambda1_toFunction,
          Lambda2, Lambda2_deps, Lambda2_toFunction,
          toSources } from "./Lambda";
 import { Source, Vertex } from "./Vertex";
-import { Transaction, transactionally, currentTransaction } from "./Transaction";
+import { Transaction } from "./Transaction";
 import { CoalesceHandler } from "./CoalesceHandler";
 import { Cell } from "./Cell";
 //import { StreamLoop } from "./StreamLoop";
@@ -145,7 +145,7 @@ export class Stream<A> {
      *    {@link Cell#sample()}. Apart from this the function must be <em>referentially transparent</em>.
      */
     merge(s : Stream<A>, f : ((left : A, right : A) => A) | Lambda2<A,A,A>) : Stream<A> {
-        return transactionally<Stream<A>>(() => {
+        return Transaction.transactionally<Stream<A>>(() => {
             return this.merge_(s).coalesce__(f);
         });
     }
@@ -290,7 +290,7 @@ export class Stream<A> {
      */
     collectLazy<B,S>(initState : Lazy<S>, f : ((a : A, s : S) => Tuple2<B,S>) | Lambda2<A,S,Tuple2<B,S>>) : Stream<B> {
         const ea = this;
-        return transactionally(() => {
+        return Transaction.transactionally(() => {
             const es = new StreamLoop<S>(),
                 s = es.holdLazy(initState),
                 ebs = ea.snapshot(s, f),
@@ -317,7 +317,7 @@ export class Stream<A> {
      */
     accumLazy<S>(initState : Lazy<S>, f : ((a : A, s : S) => S) | Lambda2<A,S,S>) : Cell<S> {
         const ea = this;
-        return transactionally(() => {
+        return Transaction.transactionally(() => {
             const es = new StreamLoop<S>(),
                 s = es.holdLazy(initState),
                 es_out = ea.snapshot(s, f);
@@ -332,7 +332,7 @@ export class Stream<A> {
      */
     once() : Stream<A> {
     /*
-        return transactionally(() => {
+        return Transaction.transactionally(() => {
             const ev = this,
                 out = new StreamWithSend<A>();
             let la : () => void = null;
@@ -352,11 +352,11 @@ export class Stream<A> {
         // We can revisit this another time. For now we will use the less
         // efficient implementation below.
         const me = this;
-        return transactionally(() => me.gate(me.mapTo(false).hold(true)));
+        return Transaction.transactionally(() => me.gate(me.mapTo(false).hold(true)));
     }
 
     listen(h : (a : A) => void) : () => void {
-        return transactionally<() => void>(() => {
+        return Transaction.transactionally<() => void>(() => {
             return this.listen_(Vertex.NULL, h, false);
         });
     }
@@ -365,12 +365,12 @@ export class Stream<A> {
             h : (a : A) => void,
             suppressEarlierFirings : boolean) : () => void {
         if (this.vertex.register(target))
-            currentTransaction.requestRegen();
+            Transaction.currentTransaction.requestRegen();
         const listener = new Listener<A>(h, target);
         this.listeners.push(listener);
         if (!suppressEarlierFirings && this.firings.length != 0) {
             const firings = this.firings.slice();
-            currentTransaction.prioritized(target, () => {
+            Transaction.currentTransaction.prioritized(target, () => {
                 // Anything sent already in this transaction must be sent now so that
                 // there's no order dependency between send and listen.
                 for (let i = 0; i < firings.length; i++)
@@ -396,7 +396,7 @@ export class StreamWithSend<A> extends Stream<A> {
     constructor(vertex? : Vertex) {
         super(vertex);
     }
-    
+
     setVertex__(vertex : Vertex) {  // TO DO figure out how to hide this
         this.vertex = vertex;
     }
@@ -408,21 +408,21 @@ export class StreamWithSend<A> extends Stream<A> {
         if (this.vertex.refCount() == 0)
             throw new Error("send() was invoked before listeners were registered");
 		if (this.firings.length == 0)
-			currentTransaction.last(() => {
+			Transaction.currentTransaction.last(() => {
 			    this.firings = [];
             });
 		this.firings.push(a);
 		const listeners = this.listeners.slice();
         for (let i = 0; i < listeners.length; i++) {
             const h = listeners[i].h;
-            currentTransaction.prioritized(listeners[i].target, () => {
-                currentTransaction.inCallback++;
+            Transaction.currentTransaction.prioritized(listeners[i].target, () => {
+                Transaction.currentTransaction.inCallback++;
                 try {
                     h(a);
-                    currentTransaction.inCallback--;
+                    Transaction.currentTransaction.inCallback--;
                 }
                 catch (err) {
-                    currentTransaction.inCallback--;
+                    Transaction.currentTransaction.inCallback--;
                     throw err;
                 }
             });
@@ -431,7 +431,7 @@ export class StreamWithSend<A> extends Stream<A> {
 }
 
 /**
- * A forward reference for a {@link Stream} equivalent to the Stream that is referenced. 
+ * A forward reference for a {@link Stream} equivalent to the Stream that is referenced.
  */
 export class StreamLoop<A> extends StreamWithSend<A> {
     assigned__ : boolean = false;  // to do: Figure out how to hide this
@@ -440,7 +440,7 @@ export class StreamLoop<A> extends StreamWithSend<A> {
     {
         super();
         this.vertex.name = "StreamLoop";
-    	if (currentTransaction === null)
+    	if (Transaction.currentTransaction === null)
     	    throw new Error("StreamLoop/CellLoop must be used within an explicit transaction");
     }
 

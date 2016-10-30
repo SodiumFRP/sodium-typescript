@@ -11,7 +11,7 @@ import {
     Cell,
     CellLoop,
     CellSink,
-    transactionally,
+    Transaction,
     Tuple2,
     Unit,
     Operational,
@@ -34,7 +34,7 @@ let sTick : Stream<number> = null;
 const sys = new SecondsTimerSystem(),
     time = sys.time,
     sMain = new StreamSink<Unit>(),
-    kill = transactionally(() => {
+    kill = Transaction.transactionally(() => {
         const t0 = time.sample(),
             kill1 = periodic(sys, 1).listen(t => {
                 console.log((t - t0).toFixed(3)+" timer");
