@@ -9,6 +9,9 @@ export declare class Entry {
     toString(): string;
 }
 export declare class Transaction {
+    static currentTransaction: Transaction;
+    private static onStartHooks;
+    private static runningOnStartHooks;
     constructor();
     inCallback: number;
     private toRegen;
@@ -24,6 +27,7 @@ export declare class Transaction {
      */
     post(childIx: number, action: () => void): void;
     private checkRegen();
+    isActive(): boolean;
     close(): void;
     /**
      * Add a runnable that will be executed whenever a transaction is started.
@@ -33,6 +37,5 @@ export declare class Transaction {
      * The main use case of this is the implementation of a time/alarm system.
      */
     static onStart(r: () => void): void;
+    static run<A>(f: () => A): A;
 }
-export declare let currentTransaction: Transaction;
-export declare function transactionally<A>(f: () => A): A;

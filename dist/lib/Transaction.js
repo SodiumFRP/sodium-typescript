@@ -34,7 +34,9 @@ var Transaction = (function () {
         this.lastQ = [];
         this.postQ = null;
     }
-    Transaction.prototype.requestRegen = function () { this.toRegen = true; };
+    Transaction.prototype.requestRegen = function () {
+        this.toRegen = true;
+    };
     Transaction.prototype.prioritized = function (target, f) {
         var e = new Entry(target, f);
         this.prioritizedQ.enqueue(e);
@@ -70,6 +72,9 @@ var Transaction = (function () {
                 this.prioritizedQ.enqueue(es[i]);
         }
     };
+    Transaction.prototype.isActive = function () {
+        return Transaction.currentTransaction ? true : false;
+    };
     Transaction.prototype.close = function () {
         while (true) {
             this.checkRegen();
@@ -85,27 +90,27 @@ var Transaction = (function () {
         if (this.postQ != null) {
             for (var i = 0; i < this.postQ.length; i++) {
                 if (this.postQ[i] != null) {
-                    var parent_1 = exports.currentTransaction;
+                    var parent_1 = Transaction.currentTransaction;
                     try {
                         if (i > 0) {
-                            exports.currentTransaction = new Transaction();
+                            Transaction.currentTransaction = new Transaction();
                             try {
                                 this.postQ[i]();
-                                exports.currentTransaction.close();
+                                Transaction.currentTransaction.close();
                             }
                             catch (err) {
-                                exports.currentTransaction.close();
+                                Transaction.currentTransaction.close();
                                 throw err;
                             }
                         }
                         else {
-                            exports.currentTransaction = null;
+                            Transaction.currentTransaction = null;
                             this.postQ[i]();
                         }
-                        exports.currentTransaction = parent_1;
+                        Transaction.currentTransaction = parent_1;
                     }
                     catch (err) {
-                        exports.currentTransaction = parent_1;
+                        Transaction.currentTransaction = parent_1;
                         throw err;
                     }
                 }
@@ -121,43 +126,43 @@ var Transaction = (function () {
      * The main use case of this is the implementation of a time/alarm system.
      */
     Transaction.onStart = function (r) {
-        onStartHooks.push(r);
+        Transaction.onStartHooks.push(r);
     };
+    Transaction.run = function (f) {
+        var transWas = Transaction.currentTransaction;
+        if (transWas === null) {
+            if (!Transaction.runningOnStartHooks) {
+                Transaction.runningOnStartHooks = true;
+                try {
+                    for (var i = 0; i < Transaction.onStartHooks.length; i++)
+                        Transaction.onStartHooks[i]();
+                }
+                finally {
+                    Transaction.runningOnStartHooks = false;
+                }
+            }
+            Transaction.currentTransaction = new Transaction();
+        }
+        try {
+            var a = f();
+            if (transWas === null) {
+                Transaction.currentTransaction.close();
+                Transaction.currentTransaction = null;
+            }
+            return a;
+        }
+        catch (err) {
+            if (transWas === null) {
+                Transaction.currentTransaction.close();
+                Transaction.currentTransaction = null;
+            }
+            throw err;
+        }
+    };
+    Transaction.currentTransaction = null;
+    Transaction.onStartHooks = [];
+    Transaction.runningOnStartHooks = false;
     return Transaction;
 }());
 exports.Transaction = Transaction;
-exports.currentTransaction = null;
-var onStartHooks = [], runningOnStartHooks = false;
-function transactionally(f) {
-    var transWas = exports.currentTransaction;
-    if (transWas === null) {
-        if (!runningOnStartHooks) {
-            runningOnStartHooks = true;
-            try {
-                for (var i = 0; i < onStartHooks.length; i++)
-                    onStartHooks[i]();
-            }
-            finally {
-                runningOnStartHooks = false;
-            }
-        }
-        exports.currentTransaction = new Transaction();
-    }
-    try {
-        var a = f();
-        if (transWas === null) {
-            exports.currentTransaction.close();
-            exports.currentTransaction = null;
-        }
-        return a;
-    }
-    catch (err) {
-        if (transWas === null) {
-            exports.currentTransaction.close();
-            exports.currentTransaction = null;
-        }
-        throw err;
-    }
-}
-exports.transactionally = transactionally;
 //# sourceMappingURL=Transaction.js.map

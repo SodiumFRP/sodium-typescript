@@ -1,11 +1,11 @@
 import { Cell } from "./Cell";
 import { Lazy } from "./Lazy";
 import { LazyCell } from "./LazyCell";
-import { transactionally } from "./Transaction";
+import { Transaction } from "./Transaction";
 import { StreamLoop } from "./Stream";
 
 /**
- * A forward reference for a {@link Cell} equivalent to the Cell that is referenced. 
+ * A forward reference for a {@link Cell} equivalent to the Cell that is referenced.
  */
 export class CellLoop<A> extends LazyCell<A> {
     constructor() {
@@ -20,7 +20,7 @@ export class CellLoop<A> extends LazyCell<A> {
      */
     loop(a_out : Cell<A>) : void {
         const me = this;
-        transactionally(() => {
+        Transaction.run(() => {
             (<StreamLoop<A>>me.getStream__()).loop(a_out.getStream__());
             me.lazyInitValue = a_out.sampleLazy();
         });

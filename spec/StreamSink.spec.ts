@@ -5,7 +5,7 @@ import {
     StreamSink,
     StreamLoop,
     CellSink,
-    transactionally,
+    Transaction,
     Tuple2,
     Operational,
     Cell,
@@ -111,26 +111,26 @@ describe('StreamSink', () => {
             kill = s2.orElse(s1)
                  .listen(a => out.push(a));
 
-        transactionally<void>(() => {
+        Transaction.run<void>(() => {
             s1.send(7);
             s2.send(60);
         });
-        transactionally<void>(() => {
+        Transaction.run<void>(() => {
                 s1.send(9);
             });
-        transactionally<void>(() => {
+        Transaction.run<void>(() => {
             s1.send(7);
             s1.send(60);
             s2.send(8);
             s2.send(90);
         });
-        transactionally<void>(() => {
+        Transaction.run<void>(() => {
             s2.send(8);
             s2.send(90);
             s1.send(7);
             s1.send(60);
         });
-        transactionally<void>(() => {
+        Transaction.run<void>(() => {
             s2.send(8);
             s1.send(7);
             s2.send(90);
@@ -146,10 +146,10 @@ describe('StreamSink', () => {
         out : number[] = [],
         kill = s.listen(a => out.push(a));
 
-        transactionally<void>(() => {
+        Transaction.run<void>(() => {
             s.send(2);
         });
-        transactionally<void>(() => {
+        Transaction.run<void>(() => {
             s.send(8);
             s.send(40);
         });
@@ -204,7 +204,7 @@ describe('StreamSink', () => {
 
     it('should test loop()', () => {
         const sa = new StreamSink<number>(),
-            sc = transactionally(() => {
+            sc = Transaction.run(() => {
                 const sb = new StreamLoop<number>(),
                     sc_ = sa.map(x => x % 10).merge(sb,
                         (x, y) => x+y),
@@ -444,7 +444,7 @@ describe('StreamSink', () => {
         ss3.s.send(5);
         ss3.s.send(6);
         ss3.s.send(7);
-        transactionally(() => {
+        Transaction.run(() => {
             ss3.s.send(8);
             css.send(ss4);
             ss4.s.send(2);
@@ -457,7 +457,7 @@ describe('StreamSink', () => {
 
     it('should test loopCell', () => {
         const sa = new StreamSink<number>(),
-        sum_out = transactionally(() => {
+        sum_out = Transaction.run(() => {
                 const sum = new CellLoop<number>(),
                       sum_out_ = sa.snapshot(sum, (x, y) => x + y).hold(0);
                 sum.loop(sum_out_);

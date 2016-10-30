@@ -11,7 +11,7 @@ var LazyCell = (function (_super) {
     function LazyCell(lazyInitValue, str) {
         var _this = this;
         _super.call(this, null, null);
-        Transaction_1.transactionally(function () {
+        Transaction_1.Transaction.run(function () {
             if (str)
                 _this.setStream(str);
             _this.lazyInitValue = lazyInitValue;

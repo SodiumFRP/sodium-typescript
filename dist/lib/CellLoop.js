@@ -23,7 +23,7 @@ var CellLoop = (function (_super) {
      */
     CellLoop.prototype.loop = function (a_out) {
         var me = this;
-        Transaction_1.transactionally(function () {
+        Transaction_1.Transaction.run(function () {
             me.getStream__().loop(a_out.getStream__());
             me.lazyInitValue = a_out.sampleLazy();
         });

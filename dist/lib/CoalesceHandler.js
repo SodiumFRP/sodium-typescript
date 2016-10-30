@@ -13,7 +13,7 @@ var CoalesceHandler = (function () {
         if (this.accumValid)
             this.accum = this.f(this.accum, a);
         else {
-            Transaction_1.currentTransaction.prioritized(this.out.getVertex__(), function () {
+            Transaction_1.Transaction.currentTransaction.prioritized(this.out.getVertex__(), function () {
                 _this.out.send_(_this.accum);
                 _this.accumValid = false;
                 _this.accum = null;

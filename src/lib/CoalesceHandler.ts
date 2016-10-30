@@ -1,7 +1,7 @@
 import { Lambda1, Lambda1_deps, Lambda1_toFunction,
          Lambda2, Lambda2_deps, Lambda2_toFunction,
          toSources } from "./Lambda";
-import { Transaction, transactionally, currentTransaction } from "./Transaction";
+import { Transaction } from "./Transaction";
 import { StreamWithSend } from "./Stream";
 import { Vertex } from "./Vertex";
 
@@ -24,7 +24,7 @@ export class CoalesceHandler<A>
         if (this.accumValid)
             this.accum = this.f(this.accum, a);
         else {
-            currentTransaction.prioritized(this.out.getVertex__(), () => {
+            Transaction.currentTransaction.prioritized(this.out.getVertex__(), () => {
                 this.out.send_(this.accum);
                 this.accumValid = false;
                 this.accum = null;

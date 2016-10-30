@@ -74,7 +74,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var CellSink_1 = __webpack_require__(28);
 	exports.CellSink = CellSink_1.CellSink;
 	var Transaction_1 = __webpack_require__(4);
-	exports.transactionally = Transaction_1.transactionally;
+	exports.Transaction = Transaction_1.Transaction;
 	var Tuple2_1 = __webpack_require__(29);
 	exports.Tuple2 = Tuple2_1.Tuple2;
 	var Unit_1 = __webpack_require__(23);
@@ -684,7 +684,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    Stream.prototype.merge = function (s, f) {
 	        var _this = this;
-	        return Transaction_1.transactionally(function () {
+	        return Transaction_1.Transaction.run(function () {
 	            return _this.merge_(s).coalesce__(f);
 	        });
 	    };
@@ -807,7 +807,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    Stream.prototype.collectLazy = function (initState, f) {
 	        var ea = this;
-	        return Transaction_1.transactionally(function () {
+	        return Transaction_1.Transaction.run(function () {
 	            var es = new StreamLoop(), s = es.holdLazy(initState), ebs = ea.snapshot(s, f), eb = ebs.map(function (bs) { return bs.a; }), es_out = ebs.map(function (bs) { return bs.b; });
 	            es.loop(es_out);
 	            return eb;
@@ -828,7 +828,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    Stream.prototype.accumLazy = function (initState, f) {
 	        var ea = this;
-	        return Transaction_1.transactionally(function () {
+	        return Transaction_1.Transaction.run(function () {
 	            var es = new StreamLoop(), s = es.holdLazy(initState), es_out = ea.snapshot(s, f);
 	            es.loop(es_out);
 	            return es_out.holdLazy(initState);
@@ -840,7 +840,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    Stream.prototype.once = function () {
 	        /*
-	            return transactionally(() => {
+	            return Transaction.run(() => {
 	                const ev = this,
 	                    out = new StreamWithSend<A>();
 	                let la : () => void = null;
@@ -860,23 +860,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // We can revisit this another time. For now we will use the less
 	        // efficient implementation below.
 	        var me = this;
-	        return Transaction_1.transactionally(function () { return me.gate(me.mapTo(false).hold(true)); });
+	        return Transaction_1.Transaction.run(function () { return me.gate(me.mapTo(false).hold(true)); });
 	    };
 	    Stream.prototype.listen = function (h) {
 	        var _this = this;
-	        return Transaction_1.transactionally(function () {
+	        return Transaction_1.Transaction.run(function () {
 	            return _this.listen_(Vertex_1.Vertex.NULL, h, false);
 	        });
 	    };
 	    Stream.prototype.listen_ = function (target, h, suppressEarlierFirings) {
 	        var _this = this;
 	        if (this.vertex.register(target))
-	            Transaction_1.currentTransaction.requestRegen();
+	            Transaction_1.Transaction.currentTransaction.requestRegen();
 	        var listener = new Listener_1.Listener(h, target);
 	        this.listeners.push(listener);
 	        if (!suppressEarlierFirings && this.firings.length != 0) {
 	            var firings_1 = this.firings.slice();
-	            Transaction_1.currentTransaction.prioritized(target, function () {
+	            Transaction_1.Transaction.currentTransaction.prioritized(target, function () {
 	                // Anything sent already in this transaction must be sent now so that
 	                // there's no order dependency between send and listen.
 	                for (var i = 0; i < firings_1.length; i++)
@@ -915,21 +915,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (this.vertex.refCount() == 0)
 	            throw new Error("send() was invoked before listeners were registered");
 	        if (this.firings.length == 0)
-	            Transaction_1.currentTransaction.last(function () {
+	            Transaction_1.Transaction.currentTransaction.last(function () {
 	                _this.firings = [];
 	            });
 	        this.firings.push(a);
 	        var listeners = this.listeners.slice();
 	        var _loop_1 = function(i) {
 	            var h = listeners[i].h;
-	            Transaction_1.currentTransaction.prioritized(listeners[i].target, function () {
-	                Transaction_1.currentTransaction.inCallback++;
+	            Transaction_1.Transaction.currentTransaction.prioritized(listeners[i].target, function () {
+	                Transaction_1.Transaction.currentTransaction.inCallback++;
 	                try {
 	                    h(a);
-	                    Transaction_1.currentTransaction.inCallback--;
+	                    Transaction_1.Transaction.currentTransaction.inCallback--;
 	                }
 	                catch (err) {
-	                    Transaction_1.currentTransaction.inCallback--;
+	                    Transaction_1.Transaction.currentTransaction.inCallback--;
 	                    throw err;
 	                }
 	            });
@@ -950,7 +950,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _super.call(this);
 	        this.assigned__ = false; // to do: Figure out how to hide this
 	        this.vertex.name = "StreamLoop";
-	        if (Transaction_1.currentTransaction === null)
+	        if (Transaction_1.Transaction.currentTransaction === null)
 	            throw new Error("StreamLoop/CellLoop must be used within an explicit transaction");
 	    }
 	    /**
@@ -1015,7 +1015,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.lastQ = [];
 	        this.postQ = null;
 	    }
-	    Transaction.prototype.requestRegen = function () { this.toRegen = true; };
+	    Transaction.prototype.requestRegen = function () {
+	        this.toRegen = true;
+	    };
 	    Transaction.prototype.prioritized = function (target, f) {
 	        var e = new Entry(target, f);
 	        this.prioritizedQ.enqueue(e);
@@ -1051,6 +1053,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this.prioritizedQ.enqueue(es[i]);
 	        }
 	    };
+	    Transaction.prototype.isActive = function () {
+	        return Transaction.currentTransaction ? true : false;
+	    };
 	    Transaction.prototype.close = function () {
 	        while (true) {
 	            this.checkRegen();
@@ -1066,27 +1071,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (this.postQ != null) {
 	            for (var i = 0; i < this.postQ.length; i++) {
 	                if (this.postQ[i] != null) {
-	                    var parent_1 = exports.currentTransaction;
+	                    var parent_1 = Transaction.currentTransaction;
 	                    try {
 	                        if (i > 0) {
-	                            exports.currentTransaction = new Transaction();
+	                            Transaction.currentTransaction = new Transaction();
 	                            try {
 	                                this.postQ[i]();
-	                                exports.currentTransaction.close();
+	                                Transaction.currentTransaction.close();
 	                            }
 	                            catch (err) {
-	                                exports.currentTransaction.close();
+	                                Transaction.currentTransaction.close();
 	                                throw err;
 	                            }
 	                        }
 	                        else {
-	                            exports.currentTransaction = null;
+	                            Transaction.currentTransaction = null;
 	                            this.postQ[i]();
 	                        }
-	                        exports.currentTransaction = parent_1;
+	                        Transaction.currentTransaction = parent_1;
 	                    }
 	                    catch (err) {
-	                        exports.currentTransaction = parent_1;
+	                        Transaction.currentTransaction = parent_1;
 	                        throw err;
 	                    }
 	                }
@@ -1102,45 +1107,45 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * The main use case of this is the implementation of a time/alarm system.
 	     */
 	    Transaction.onStart = function (r) {
-	        onStartHooks.push(r);
+	        Transaction.onStartHooks.push(r);
 	    };
+	    Transaction.run = function (f) {
+	        var transWas = Transaction.currentTransaction;
+	        if (transWas === null) {
+	            if (!Transaction.runningOnStartHooks) {
+	                Transaction.runningOnStartHooks = true;
+	                try {
+	                    for (var i = 0; i < Transaction.onStartHooks.length; i++)
+	                        Transaction.onStartHooks[i]();
+	                }
+	                finally {
+	                    Transaction.runningOnStartHooks = false;
+	                }
+	            }
+	            Transaction.currentTransaction = new Transaction();
+	        }
+	        try {
+	            var a = f();
+	            if (transWas === null) {
+	                Transaction.currentTransaction.close();
+	                Transaction.currentTransaction = null;
+	            }
+	            return a;
+	        }
+	        catch (err) {
+	            if (transWas === null) {
+	                Transaction.currentTransaction.close();
+	                Transaction.currentTransaction = null;
+	            }
+	            throw err;
+	        }
+	    };
+	    Transaction.currentTransaction = null;
+	    Transaction.onStartHooks = [];
+	    Transaction.runningOnStartHooks = false;
 	    return Transaction;
 	}());
 	exports.Transaction = Transaction;
-	exports.currentTransaction = null;
-	var onStartHooks = [], runningOnStartHooks = false;
-	function transactionally(f) {
-	    var transWas = exports.currentTransaction;
-	    if (transWas === null) {
-	        if (!runningOnStartHooks) {
-	            runningOnStartHooks = true;
-	            try {
-	                for (var i = 0; i < onStartHooks.length; i++)
-	                    onStartHooks[i]();
-	            }
-	            finally {
-	                runningOnStartHooks = false;
-	            }
-	        }
-	        exports.currentTransaction = new Transaction();
-	    }
-	    try {
-	        var a = f();
-	        if (transWas === null) {
-	            exports.currentTransaction.close();
-	            exports.currentTransaction = null;
-	        }
-	        return a;
-	    }
-	    catch (err) {
-	        if (transWas === null) {
-	            exports.currentTransaction.close();
-	            exports.currentTransaction = null;
-	        }
-	        throw err;
-	    }
-	}
-	exports.transactionally = transactionally;
 
 
 /***/ },
@@ -3820,7 +3825,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (this.accumValid)
 	            this.accum = this.f(this.accum, a);
 	        else {
-	            Transaction_1.currentTransaction.prioritized(this.out.getVertex__(), function () {
+	            Transaction_1.Transaction.currentTransaction.prioritized(this.out.getVertex__(), function () {
 	                _this.out.send_(_this.accum);
 	                _this.accumValid = false;
 	                _this.accum = null;
@@ -3871,7 +3876,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.vertex = new Vertex_1.Vertex("ConstCell", 0, []);
 	        }
 	        else
-	            Transaction_1.transactionally(function () { return _this.setStream(str); });
+	            Transaction_1.Transaction.run(function () { return _this.setStream(str); });
 	    }
 	    Cell.prototype.setStream = function (str) {
 	        var _this = this;
@@ -3879,7 +3884,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var me = this, src = new Vertex_1.Source(str.getVertex__(), function () {
 	            return str.listen_(me.vertex, function (a) {
 	                if (me.valueUpdate == null) {
-	                    Transaction_1.currentTransaction.last(function () {
+	                    Transaction_1.Transaction.currentTransaction.last(function () {
 	                        me.value = me.valueUpdate;
 	                        me.lazyInitValue = null;
 	                        me.valueUpdate = null;
@@ -3893,7 +3898,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // transaction so that we are guaranteed to catch any stream events that
 	        // occur in the same transaction.
 	        this.vertex.register(Vertex_1.Vertex.NULL);
-	        Transaction_1.currentTransaction.last(function () {
+	        Transaction_1.Transaction.currentTransaction.last(function () {
 	            _this.vertex.deregister(Vertex_1.Vertex.NULL);
 	        });
 	    };
@@ -3915,7 +3920,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    Cell.prototype.sample = function () {
 	        var _this = this;
-	        return Transaction_1.transactionally(function () { return _this.sampleNoTrans__(); });
+	        return Transaction_1.Transaction.run(function () { return _this.sampleNoTrans__(); });
 	    };
 	    Cell.prototype.sampleNoTrans__ = function () {
 	        return this.value;
@@ -3927,11 +3932,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    Cell.prototype.sampleLazy = function () {
 	        var me = this;
-	        return Transaction_1.transactionally(function () { return me.sampleLazyNoTrans__(); });
+	        return Transaction_1.Transaction.run(function () { return me.sampleLazyNoTrans__(); });
 	    };
 	    Cell.prototype.sampleLazyNoTrans__ = function () {
 	        var me = this, s = new LazySample(me);
-	        Transaction_1.currentTransaction.last(function () {
+	        Transaction_1.Transaction.currentTransaction.last(function () {
 	            s.value = me.valueUpdate != null ? me.valueUpdate : me.sampleNoTrans__();
 	            s.hasValue = true;
 	            s.cell = null;
@@ -3950,7 +3955,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    Cell.prototype.map = function (f) {
 	        var c = this;
-	        return Transaction_1.transactionally(function () {
+	        return Transaction_1.Transaction.run(function () {
 	            return Operational_1.Operational.updates(c).map(f).holdLazy(c.sampleLazy().map(Lambda_1.Lambda1_toFunction(f)));
 	        });
 	    };
@@ -4004,7 +4009,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * primitive for all function lifting.
 	     */
 	    Cell.apply = function (cf, ca, sources) {
-	        return Transaction_1.transactionally(function () {
+	        return Transaction_1.Transaction.run(function () {
 	            var state = new ApplyState(), out = new Stream_1.StreamWithSend(), cf_value = Operational_1.Operational.value(cf), ca_value = Operational_1.Operational.value(ca), src1 = new Vertex_1.Source(cf_value.getVertex__(), function () {
 	                return cf_value.listen_(out.getVertex__(), function (f) {
 	                    state.f = f;
@@ -4030,7 +4035,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * Unwrap a cell inside another cell to give a time-varying cell implementation.
 	     */
 	    Cell.switchC = function (cca) {
-	        return Transaction_1.transactionally(function () {
+	        return Transaction_1.Transaction.run(function () {
 	            var za = cca.sampleLazy().map(function (ba) { return ba.sample(); }), out = new Stream_1.StreamWithSend();
 	            var last_ca = null;
 	            var cca_value = Operational_1.Operational.value(cca), src = new Vertex_1.Source(cca_value.getVertex__(), function () {
@@ -4056,7 +4061,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * Unwrap a stream inside a cell to give a time-varying stream implementation.
 	     */
 	    Cell.switchS = function (csa) {
-	        return Transaction_1.transactionally(function () {
+	        return Transaction_1.Transaction.run(function () {
 	            var out = new Stream_1.StreamWithSend(), h2 = function (a) {
 	                out.send_(a);
 	            }, src = new Vertex_1.Source(csa.getVertex__(), function () {
@@ -4085,7 +4090,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    Cell.prototype.listen = function (h) {
 	        var _this = this;
-	        return Transaction_1.transactionally(function () {
+	        return Transaction_1.Transaction.run(function () {
 	            return Operational_1.Operational.value(_this).listen(h);
 	        });
 	    };
@@ -4208,9 +4213,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * that do not allow the caller to detect the cell updates.
 	     */
 	    Operational.value = function (c) {
-	        return Transaction_1.transactionally(function () {
+	        return Transaction_1.Transaction.run(function () {
 	            var sSpark = new Stream_1.StreamWithSend();
-	            Transaction_1.currentTransaction.prioritized(sSpark.getVertex__(), function () {
+	            Transaction_1.Transaction.currentTransaction.prioritized(sSpark.getVertex__(), function () {
 	                sSpark.send_(Unit_1.Unit.UNIT);
 	            });
 	            var sInitial = sSpark.snapshot1(c);
@@ -4239,8 +4244,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            new Vertex_1.Source(s.getVertex__(), function () {
 	                return s.listen_(out.getVertex__(), function (as) {
 	                    var _loop_1 = function(i) {
-	                        Transaction_1.currentTransaction.post(i, function () {
-	                            Transaction_1.transactionally(function () {
+	                        Transaction_1.Transaction.currentTransaction.post(i, function () {
+	                            Transaction_1.Transaction.run(function () {
 	                                out.send_(as[i]);
 	                            });
 	                        });
@@ -4304,7 +4309,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function LazyCell(lazyInitValue, str) {
 	        var _this = this;
 	        _super.call(this, null, null);
-	        Transaction_1.transactionally(function () {
+	        Transaction_1.Transaction.run(function () {
 	            if (str)
 	                _this.setStream(str);
 	            _this.lazyInitValue = lazyInitValue;
@@ -4352,8 +4357,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    StreamSink.prototype.send = function (a) {
 	        var _this = this;
-	        Transaction_1.transactionally(function () {
-	            if (Transaction_1.currentTransaction.inCallback > 0)
+	        Transaction_1.Transaction.run(function () {
+	            if (Transaction_1.Transaction.currentTransaction.inCallback > 0)
 	                throw new Error("You are not allowed to use send() inside a Sodium callback");
 	            _this.coalescer.send_(a);
 	        });
@@ -4392,7 +4397,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    CellLoop.prototype.loop = function (a_out) {
 	        var me = this;
-	        Transaction_1.transactionally(function () {
+	        Transaction_1.Transaction.run(function () {
 	            me.getStream__().loop(a_out.getStream__());
 	            me.lazyInitValue = a_out.sampleLazy();
 	        });
@@ -4507,7 +4512,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return 1;
 	            return 0;
 	        });
-	        Transaction_1.transactionally(function () {
+	        Transaction_1.Transaction.run(function () {
 	            _this.impl = impl;
 	            var timeSnk = new CellSink_1.CellSink(impl.now());
 	            _this.time = timeSnk;
@@ -4526,7 +4531,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    }
 	                    if (ev != null) {
 	                        timeSnk.send(ev.t);
-	                        Transaction_1.transactionally(function () { return ev.sAlarm.send_(ev.t); });
+	                        Transaction_1.Transaction.run(function () { return ev.sAlarm.send_(ev.t); });
 	                    }
 	                    else
 	                        return "break";
@@ -4564,7 +4569,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    cancelCurrent = _this.impl.setTimer(tAl, function () {
 	                        // Open and close a transaction to trigger queued
 	                        // events to run.
-	                        Transaction_1.transactionally(function () { });
+	                        Transaction_1.Transaction.run(function () { });
 	                    });
 	                }
 	            }
@@ -4573,7 +4578,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            new Vertex_1.Source(tAlarm.getVertex__(), function () {
 	                active = true;
 	                sampled = false;
-	                Transaction_1.currentTransaction.prioritized(sAlarm.getVertex__(), updateTimer);
+	                Transaction_1.Transaction.currentTransaction.prioritized(sAlarm.getVertex__(), updateTimer);
 	                var kill = tAlarm.getStream__().listen_(sAlarm.getVertex__(), function (oAlarm) {
 	                    tAl = oAlarm;
 	                    sampled = true;
@@ -4706,7 +4711,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                new Vertex_1.Source(sa.getVertex__(), function () {
 	                    return sa.listen_(out.getVertex__(), function (a) {
 	                        performIO(a, function (b) {
-	                            Transaction_1.transactionally(function () {
+	                            Transaction_1.Transaction.run(function () {
 	                                out.send_(b);
 	                            });
 	                        });

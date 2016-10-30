@@ -126,7 +126,7 @@ var Stream = (function () {
      */
     Stream.prototype.merge = function (s, f) {
         var _this = this;
-        return Transaction_1.transactionally(function () {
+        return Transaction_1.Transaction.run(function () {
             return _this.merge_(s).coalesce__(f);
         });
     };
@@ -249,7 +249,7 @@ var Stream = (function () {
      */
     Stream.prototype.collectLazy = function (initState, f) {
         var ea = this;
-        return Transaction_1.transactionally(function () {
+        return Transaction_1.Transaction.run(function () {
             var es = new StreamLoop(), s = es.holdLazy(initState), ebs = ea.snapshot(s, f), eb = ebs.map(function (bs) { return bs.a; }), es_out = ebs.map(function (bs) { return bs.b; });
             es.loop(es_out);
             return eb;
@@ -270,7 +270,7 @@ var Stream = (function () {
      */
     Stream.prototype.accumLazy = function (initState, f) {
         var ea = this;
-        return Transaction_1.transactionally(function () {
+        return Transaction_1.Transaction.run(function () {
             var es = new StreamLoop(), s = es.holdLazy(initState), es_out = ea.snapshot(s, f);
             es.loop(es_out);
             return es_out.holdLazy(initState);
@@ -282,7 +282,7 @@ var Stream = (function () {
      */
     Stream.prototype.once = function () {
         /*
-            return transactionally(() => {
+            return Transaction.run(() => {
                 const ev = this,
                     out = new StreamWithSend<A>();
                 let la : () => void = null;
@@ -302,23 +302,23 @@ var Stream = (function () {
         // We can revisit this another time. For now we will use the less
         // efficient implementation below.
         var me = this;
-        return Transaction_1.transactionally(function () { return me.gate(me.mapTo(false).hold(true)); });
+        return Transaction_1.Transaction.run(function () { return me.gate(me.mapTo(false).hold(true)); });
     };
     Stream.prototype.listen = function (h) {
         var _this = this;
-        return Transaction_1.transactionally(function () {
+        return Transaction_1.Transaction.run(function () {
             return _this.listen_(Vertex_1.Vertex.NULL, h, false);
         });
     };
     Stream.prototype.listen_ = function (target, h, suppressEarlierFirings) {
         var _this = this;
         if (this.vertex.register(target))
-            Transaction_1.currentTransaction.requestRegen();
+            Transaction_1.Transaction.currentTransaction.requestRegen();
         var listener = new Listener_1.Listener(h, target);
         this.listeners.push(listener);
         if (!suppressEarlierFirings && this.firings.length != 0) {
             var firings_1 = this.firings.slice();
-            Transaction_1.currentTransaction.prioritized(target, function () {
+            Transaction_1.Transaction.currentTransaction.prioritized(target, function () {
                 // Anything sent already in this transaction must be sent now so that
                 // there's no order dependency between send and listen.
                 for (var i = 0; i < firings_1.length; i++)
@@ -357,21 +357,21 @@ var StreamWithSend = (function (_super) {
         if (this.vertex.refCount() == 0)
             throw new Error("send() was invoked before listeners were registered");
         if (this.firings.length == 0)
-            Transaction_1.currentTransaction.last(function () {
+            Transaction_1.Transaction.currentTransaction.last(function () {
                 _this.firings = [];
             });
         this.firings.push(a);
         var listeners = this.listeners.slice();
         var _loop_1 = function(i) {
             var h = listeners[i].h;
-            Transaction_1.currentTransaction.prioritized(listeners[i].target, function () {
-                Transaction_1.currentTransaction.inCallback++;
+            Transaction_1.Transaction.currentTransaction.prioritized(listeners[i].target, function () {
+                Transaction_1.Transaction.currentTransaction.inCallback++;
                 try {
                     h(a);
-                    Transaction_1.currentTransaction.inCallback--;
+                    Transaction_1.Transaction.currentTransaction.inCallback--;
                 }
                 catch (err) {
-                    Transaction_1.currentTransaction.inCallback--;
+                    Transaction_1.Transaction.currentTransaction.inCallback--;
                     throw err;
                 }
             });
@@ -392,7 +392,7 @@ var StreamLoop = (function (_super) {
         _super.call(this);
         this.assigned__ = false; // to do: Figure out how to hide this
         this.vertex.name = "StreamLoop";
-        if (Transaction_1.currentTransaction === null)
+        if (Transaction_1.Transaction.currentTransaction === null)
             throw new Error("StreamLoop/CellLoop must be used within an explicit transaction");
     }
     /**

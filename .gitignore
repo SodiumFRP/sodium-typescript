@@ -40,3 +40,4 @@ jspm_packages
 # custom
 *~
 .vscode
+.idea

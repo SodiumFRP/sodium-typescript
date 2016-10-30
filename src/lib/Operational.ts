@@ -1,6 +1,6 @@
 import { Stream, StreamWithSend } from "./Stream";
 import { Cell } from "./Cell";
-import { transactionally, currentTransaction } from "./Transaction";
+import { Transaction } from "./Transaction";
 import { Unit } from "./Unit";
 import { Source, Vertex } from "./Vertex";
 
@@ -49,9 +49,9 @@ export class Operational {
      * that do not allow the caller to detect the cell updates.
      */
     static value<A>(c : Cell<A>) : Stream<A> {
-        return transactionally(() => {
+        return Transaction.run(() => {
             const sSpark = new StreamWithSend<Unit>();
-            currentTransaction.prioritized(sSpark.getVertex__(), () => {
+            Transaction.currentTransaction.prioritized(sSpark.getVertex__(), () => {
                 sSpark.send_(Unit.UNIT);
             });
             const sInitial = sSpark.snapshot1(c);
@@ -84,8 +84,8 @@ export class Operational {
                     () => {
                         return s.listen_(out.getVertex__(), (as : Array<A>) => {
                             for (let i = 0; i < as.length; i++) {
-                                currentTransaction.post(i, () => {
-                                    transactionally(() => {
+                                Transaction.currentTransaction.post(i, () => {
+                                    Transaction.run(() => {
                                         out.send_(as[i]);
                                     });
                                 });

@@ -6,7 +6,7 @@ import {
     CellLoop,
     TimerSystem,
     SecondsTimerSystem,
-    transactionally,
+    Transaction,
     Unit,
     getTotalRegistrations
 } from "../src/lib/Sodium";
@@ -29,7 +29,7 @@ describe(('Timer'), () => {
         const sys = new SecondsTimerSystem(),
             time = sys.time,
             sMain = new StreamSink<Unit>(),
-            kill = transactionally(() => {
+            kill = Transaction.run(() => {
                 const t0 = time.sample(),
                     kill1 = periodic(sys, 1).listen(t => {
                         console.log((t - t0).toFixed(3)+" timer");

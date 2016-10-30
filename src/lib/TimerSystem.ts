@@ -4,7 +4,7 @@ import { Stream, StreamWithSend } from "./Stream";
 import { StreamSink } from "./StreamSink";
 import { Cell } from "./Cell";
 import { CellSink } from "./CellSink";
-import { Transaction, transactionally, currentTransaction } from "./Transaction";
+import { Transaction } from "./Transaction";
 
 /**
  * An interface for implementations of FRP timer systems.
@@ -37,7 +37,7 @@ class Event {
 
 export class TimerSystem {
     constructor(impl : TimerSystemImpl) {
-        transactionally(() => {
+        Transaction.run(() => {
             this.impl = impl;
             const timeSnk = new CellSink<number>(impl.now());
             this.time = timeSnk;
@@ -58,7 +58,7 @@ export class TimerSystem {
                     }
                     if (ev != null) {
                         timeSnk.send(ev.t);
-                        transactionally(() => ev.sAlarm.send_(ev.t));
+                        Transaction.run(() => ev.sAlarm.send_(ev.t));
                     }
                     else
                         break;
@@ -112,7 +112,7 @@ export class TimerSystem {
                         cancelCurrent = this.impl.setTimer(tAl, () => {
                                     // Open and close a transaction to trigger queued
                                     // events to run.
-                                    transactionally(() => {});
+                                    Transaction.run(() => {});
                                 });
                     }
                 }
@@ -123,7 +123,7 @@ export class TimerSystem {
                     () => {
                         active = true;
                         sampled = false;
-                        currentTransaction.prioritized(sAlarm.getVertex__(), updateTimer);
+                        Transaction.currentTransaction.prioritized(sAlarm.getVertex__(), updateTimer);
                         const kill = tAlarm.getStream__().listen_(sAlarm.getVertex__(), (oAlarm : number) => {
                             tAl = oAlarm;
                             sampled = true;

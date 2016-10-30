@@ -1,12 +1,12 @@
 import { Lazy } from "./Lazy";
 import { Cell } from "./Cell";
 import { Stream } from "./Stream";
-import { transactionally } from "./Transaction";
+import { Transaction } from "./Transaction";
 
 export class LazyCell<A> extends Cell<A> {
     constructor(lazyInitValue : Lazy<A>, str? : Stream<A>) {
         super(null, null);
-        transactionally(() => {
+        Transaction.run(() => {
             if (str)
                 this.setStream(str);
             this.lazyInitValue = lazyInitValue;

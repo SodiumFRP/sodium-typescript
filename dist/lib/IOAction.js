@@ -17,7 +17,7 @@ var IOAction = (function () {
                 new Vertex_1.Source(sa.getVertex__(), function () {
                     return sa.listen_(out.getVertex__(), function (a) {
                         performIO(a, function (b) {
-                            Transaction_1.transactionally(function () {
+                            Transaction_1.Transaction.run(function () {
                                 out.send_(b);
                             });
                         });

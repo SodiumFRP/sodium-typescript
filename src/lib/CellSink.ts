@@ -2,7 +2,7 @@ import { Lambda1, Lambda1_deps, Lambda1_toFunction,
          Lambda2, Lambda2_deps, Lambda2_toFunction } from "./Lambda";
 import { Cell } from "./Cell";
 import { StreamSink } from "./StreamSink";
-import { transactionally } from "./Transaction";
+import { Transaction } from "./Transaction";
 
 /**
  * A cell that allows values to be pushed into it, acting as an interface between the
