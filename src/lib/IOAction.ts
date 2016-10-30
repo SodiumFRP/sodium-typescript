@@ -18,7 +18,7 @@ export class IOAction {
                         () => {
                             return sa.listen_(out.getVertex__(), (a : A) => {
                                 performIO(a, (b : B) => {
-                                    Transaction.transactionally(() => {
+                                    Transaction.run(() => {
                                         out.send_(b);
                                     });
                                 });

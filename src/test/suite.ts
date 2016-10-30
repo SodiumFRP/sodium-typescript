@@ -142,26 +142,26 @@ test("mergeSimultaneous", () => {
         out : number[] = [],
         kill = s2.orElse(s1)
                  .listen(a => out.push(a));
-    Transaction.transactionally<void>(() => {
+    Transaction.run<void>(() => {
         s1.send(7);
         s2.send(60);
     });
-    Transaction.transactionally<void>(() => {
+    Transaction.run<void>(() => {
             s1.send(9);
         });
-    Transaction.transactionally<void>(() => {
+    Transaction.run<void>(() => {
         s1.send(7);
         s1.send(60);
         s2.send(8);
         s2.send(90);
     });
-    Transaction.transactionally<void>(() => {
+    Transaction.run<void>(() => {
         s2.send(8);
         s2.send(90);
         s1.send(7);
         s1.send(60);
     });
-    Transaction.transactionally<void>(() => {
+    Transaction.run<void>(() => {
         s2.send(8);
         s1.send(7);
         s2.send(90);
@@ -175,10 +175,10 @@ test("coalesce", () => {
     const s = new StreamSink<number>((a, b) => a+b),
         out : number[] = [],
         kill = s.listen(a => out.push(a));
-    Transaction.transactionally<void>(() => {
+    Transaction.run<void>(() => {
         s.send(2);
     });
-    Transaction.transactionally<void>(() => {
+    Transaction.run<void>(() => {
         s.send(8);
         s.send(40);
     });
@@ -226,7 +226,7 @@ test("merge2", () => {
 
 test("loopStream", () => {
     const sa = new StreamSink<number>(),
-        sc = Transaction.transactionally(() => {
+        sc = Transaction.run(() => {
             const sb = new StreamLoop<number>(),
                 sc_ = sa.map(x => x % 10).merge(sb,
                     (x, y) => x+y),
@@ -415,7 +415,7 @@ test("liftGlitch", () => {
 });
 
 test("liftFromSimultaneous", () => {
-    const t = Transaction.transactionally(() => {
+    const t = Transaction.run(() => {
         const b1 = new CellSink(3),
             b2 = new CellSink(5);
         b2.send(7);
@@ -553,7 +553,7 @@ test("switchSSimultaneous", () => {
     ss3.s.send(5);
     ss3.s.send(6);
     ss3.s.send(7);
-    Transaction.transactionally(() => {
+    Transaction.run(() => {
         ss3.s.send(8);
         css.send(ss4);
         ss4.s.send(2);
@@ -565,7 +565,7 @@ test("switchSSimultaneous", () => {
 
 test("loopCell", () => {
     const sa = new StreamSink<number>(),
-        sum_out = Transaction.transactionally(() => {
+        sum_out = Transaction.run(() => {
                 const sum = new CellLoop<number>(),
                       sum_out_ = sa.snapshot(sum, (x, y) => x + y).hold(0);
                 sum.loop(sum_out_);
@@ -597,7 +597,7 @@ test("accum", () => {
 
 test("loopValueSnapshot", () => {
     const out : string[] = [],
-        kill = Transaction.transactionally(() => {
+        kill = Transaction.run(() => {
             const a = new Cell("lettuce"),
                b = new CellLoop<string>(),
                eSnap = Operational.value(a).snapshot(b, (aa, bb) => aa + " " + bb);
@@ -610,7 +610,7 @@ test("loopValueSnapshot", () => {
 
 test("loopValueHold", () => {
     const out : string[] = [],
-        value = Transaction.transactionally(() => {
+        value = Transaction.run(() => {
             const a = new CellLoop<string>(),
                 value_ = Operational.value(a).hold("onion");
             a.loop(new Cell("cheese"));
@@ -626,7 +626,7 @@ test("loopValueHold", () => {
 test("liftLoop", () => {
     const out : string[] = [],
         b = new CellSink("kettle"),
-        c = Transaction.transactionally(() => {
+        c = Transaction.run(() => {
             const a = new CellLoop<string>(),
                 c_ = a.lift(b, (aa, bb) => aa + " " + bb);
             a.loop(new Cell("tea"));

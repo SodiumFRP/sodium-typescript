@@ -145,7 +145,7 @@ export class Stream<A> {
      *    {@link Cell#sample()}. Apart from this the function must be <em>referentially transparent</em>.
      */
     merge(s : Stream<A>, f : ((left : A, right : A) => A) | Lambda2<A,A,A>) : Stream<A> {
-        return Transaction.transactionally<Stream<A>>(() => {
+        return Transaction.run<Stream<A>>(() => {
             return this.merge_(s).coalesce__(f);
         });
     }
@@ -290,7 +290,7 @@ export class Stream<A> {
      */
     collectLazy<B,S>(initState : Lazy<S>, f : ((a : A, s : S) => Tuple2<B,S>) | Lambda2<A,S,Tuple2<B,S>>) : Stream<B> {
         const ea = this;
-        return Transaction.transactionally(() => {
+        return Transaction.run(() => {
             const es = new StreamLoop<S>(),
                 s = es.holdLazy(initState),
                 ebs = ea.snapshot(s, f),
@@ -317,7 +317,7 @@ export class Stream<A> {
      */
     accumLazy<S>(initState : Lazy<S>, f : ((a : A, s : S) => S) | Lambda2<A,S,S>) : Cell<S> {
         const ea = this;
-        return Transaction.transactionally(() => {
+        return Transaction.run(() => {
             const es = new StreamLoop<S>(),
                 s = es.holdLazy(initState),
                 es_out = ea.snapshot(s, f);
@@ -332,7 +332,7 @@ export class Stream<A> {
      */
     once() : Stream<A> {
     /*
-        return Transaction.transactionally(() => {
+        return Transaction.run(() => {
             const ev = this,
                 out = new StreamWithSend<A>();
             let la : () => void = null;
@@ -352,11 +352,11 @@ export class Stream<A> {
         // We can revisit this another time. For now we will use the less
         // efficient implementation below.
         const me = this;
-        return Transaction.transactionally(() => me.gate(me.mapTo(false).hold(true)));
+        return Transaction.run(() => me.gate(me.mapTo(false).hold(true)));
     }
 
     listen(h : (a : A) => void) : () => void {
-        return Transaction.transactionally<() => void>(() => {
+        return Transaction.run<() => void>(() => {
             return this.listen_(Vertex.NULL, h, false);
         });
     }

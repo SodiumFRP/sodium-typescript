@@ -126,7 +126,7 @@ var Stream = (function () {
      */
     Stream.prototype.merge = function (s, f) {
         var _this = this;
-        return Transaction_1.Transaction.transactionally(function () {
+        return Transaction_1.Transaction.run(function () {
             return _this.merge_(s).coalesce__(f);
         });
     };
@@ -249,7 +249,7 @@ var Stream = (function () {
      */
     Stream.prototype.collectLazy = function (initState, f) {
         var ea = this;
-        return Transaction_1.Transaction.transactionally(function () {
+        return Transaction_1.Transaction.run(function () {
             var es = new StreamLoop(), s = es.holdLazy(initState), ebs = ea.snapshot(s, f), eb = ebs.map(function (bs) { return bs.a; }), es_out = ebs.map(function (bs) { return bs.b; });
             es.loop(es_out);
             return eb;
@@ -270,7 +270,7 @@ var Stream = (function () {
      */
     Stream.prototype.accumLazy = function (initState, f) {
         var ea = this;
-        return Transaction_1.Transaction.transactionally(function () {
+        return Transaction_1.Transaction.run(function () {
             var es = new StreamLoop(), s = es.holdLazy(initState), es_out = ea.snapshot(s, f);
             es.loop(es_out);
             return es_out.holdLazy(initState);
@@ -282,7 +282,7 @@ var Stream = (function () {
      */
     Stream.prototype.once = function () {
         /*
-            return Transaction.transactionally(() => {
+            return Transaction.run(() => {
                 const ev = this,
                     out = new StreamWithSend<A>();
                 let la : () => void = null;
@@ -302,11 +302,11 @@ var Stream = (function () {
         // We can revisit this another time. For now we will use the less
         // efficient implementation below.
         var me = this;
-        return Transaction_1.Transaction.transactionally(function () { return me.gate(me.mapTo(false).hold(true)); });
+        return Transaction_1.Transaction.run(function () { return me.gate(me.mapTo(false).hold(true)); });
     };
     Stream.prototype.listen = function (h) {
         var _this = this;
-        return Transaction_1.Transaction.transactionally(function () {
+        return Transaction_1.Transaction.run(function () {
             return _this.listen_(Vertex_1.Vertex.NULL, h, false);
         });
     };

@@ -20,7 +20,7 @@ export class CellLoop<A> extends LazyCell<A> {
      */
     loop(a_out : Cell<A>) : void {
         const me = this;
-        Transaction.transactionally(() => {
+        Transaction.run(() => {
             (<StreamLoop<A>>me.getStream__()).loop(a_out.getStream__());
             me.lazyInitValue = a_out.sampleLazy();
         });

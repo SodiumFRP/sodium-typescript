@@ -7,7 +7,7 @@ function periodic(sys, period) {
     return sAlarm;
 }
 var sTick = null;
-var sys = new Sodium_1.SecondsTimerSystem(), time = sys.time, sMain = new Sodium_1.StreamSink(), kill = Sodium_1.Transaction.transactionally(function () {
+var sys = new Sodium_1.SecondsTimerSystem(), time = sys.time, sMain = new Sodium_1.StreamSink(), kill = Sodium_1.Transaction.run(function () {
     var t0 = time.sample(), kill1 = periodic(sys, 1).listen(function (t) {
         console.log((t - t0).toFixed(3) + " timer");
     }), kill2 = sMain.snapshot1(time).listen(function (t) {

@@ -169,7 +169,7 @@ export class Transaction
     Transaction.onStartHooks.push(r);
   }
 
-  public static transactionally<A>(f: () => A): A
+  public static run<A>(f: () => A): A
   {
     const transWas: Transaction = Transaction.currentTransaction;
     if (transWas === null)

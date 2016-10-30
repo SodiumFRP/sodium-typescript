@@ -34,7 +34,7 @@ let sTick : Stream<number> = null;
 const sys = new SecondsTimerSystem(),
     time = sys.time,
     sMain = new StreamSink<Unit>(),
-    kill = Transaction.transactionally(() => {
+    kill = Transaction.run(() => {
         const t0 = time.sample(),
             kill1 = periodic(sys, 1).listen(t => {
                 console.log((t - t0).toFixed(3)+" timer");

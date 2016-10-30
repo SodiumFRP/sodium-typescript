@@ -37,7 +37,7 @@ class Event {
 
 export class TimerSystem {
     constructor(impl : TimerSystemImpl) {
-        Transaction.transactionally(() => {
+        Transaction.run(() => {
             this.impl = impl;
             const timeSnk = new CellSink<number>(impl.now());
             this.time = timeSnk;
@@ -58,7 +58,7 @@ export class TimerSystem {
                     }
                     if (ev != null) {
                         timeSnk.send(ev.t);
-                        Transaction.transactionally(() => ev.sAlarm.send_(ev.t));
+                        Transaction.run(() => ev.sAlarm.send_(ev.t));
                     }
                     else
                         break;
@@ -112,7 +112,7 @@ export class TimerSystem {
                         cancelCurrent = this.impl.setTimer(tAl, () => {
                                     // Open and close a transaction to trigger queued
                                     // events to run.
-                                    Transaction.transactionally(() => {});
+                                    Transaction.run(() => {});
                                 });
                     }
                 }

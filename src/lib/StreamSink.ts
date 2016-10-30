@@ -22,7 +22,7 @@ export class StreamSink<A> extends StreamWithSend<A> {
     private coalescer : CoalesceHandler<A>;
 
     send(a : A) : void {
-        Transaction.transactionally<void>(
+        Transaction.run<void>(
             () => {
                 if (Transaction.currentTransaction.inCallback > 0)
                     throw new Error("You are not allowed to use send() inside a Sodium callback");

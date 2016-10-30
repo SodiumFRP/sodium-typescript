@@ -49,7 +49,7 @@ export class Operational {
      * that do not allow the caller to detect the cell updates.
      */
     static value<A>(c : Cell<A>) : Stream<A> {
-        return Transaction.transactionally(() => {
+        return Transaction.run(() => {
             const sSpark = new StreamWithSend<Unit>();
             Transaction.currentTransaction.prioritized(sSpark.getVertex__(), () => {
                 sSpark.send_(Unit.UNIT);
@@ -85,7 +85,7 @@ export class Operational {
                         return s.listen_(out.getVertex__(), (as : Array<A>) => {
                             for (let i = 0; i < as.length; i++) {
                                 Transaction.currentTransaction.post(i, () => {
-                                    Transaction.transactionally(() => {
+                                    Transaction.run(() => {
                                         out.send_(as[i]);
                                     });
                                 });

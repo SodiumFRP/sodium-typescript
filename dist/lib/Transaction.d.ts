@@ -37,5 +37,5 @@ export declare class Transaction {
      * The main use case of this is the implementation of a time/alarm system.
      */
     static onStart(r: () => void): void;
-    static transactionally<A>(f: () => A): A;
+    static run<A>(f: () => A): A;
 }

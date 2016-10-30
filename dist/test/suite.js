@@ -98,26 +98,26 @@ test("mergeNonSimultaneous", function () {
 test("mergeSimultaneous", function () {
     var s1 = new Sodium_1.StreamSink(function (l, r) { return r; }), s2 = new Sodium_1.StreamSink(function (l, r) { return r; }), out = [], kill = s2.orElse(s1)
         .listen(function (a) { return out.push(a); });
-    Sodium_1.Transaction.transactionally(function () {
+    Sodium_1.Transaction.run(function () {
         s1.send(7);
         s2.send(60);
     });
-    Sodium_1.Transaction.transactionally(function () {
+    Sodium_1.Transaction.run(function () {
         s1.send(9);
     });
-    Sodium_1.Transaction.transactionally(function () {
+    Sodium_1.Transaction.run(function () {
         s1.send(7);
         s1.send(60);
         s2.send(8);
         s2.send(90);
     });
-    Sodium_1.Transaction.transactionally(function () {
+    Sodium_1.Transaction.run(function () {
         s2.send(8);
         s2.send(90);
         s1.send(7);
         s1.send(60);
     });
-    Sodium_1.Transaction.transactionally(function () {
+    Sodium_1.Transaction.run(function () {
         s2.send(8);
         s1.send(7);
         s2.send(90);
@@ -128,10 +128,10 @@ test("mergeSimultaneous", function () {
 });
 test("coalesce", function () {
     var s = new Sodium_1.StreamSink(function (a, b) { return a + b; }), out = [], kill = s.listen(function (a) { return out.push(a); });
-    Sodium_1.Transaction.transactionally(function () {
+    Sodium_1.Transaction.run(function () {
         s.send(2);
     });
-    Sodium_1.Transaction.transactionally(function () {
+    Sodium_1.Transaction.run(function () {
         s.send(8);
         s.send(40);
     });
@@ -165,7 +165,7 @@ test("merge2", function () {
     assertEquals([2, 7], out);
 });
 test("loopStream", function () {
-    var sa = new Sodium_1.StreamSink(), sc = Sodium_1.Transaction.transactionally(function () {
+    var sa = new Sodium_1.StreamSink(), sc = Sodium_1.Transaction.run(function () {
         var sb = new Sodium_1.StreamLoop(), sc_ = sa.map(function (x) { return x % 10; }).merge(sb, function (x, y) { return x + y; }), sb_out = sa.map(function (x) { return Math.floor(x / 10); })
             .filter(function (x) { return x != 0; });
         sb.loop(sb_out);
@@ -294,7 +294,7 @@ test("liftGlitch", function () {
     assertEquals(["3 5", "6 10"], out);
 });
 test("liftFromSimultaneous", function () {
-    var t = Sodium_1.Transaction.transactionally(function () {
+    var t = Sodium_1.Transaction.run(function () {
         var b1 = new Sodium_1.CellSink(3), b2 = new Sodium_1.CellSink(5);
         b2.send(7);
         return new Sodium_1.Tuple2(b1, b2);
@@ -397,7 +397,7 @@ test("switchSSimultaneous", function () {
     ss3.s.send(5);
     ss3.s.send(6);
     ss3.s.send(7);
-    Sodium_1.Transaction.transactionally(function () {
+    Sodium_1.Transaction.run(function () {
         ss3.s.send(8);
         css.send(ss4);
         ss4.s.send(2);
@@ -407,7 +407,7 @@ test("switchSSimultaneous", function () {
     assertEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], out);
 });
 test("loopCell", function () {
-    var sa = new Sodium_1.StreamSink(), sum_out = Sodium_1.Transaction.transactionally(function () {
+    var sa = new Sodium_1.StreamSink(), sum_out = Sodium_1.Transaction.run(function () {
         var sum = new Sodium_1.CellLoop(), sum_out_ = sa.snapshot(sum, function (x, y) { return x + y; }).hold(0);
         sum.loop(sum_out_);
         return sum_out_;
@@ -430,7 +430,7 @@ test("accum", function () {
     assertEquals([100, 105, 112, 113, 115, 118], out);
 });
 test("loopValueSnapshot", function () {
-    var out = [], kill = Sodium_1.Transaction.transactionally(function () {
+    var out = [], kill = Sodium_1.Transaction.run(function () {
         var a = new Sodium_1.Cell("lettuce"), b = new Sodium_1.CellLoop(), eSnap = Sodium_1.Operational.value(a).snapshot(b, function (aa, bb) { return aa + " " + bb; });
         b.loop(new Sodium_1.Cell("cheese"));
         return eSnap.listen(function (x) { return out.push(x); });
@@ -439,7 +439,7 @@ test("loopValueSnapshot", function () {
     assertEquals(["lettuce cheese"], out);
 });
 test("loopValueHold", function () {
-    var out = [], value = Sodium_1.Transaction.transactionally(function () {
+    var out = [], value = Sodium_1.Transaction.run(function () {
         var a = new Sodium_1.CellLoop(), value_ = Sodium_1.Operational.value(a).hold("onion");
         a.loop(new Sodium_1.Cell("cheese"));
         return value_;
@@ -449,7 +449,7 @@ test("loopValueHold", function () {
     assertEquals(["cheese"], out);
 });
 test("liftLoop", function () {
-    var out = [], b = new Sodium_1.CellSink("kettle"), c = Sodium_1.Transaction.transactionally(function () {
+    var out = [], b = new Sodium_1.CellSink("kettle"), c = Sodium_1.Transaction.run(function () {
         var a = new Sodium_1.CellLoop(), c_ = a.lift(b, function (aa, bb) { return aa + " " + bb; });
         a.loop(new Sodium_1.Cell("tea"));
         return c_;

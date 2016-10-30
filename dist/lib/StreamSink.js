@@ -24,7 +24,7 @@ var StreamSink = (function (_super) {
     }
     StreamSink.prototype.send = function (a) {
         var _this = this;
-        Transaction_1.Transaction.transactionally(function () {
+        Transaction_1.Transaction.run(function () {
             if (Transaction_1.Transaction.currentTransaction.inCallback > 0)
                 throw new Error("You are not allowed to use send() inside a Sodium callback");
             _this.coalescer.send_(a);

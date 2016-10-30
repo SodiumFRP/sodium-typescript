@@ -49,7 +49,7 @@ var Operational = (function () {
      * that do not allow the caller to detect the cell updates.
      */
     Operational.value = function (c) {
-        return Transaction_1.Transaction.transactionally(function () {
+        return Transaction_1.Transaction.run(function () {
             var sSpark = new Stream_1.StreamWithSend();
             Transaction_1.Transaction.currentTransaction.prioritized(sSpark.getVertex__(), function () {
                 sSpark.send_(Unit_1.Unit.UNIT);
@@ -81,7 +81,7 @@ var Operational = (function () {
                 return s.listen_(out.getVertex__(), function (as) {
                     var _loop_1 = function(i) {
                         Transaction_1.Transaction.currentTransaction.post(i, function () {
-                            Transaction_1.Transaction.transactionally(function () {
+                            Transaction_1.Transaction.run(function () {
                                 out.send_(as[i]);
                             });
                         });

@@ -114,7 +114,7 @@ describe('CellSink', () => {
     });
 
     it("should test liftFromSimultaneous", () => {
-        const t = Transaction.transactionally(() => {
+        const t = Transaction.run(() => {
             const b1 = new CellSink(3),
                 b2 = new CellSink(5);
             b2.send(7);

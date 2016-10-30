@@ -128,7 +128,7 @@ var Transaction = (function () {
     Transaction.onStart = function (r) {
         Transaction.onStartHooks.push(r);
     };
-    Transaction.transactionally = function (f) {
+    Transaction.run = function (f) {
         var transWas = Transaction.currentTransaction;
         if (transWas === null) {
             if (!Transaction.runningOnStartHooks) {

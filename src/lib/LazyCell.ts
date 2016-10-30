@@ -6,7 +6,7 @@ import { Transaction } from "./Transaction";
 export class LazyCell<A> extends Cell<A> {
     constructor(lazyInitValue : Lazy<A>, str? : Stream<A>) {
         super(null, null);
-        Transaction.transactionally(() => {
+        Transaction.run(() => {
             if (str)
                 this.setStream(str);
             this.lazyInitValue = lazyInitValue;
