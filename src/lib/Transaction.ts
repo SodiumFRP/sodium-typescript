@@ -98,6 +98,11 @@ export class Transaction
     }
   }
 
+  public isActive() : boolean
+  {
+    return Transaction.currentTransaction ? true : false;
+  }
+
   close(): void
   {
     while (true)
