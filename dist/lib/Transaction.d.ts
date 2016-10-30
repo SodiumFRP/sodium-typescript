@@ -27,6 +27,7 @@ export declare class Transaction {
      */
     post(childIx: number, action: () => void): void;
     private checkRegen();
+    isActive(): boolean;
     close(): void;
     /**
      * Add a runnable that will be executed whenever a transaction is started.

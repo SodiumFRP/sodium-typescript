@@ -1053,6 +1053,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this.prioritizedQ.enqueue(es[i]);
 	        }
 	    };
+	    Transaction.prototype.isActive = function () {
+	        return Transaction.currentTransaction ? true : false;
+	    };
 	    Transaction.prototype.close = function () {
 	        while (true) {
 	            this.checkRegen();
