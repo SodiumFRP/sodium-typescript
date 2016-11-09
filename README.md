@@ -58,6 +58,9 @@ Build commonjs libraries and UMD library for direct browser usage
 ```
 $> npm run prerelease
 ```
+## Examples
+
+There are examples both in ```examples/basic``` and ```examples/book``` folders, the latter being a git submodule (this will change in future). Use a standard ```git clone --recursive https://github.com/SodiumFRP/sodium-typescript``` command in order to fetch these.
 
 ## License
 
