@@ -53,7 +53,6 @@ export class TimerSystem {
                         if (mev.t <= t) {
                             ev = mev;
                             // TO DO: Detect infinite loops!
-                            //this.eventQueue.remove(mev);
                         }
                     }
                     if (ev != null) {

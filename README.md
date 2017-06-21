@@ -62,6 +62,8 @@ $> npm run prerelease
 
 There are examples both in ```examples/basic``` and ```examples/book``` folders, the latter being a git submodule (this will change in future). Use a standard ```git clone --recursive https://github.com/SodiumFRP/sodium-typescript``` command in order to fetch these.
 
+Here's an example you can try in your browser: [Reactive Drawing Pad](https://github.com/graforlock/reactive-drawing-pad/tree/master)
+
 ## License
 
 Distributed under [BSD 3-Clause](https://opensource.org/licenses/BSD-3-Clause)
