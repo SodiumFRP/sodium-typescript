@@ -97,6 +97,12 @@ export class Cell<A> {
      * declared explicitly using the helpers lambda1(), lambda2(), etc. Because this is
      * something that can be got wrong, we don't encourage this kind of use of sample() in
      * Javascript. Better and simpler to use snapshot().
+     * <p>
+     * NOTE: If you need to sample() a cell, you have to make sure it's "alive" in terms of
+     * memory management or it will ignore updates. To make a cell work correctly
+     * with sample(), you have to ensure that it's being used. One way to guarantee this is
+     * ito register a dummy listener on the cell. It will also work to have it referenced
+     * by something that is ultimately being listened to.
      */
     sample() : A {
         return Transaction.run(() => { return this.sampleNoTrans__(); });
