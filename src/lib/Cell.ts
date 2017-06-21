@@ -101,7 +101,7 @@ export class Cell<A> {
      * NOTE: If you need to sample() a cell, you have to make sure it's "alive" in terms of
      * memory management or it will ignore updates. To make a cell work correctly
      * with sample(), you have to ensure that it's being used. One way to guarantee this is
-     * ito register a dummy listener on the cell. It will also work to have it referenced
+     * to register a dummy listener on the cell. It will also work to have it referenced
      * by something that is ultimately being listened to.
      */
     sample() : A {
