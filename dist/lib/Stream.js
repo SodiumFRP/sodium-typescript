@@ -1,9 +1,15 @@
 "use strict";
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
 var Lambda_1 = require("./Lambda");
 var Vertex_1 = require("./Vertex");
 var Transaction_1 = require("./Transaction");
@@ -344,7 +350,7 @@ exports.Stream = Stream;
 var StreamWithSend = (function (_super) {
     __extends(StreamWithSend, _super);
     function StreamWithSend(vertex) {
-        _super.call(this, vertex);
+        return _super.call(this, vertex) || this;
     }
     StreamWithSend.prototype.setVertex__ = function (vertex) {
         this.vertex = vertex;
@@ -362,7 +368,7 @@ var StreamWithSend = (function (_super) {
             });
         this.firings.push(a);
         var listeners = this.listeners.slice();
-        var _loop_1 = function(i) {
+        var _loop_1 = function (i) {
             var h = listeners[i].h;
             Transaction_1.Transaction.currentTransaction.prioritized(listeners[i].target, function () {
                 Transaction_1.Transaction.currentTransaction.inCallback++;
@@ -389,11 +395,12 @@ exports.StreamWithSend = StreamWithSend;
 var StreamLoop = (function (_super) {
     __extends(StreamLoop, _super);
     function StreamLoop() {
-        _super.call(this);
-        this.assigned__ = false; // to do: Figure out how to hide this
-        this.vertex.name = "StreamLoop";
+        var _this = _super.call(this) || this;
+        _this.assigned__ = false; // to do: Figure out how to hide this
+        _this.vertex.name = "StreamLoop";
         if (Transaction_1.Transaction.currentTransaction === null)
             throw new Error("StreamLoop/CellLoop must be used within an explicit transaction");
+        return _this;
     }
     /**
      * Resolve the loop to specify what the StreamLoop was a forward reference to. It

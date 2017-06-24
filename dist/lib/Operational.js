@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Stream_1 = require("./Stream");
 var Transaction_1 = require("./Transaction");
 var Unit_1 = require("./Unit");
@@ -79,7 +80,7 @@ var Operational = (function () {
         out.setVertex__(new Vertex_1.Vertex("split", 0, [
             new Vertex_1.Source(s.getVertex__(), function () {
                 return s.listen_(out.getVertex__(), function (as) {
-                    var _loop_1 = function(i) {
+                    var _loop_1 = function (i) {
                         Transaction_1.Transaction.currentTransaction.post(i, function () {
                             Transaction_1.Transaction.run(function () {
                                 out.send_(as[i]);

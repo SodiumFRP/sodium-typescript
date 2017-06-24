@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Lambda_1 = require("./Lambda");
 var Vertex_1 = require("./Vertex");
 var Transaction_1 = require("./Transaction");
@@ -66,12 +67,23 @@ var Cell = (function () {
     /**
      * Sample the cell's current value.
      * <p>
-     * It may be used inside the functions passed to primitives that apply them to {@link Stream}s,
-     * including {@link Stream#map(Lambda1)} in which case it is equivalent to snapshotting the cell,
-     * {@link Stream#snapshot(Cell, Lambda2)}, {@link Stream#filter(Lambda1)} and
-     * {@link Stream#merge(Stream, Lambda2)}.
      * It should generally be avoided in favour of {@link listen(Handler)} so you don't
      * miss any updates, but in many circumstances it makes sense.
+     * <p>
+     * NOTE: In the Java and other versions of Sodium, using sample() inside map(), filter() and
+     * merge() is encouraged. In the Javascript/Typescript version, not so much, for the
+     * following reason: The memory management is different in the Javascript version, and this
+     * requires us to track all dependencies. In order for the use of sample() inside
+     * a closure to be correct, the cell that was sample()d inside the closure would have to be
+     * declared explicitly using the helpers lambda1(), lambda2(), etc. Because this is
+     * something that can be got wrong, we don't encourage this kind of use of sample() in
+     * Javascript. Better and simpler to use snapshot().
+     * <p>
+     * NOTE: If you need to sample() a cell, you have to make sure it's "alive" in terms of
+     * memory management or it will ignore updates. To make a cell work correctly
+     * with sample(), you have to ensure that it's being used. One way to guarantee this is
+     * to register a dummy listener on the cell. It will also work to have it referenced
+     * by something that is ultimately being listened to.
      */
     Cell.prototype.sample = function () {
         var _this = this;

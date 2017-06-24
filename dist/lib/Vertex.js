@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var totalRegistrations = 0;
 function getTotalRegistrations() {
     return totalRegistrations;
@@ -35,13 +36,13 @@ var Source = (function () {
     return Source;
 }());
 exports.Source = Source;
+var Color;
 (function (Color) {
     Color[Color["black"] = 0] = "black";
     Color[Color["gray"] = 1] = "gray";
     Color[Color["white"] = 2] = "white";
     Color[Color["purple"] = 3] = "purple";
-})(exports.Color || (exports.Color = {}));
-var Color = exports.Color;
+})(Color = exports.Color || (exports.Color = {}));
 ;
 var roots = [];
 var nextID = 0;
@@ -272,8 +273,8 @@ var Vertex = (function () {
             this.free();
         }
     };
-    Vertex.NULL = new Vertex("user", 1e12, []);
     return Vertex;
 }());
+Vertex.NULL = new Vertex("user", 1e12, []);
 exports.Vertex = Vertex;
 //# sourceMappingURL=Vertex.js.map

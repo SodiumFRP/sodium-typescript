@@ -1,6 +1,7 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Vertex_1 = require("./Vertex");
-var typescript_collections_1 = require('typescript-collections');
+var typescript_collections_1 = require("typescript-collections");
 var Stream_1 = require("./Stream");
 var CellSink_1 = require("./CellSink");
 var Transaction_1 = require("./Transaction");
@@ -38,19 +39,21 @@ var TimerSystem = (function () {
         });
         Transaction_1.Transaction.run(function () {
             _this.impl = impl;
+            _this.tMinimum = 0;
             var timeSnk = new CellSink_1.CellSink(impl.now());
             _this.time = timeSnk;
             // A dummy listener to time to keep it alive even when there are no other listeners.
             _this.time.listen(function (t) { });
             Transaction_1.Transaction.onStart(function () {
-                var t = impl.now();
-                // Pop and execute all events earlier than or equal to t (the current time).
-                var _loop_1 = function() {
+                // Ensure the time is always increasing from the FRP's point of view.
+                var t = _this.tMinimum = Math.max(_this.tMinimum, impl.now());
+                var _loop_1 = function () {
                     var ev = null;
                     if (!_this.eventQueue.isEmpty()) {
                         var mev = _this.eventQueue.minimum();
                         if (mev.t <= t) {
                             ev = mev;
+                            // TO DO: Detect infinite loops!
                         }
                     }
                     if (ev != null) {
@@ -60,9 +63,11 @@ var TimerSystem = (function () {
                     else
                         return "break";
                 };
+                // Pop and execute all events earlier than or equal to t (the current time).
                 while (true) {
                     var state_1 = _loop_1();
-                    if (state_1 === "break") break;
+                    if (state_1 === "break")
+                        break;
                 }
                 timeSnk.send(t);
             });
@@ -91,6 +96,11 @@ var TimerSystem = (function () {
                     current = new Event(tAl, sAlarm);
                     _this.eventQueue.add(current);
                     cancelCurrent = _this.impl.setTimer(tAl, function () {
+                        // Correction to ensure the clock time appears to be >= the
+                        // alarm time. It can be a few milliseconds early, and
+                        // this breaks things otherwise, because it doesn't think
+                        // it's time to fire the alarm yet.
+                        _this.tMinimum = Math.max(_this.tMinimum, tAl);
                         // Open and close a transaction to trigger queued
                         // events to run.
                         Transaction_1.Transaction.run(function () { });

@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Sodium_1 = require("../lib/Sodium");
 function fail(err) {
     throw new Error(err);

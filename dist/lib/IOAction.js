@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Stream_1 = require("./Stream");
 var Vertex_1 = require("./Vertex");
 var Transaction_1 = require("./Transaction");

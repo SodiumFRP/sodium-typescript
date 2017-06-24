@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * A representation for a value that may not be available until the current
  * transaction is closed.

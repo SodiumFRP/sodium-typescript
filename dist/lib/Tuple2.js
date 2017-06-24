@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Tuple2 = (function () {
     function Tuple2(a, b) {
         this.a = a;

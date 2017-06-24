@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Sodium_1 = require("../lib/Sodium");
 function periodic(sys, period) {
     var time = sys.time, oAlarm = new Sodium_1.CellLoop(), sAlarm = sys.at(oAlarm);

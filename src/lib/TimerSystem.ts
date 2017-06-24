@@ -39,12 +39,14 @@ export class TimerSystem {
     constructor(impl : TimerSystemImpl) {
         Transaction.run(() => {
             this.impl = impl;
+            this.tMinimum = 0;
             const timeSnk = new CellSink<number>(impl.now());
             this.time = timeSnk;
             // A dummy listener to time to keep it alive even when there are no other listeners.
             this.time.listen((t : number) => { });
             Transaction.onStart(() => {
-                const t = impl.now();
+                // Ensure the time is always increasing from the FRP's point of view.
+                const t = this.tMinimum = Math.max(this.tMinimum, impl.now());
                 // Pop and execute all events earlier than or equal to t (the current time).
                 while (true) {
                     let ev : Event = null;
@@ -68,6 +70,8 @@ export class TimerSystem {
     }
 
     private impl : TimerSystemImpl;
+    private tMinimum : number;  // A guard to allow us to guarantee that the time as
+                                // seen by the FRP is always increasing.
 
     /**
      * A cell giving the current clock time.
@@ -109,6 +113,11 @@ export class TimerSystem {
                         current = new Event(tAl, sAlarm);
                         this.eventQueue.add(current);
                         cancelCurrent = this.impl.setTimer(tAl, () => {
+                                    // Correction to ensure the clock time appears to be >= the
+                                    // alarm time. It can be a few milliseconds early, and
+                                    // this breaks things otherwise, because it doesn't think
+                                    // it's time to fire the alarm yet.
+                                    this.tMinimum = Math.max(this.tMinimum, tAl);
                                     // Open and close a transaction to trigger queued
                                     // events to run.
                                     Transaction.run(() => {});

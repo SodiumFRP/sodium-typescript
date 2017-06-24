@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Lambda_1 = require("./Lambda");
 var Transaction_1 = require("./Transaction");
 var CoalesceHandler = (function () {

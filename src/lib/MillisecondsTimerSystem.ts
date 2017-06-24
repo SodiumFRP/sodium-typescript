@@ -16,7 +16,7 @@ class MillisecondsTimerSystemImpl extends TimerSystemImpl {
      */
     setTimer(t : number, callback : () => void) : () => void
     {
-        let timeout = setTimeout(callback, t - this.now());
+        let timeout = setTimeout(callback, Math.max(t - this.now(), 0));
         return () => { clearTimeout(timeout); }
     }
 

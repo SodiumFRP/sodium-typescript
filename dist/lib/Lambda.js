@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Vertex_1 = require("./Vertex");
 var Lambda1 = (function () {
     function Lambda1(f, deps) {

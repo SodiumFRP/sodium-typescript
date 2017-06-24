@@ -17,6 +17,7 @@ export declare abstract class TimerSystemImpl {
 export declare class TimerSystem {
     constructor(impl: TimerSystemImpl);
     private impl;
+    private tMinimum;
     /**
      * A cell giving the current clock time.
      */

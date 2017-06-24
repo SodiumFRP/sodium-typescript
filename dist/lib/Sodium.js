@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Lambda_1 = require("./Lambda");
 exports.lambda1 = Lambda_1.lambda1;
 exports.lambda2 = Lambda_1.lambda2;

@@ -1,5 +1,6 @@
 "use strict";
-var typescript_collections_1 = require('typescript-collections');
+Object.defineProperty(exports, "__esModule", { value: true });
+var typescript_collections_1 = require("typescript-collections");
 var Entry = (function () {
     function Entry(rank, action) {
         this.rank = rank;
@@ -9,9 +10,9 @@ var Entry = (function () {
     Entry.prototype.toString = function () {
         return this.seq.toString();
     };
-    Entry.nextSeq = 0;
     return Entry;
 }());
+Entry.nextSeq = 0;
 exports.Entry = Entry;
 var Transaction = (function () {
     function Transaction() {
@@ -159,10 +160,10 @@ var Transaction = (function () {
             throw err;
         }
     };
-    Transaction.currentTransaction = null;
-    Transaction.onStartHooks = [];
-    Transaction.runningOnStartHooks = false;
     return Transaction;
 }());
+Transaction.currentTransaction = null;
+Transaction.onStartHooks = [];
+Transaction.runningOnStartHooks = false;
 exports.Transaction = Transaction;
 //# sourceMappingURL=Transaction.js.map

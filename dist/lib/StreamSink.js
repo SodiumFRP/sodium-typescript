@@ -1,9 +1,15 @@
 "use strict";
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
 var Stream_1 = require("./Stream");
 var CoalesceHandler_1 = require("./CoalesceHandler");
 var Transaction_1 = require("./Transaction");
@@ -15,12 +21,13 @@ var Transaction_1 = require("./Transaction");
 var StreamSink = (function (_super) {
     __extends(StreamSink, _super);
     function StreamSink(f) {
-        _super.call(this);
+        var _this = _super.call(this) || this;
         if (!f)
             f = (function (l, r) {
                 throw new Error("send() called more than once per transaction, which isn't allowed. Did you want to combine the events? Then pass a combining function to your StreamSink constructor.");
             });
-        this.coalescer = new CoalesceHandler_1.CoalesceHandler(f, this);
+        _this.coalescer = new CoalesceHandler_1.CoalesceHandler(f, _this);
+        return _this;
     }
     StreamSink.prototype.send = function (a) {
         var _this = this;
