@@ -1,4 +1,4 @@
-import { Lambda1, Lambda2 } from "./Lambda";
+import { Lambda1, Lambda2, Lambda3, Lambda4, Lambda5, Lambda6 } from "./Lambda";
 import { Vertex } from "./Vertex";
 import { Cell } from "./Cell";
 import { Listener } from "./Listener";
@@ -82,7 +82,51 @@ export declare class Stream<A> {
      * always sees the value of a cell as it was before any state changes from the current
      * transaction.
      */
-    snapshot<B, C>(c: Cell<B>, f: ((a: A, b: B) => C) | Lambda2<A, B, C>): Stream<C>;
+    snapshot<B, C>(b: Cell<B>, f_: ((a: A, b: B) => C) | Lambda2<A, B, C>): Stream<C>;
+    /**
+     * Return a stream whose events are the result of the combination using the specified
+     * function of the input stream's event value and the value of the cells at that time.
+     * <P>
+     * There is an implicit delay: State updates caused by event firings being held with
+     * {@link Stream#hold(Object)} don't become visible as the cell's current value until
+     * the following transaction. To put this another way, snapshot()
+     * always sees the value of a cell as it was before any state changes from the current
+     * transaction.
+     */
+    snapshot3<B, C, D>(b: Cell<B>, c: Cell<C>, f_: ((a: A, b: B, c: C) => D) | Lambda3<A, B, C, D>): Stream<D>;
+    /**
+     * Return a stream whose events are the result of the combination using the specified
+     * function of the input stream's event value and the value of the cells at that time.
+     * <P>
+     * There is an implicit delay: State updates caused by event firings being held with
+     * {@link Stream#hold(Object)} don't become visible as the cell's current value until
+     * the following transaction. To put this another way, snapshot()
+     * always sees the value of a cell as it was before any state changes from the current
+     * transaction.
+     */
+    snapshot4<B, C, D, E>(b: Cell<B>, c: Cell<C>, d: Cell<D>, f_: ((a: A, b: B, c: C, d: D) => E) | Lambda4<A, B, C, D, E>): Stream<E>;
+    /**
+     * Return a stream whose events are the result of the combination using the specified
+     * function of the input stream's event value and the value of the cells at that time.
+     * <P>
+     * There is an implicit delay: State updates caused by event firings being held with
+     * {@link Stream#hold(Object)} don't become visible as the cell's current value until
+     * the following transaction. To put this another way, snapshot()
+     * always sees the value of a cell as it was before any state changes from the current
+     * transaction.
+     */
+    snapshot5<B, C, D, E, F>(b: Cell<B>, c: Cell<C>, d: Cell<D>, e: Cell<E>, f_: ((a: A, b: B, c: C, d: D, e: E) => F) | Lambda5<A, B, C, D, E, F>): Stream<F>;
+    /**
+     * Return a stream whose events are the result of the combination using the specified
+     * function of the input stream's event value and the value of the cells at that time.
+     * <P>
+     * There is an implicit delay: State updates caused by event firings being held with
+     * {@link Stream#hold(Object)} don't become visible as the cell's current value until
+     * the following transaction. To put this another way, snapshot()
+     * always sees the value of a cell as it was before any state changes from the current
+     * transaction.
+     */
+    snapshot6<B, C, D, E, F, G>(b: Cell<B>, c: Cell<C>, d: Cell<D>, e: Cell<E>, f: Cell<F>, f_: ((a: A, b: B, c: C, d: D, e: E, f: F) => G) | Lambda6<A, B, C, D, E, F, G>): Stream<G>;
     /**
      * Create a {@link Cell} with the specified initial value, that is updated
      * by this stream's event values.

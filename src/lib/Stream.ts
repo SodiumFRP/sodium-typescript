@@ -1,5 +1,9 @@
 import { Lambda1, Lambda1_deps, Lambda1_toFunction,
          Lambda2, Lambda2_deps, Lambda2_toFunction,
+         Lambda3, Lambda3_deps, Lambda3_toFunction,
+         Lambda4, Lambda4_deps, Lambda4_toFunction,
+         Lambda5, Lambda5_deps, Lambda5_toFunction,
+         Lambda6, Lambda6_deps, Lambda6_toFunction,
          toSources } from "./Lambda";
 import { Source, Vertex } from "./Vertex";
 import { Transaction } from "./Transaction";
@@ -233,21 +237,154 @@ export class Stream<A> {
      * always sees the value of a cell as it was before any state changes from the current
      * transaction.
      */
-	snapshot<B,C>(c : Cell<B>, f : ((a : A, b : B) => C) | Lambda2<A,B,C>) : Stream<C>
+	snapshot<B,C>(b : Cell<B>, f_ : ((a : A, b : B) => C) | Lambda2<A,B,C>) : Stream<C>
 	{
         const out = new StreamWithSend<C>(null);
-        const ff = Lambda2_toFunction(f);
+        const ff = Lambda2_toFunction(f_);
         out.vertex = new Vertex("snapshot", 0, [
                 new Source(
                     this.vertex,
                     () => {
                         return this.listen_(out.vertex, (a : A) => {
-                            out.send_(ff(a, c.sampleNoTrans__()));
+                            out.send_(ff(a, b.sampleNoTrans__()));
                         }, false);
                     }
                 ),
+                new Source(b.getVertex__(), null)
+            ].concat(toSources(Lambda2_deps(f_)))
+        );
+        return out;
+	}
+
+	/**
+	 * Return a stream whose events are the result of the combination using the specified
+	 * function of the input stream's event value and the value of the cells at that time.
+     * <P>
+     * There is an implicit delay: State updates caused by event firings being held with
+     * {@link Stream#hold(Object)} don't become visible as the cell's current value until
+     * the following transaction. To put this another way, snapshot()
+     * always sees the value of a cell as it was before any state changes from the current
+     * transaction.
+     */
+	snapshot3<B,C,D>(b : Cell<B>, c : Cell<C>, f_ : ((a : A, b : B, c : C) => D) | Lambda3<A,B,C,D>) : Stream<D>
+	{
+        const out = new StreamWithSend<D>(null);
+        const ff = Lambda3_toFunction(f_);
+        out.vertex = new Vertex("snapshot", 0, [
+                new Source(
+                    this.vertex,
+                    () => {
+                        return this.listen_(out.vertex, (a : A) => {
+                            out.send_(ff(a, b.sampleNoTrans__(), c.sampleNoTrans__()));
+                        }, false);
+                    }
+                ),
+                new Source(b.getVertex__(), null),
                 new Source(c.getVertex__(), null)
-            ].concat(toSources(Lambda2_deps(f)))
+            ].concat(toSources(Lambda3_deps(f_)))
+        );
+        return out;
+	}
+
+	/**
+	 * Return a stream whose events are the result of the combination using the specified
+	 * function of the input stream's event value and the value of the cells at that time.
+     * <P>
+     * There is an implicit delay: State updates caused by event firings being held with
+     * {@link Stream#hold(Object)} don't become visible as the cell's current value until
+     * the following transaction. To put this another way, snapshot()
+     * always sees the value of a cell as it was before any state changes from the current
+     * transaction.
+     */
+	snapshot4<B,C,D,E>(b : Cell<B>, c : Cell<C>, d : Cell<D>,
+	    f_ : ((a : A, b : B, c : C, d : D) => E) | Lambda4<A,B,C,D,E>) : Stream<E>
+	{
+        const out = new StreamWithSend<E>(null);
+        const ff = Lambda4_toFunction(f_);
+        out.vertex = new Vertex("snapshot", 0, [
+                new Source(
+                    this.vertex,
+                    () => {
+                        return this.listen_(out.vertex, (a : A) => {
+                            out.send_(ff(a, b.sampleNoTrans__(), c.sampleNoTrans__(),
+                                            d.sampleNoTrans__()));
+                        }, false);
+                    }
+                ),
+                new Source(b.getVertex__(), null),
+                new Source(c.getVertex__(), null),
+                new Source(d.getVertex__(), null)
+            ].concat(toSources(Lambda4_deps(f_)))
+        );
+        return out;
+	}
+
+	/**
+	 * Return a stream whose events are the result of the combination using the specified
+	 * function of the input stream's event value and the value of the cells at that time.
+     * <P>
+     * There is an implicit delay: State updates caused by event firings being held with
+     * {@link Stream#hold(Object)} don't become visible as the cell's current value until
+     * the following transaction. To put this another way, snapshot()
+     * always sees the value of a cell as it was before any state changes from the current
+     * transaction.
+     */
+	snapshot5<B,C,D,E,F>(b : Cell<B>, c : Cell<C>, d : Cell<D>, e : Cell<E>,
+	    f_ : ((a : A, b : B, c : C, d : D, e : E) => F) | Lambda5<A,B,C,D,E,F>) : Stream<F>
+	{
+        const out = new StreamWithSend<F>(null);
+        const ff = Lambda5_toFunction(f_);
+        out.vertex = new Vertex("snapshot", 0, [
+                new Source(
+                    this.vertex,
+                    () => {
+                        return this.listen_(out.vertex, (a : A) => {
+                            out.send_(ff(a, b.sampleNoTrans__(), c.sampleNoTrans__(),
+                                            d.sampleNoTrans__(), e.sampleNoTrans__()));
+                        }, false);
+                    }
+                ),
+                new Source(b.getVertex__(), null),
+                new Source(c.getVertex__(), null),
+                new Source(d.getVertex__(), null),
+                new Source(e.getVertex__(), null)
+            ].concat(toSources(Lambda5_deps(f_)))
+        );
+        return out;
+	}
+
+	/**
+	 * Return a stream whose events are the result of the combination using the specified
+	 * function of the input stream's event value and the value of the cells at that time.
+     * <P>
+     * There is an implicit delay: State updates caused by event firings being held with
+     * {@link Stream#hold(Object)} don't become visible as the cell's current value until
+     * the following transaction. To put this another way, snapshot()
+     * always sees the value of a cell as it was before any state changes from the current
+     * transaction.
+     */
+	snapshot6<B,C,D,E,F,G>(b : Cell<B>, c : Cell<C>, d : Cell<D>, e : Cell<E>, f : Cell<F>,
+	    f_ : ((a : A, b : B, c : C, d : D, e : E, f : F) => G) | Lambda6<A,B,C,D,E,F,G>) : Stream<G>
+	{
+        const out = new StreamWithSend<G>(null);
+        const ff = Lambda6_toFunction(f_);
+        out.vertex = new Vertex("snapshot", 0, [
+                new Source(
+                    this.vertex,
+                    () => {
+                        return this.listen_(out.vertex, (a : A) => {
+                            out.send_(ff(a, b.sampleNoTrans__(), c.sampleNoTrans__(),
+                                            d.sampleNoTrans__(), e.sampleNoTrans__(),
+                                            f.sampleNoTrans__()));
+                        }, false);
+                    }
+                ),
+                new Source(b.getVertex__(), null),
+                new Source(c.getVertex__(), null),
+                new Source(d.getVertex__(), null),
+                new Source(e.getVertex__(), null),
+                new Source(f.getVertex__(), null)
+            ].concat(toSources(Lambda6_deps(f_)))
         );
         return out;
 	}

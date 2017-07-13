@@ -206,18 +206,124 @@ var Stream = (function () {
      * always sees the value of a cell as it was before any state changes from the current
      * transaction.
      */
-    Stream.prototype.snapshot = function (c, f) {
+    Stream.prototype.snapshot = function (b, f_) {
         var _this = this;
         var out = new StreamWithSend(null);
-        var ff = Lambda_1.Lambda2_toFunction(f);
+        var ff = Lambda_1.Lambda2_toFunction(f_);
         out.vertex = new Vertex_1.Vertex("snapshot", 0, [
             new Vertex_1.Source(this.vertex, function () {
                 return _this.listen_(out.vertex, function (a) {
-                    out.send_(ff(a, c.sampleNoTrans__()));
+                    out.send_(ff(a, b.sampleNoTrans__()));
                 }, false);
             }),
+            new Vertex_1.Source(b.getVertex__(), null)
+        ].concat(Lambda_1.toSources(Lambda_1.Lambda2_deps(f_))));
+        return out;
+    };
+    /**
+     * Return a stream whose events are the result of the combination using the specified
+     * function of the input stream's event value and the value of the cells at that time.
+     * <P>
+     * There is an implicit delay: State updates caused by event firings being held with
+     * {@link Stream#hold(Object)} don't become visible as the cell's current value until
+     * the following transaction. To put this another way, snapshot()
+     * always sees the value of a cell as it was before any state changes from the current
+     * transaction.
+     */
+    Stream.prototype.snapshot3 = function (b, c, f_) {
+        var _this = this;
+        var out = new StreamWithSend(null);
+        var ff = Lambda_1.Lambda3_toFunction(f_);
+        out.vertex = new Vertex_1.Vertex("snapshot", 0, [
+            new Vertex_1.Source(this.vertex, function () {
+                return _this.listen_(out.vertex, function (a) {
+                    out.send_(ff(a, b.sampleNoTrans__(), c.sampleNoTrans__()));
+                }, false);
+            }),
+            new Vertex_1.Source(b.getVertex__(), null),
             new Vertex_1.Source(c.getVertex__(), null)
-        ].concat(Lambda_1.toSources(Lambda_1.Lambda2_deps(f))));
+        ].concat(Lambda_1.toSources(Lambda_1.Lambda3_deps(f_))));
+        return out;
+    };
+    /**
+     * Return a stream whose events are the result of the combination using the specified
+     * function of the input stream's event value and the value of the cells at that time.
+     * <P>
+     * There is an implicit delay: State updates caused by event firings being held with
+     * {@link Stream#hold(Object)} don't become visible as the cell's current value until
+     * the following transaction. To put this another way, snapshot()
+     * always sees the value of a cell as it was before any state changes from the current
+     * transaction.
+     */
+    Stream.prototype.snapshot4 = function (b, c, d, f_) {
+        var _this = this;
+        var out = new StreamWithSend(null);
+        var ff = Lambda_1.Lambda4_toFunction(f_);
+        out.vertex = new Vertex_1.Vertex("snapshot", 0, [
+            new Vertex_1.Source(this.vertex, function () {
+                return _this.listen_(out.vertex, function (a) {
+                    out.send_(ff(a, b.sampleNoTrans__(), c.sampleNoTrans__(), d.sampleNoTrans__()));
+                }, false);
+            }),
+            new Vertex_1.Source(b.getVertex__(), null),
+            new Vertex_1.Source(c.getVertex__(), null),
+            new Vertex_1.Source(d.getVertex__(), null)
+        ].concat(Lambda_1.toSources(Lambda_1.Lambda4_deps(f_))));
+        return out;
+    };
+    /**
+     * Return a stream whose events are the result of the combination using the specified
+     * function of the input stream's event value and the value of the cells at that time.
+     * <P>
+     * There is an implicit delay: State updates caused by event firings being held with
+     * {@link Stream#hold(Object)} don't become visible as the cell's current value until
+     * the following transaction. To put this another way, snapshot()
+     * always sees the value of a cell as it was before any state changes from the current
+     * transaction.
+     */
+    Stream.prototype.snapshot5 = function (b, c, d, e, f_) {
+        var _this = this;
+        var out = new StreamWithSend(null);
+        var ff = Lambda_1.Lambda5_toFunction(f_);
+        out.vertex = new Vertex_1.Vertex("snapshot", 0, [
+            new Vertex_1.Source(this.vertex, function () {
+                return _this.listen_(out.vertex, function (a) {
+                    out.send_(ff(a, b.sampleNoTrans__(), c.sampleNoTrans__(), d.sampleNoTrans__(), e.sampleNoTrans__()));
+                }, false);
+            }),
+            new Vertex_1.Source(b.getVertex__(), null),
+            new Vertex_1.Source(c.getVertex__(), null),
+            new Vertex_1.Source(d.getVertex__(), null),
+            new Vertex_1.Source(e.getVertex__(), null)
+        ].concat(Lambda_1.toSources(Lambda_1.Lambda5_deps(f_))));
+        return out;
+    };
+    /**
+     * Return a stream whose events are the result of the combination using the specified
+     * function of the input stream's event value and the value of the cells at that time.
+     * <P>
+     * There is an implicit delay: State updates caused by event firings being held with
+     * {@link Stream#hold(Object)} don't become visible as the cell's current value until
+     * the following transaction. To put this another way, snapshot()
+     * always sees the value of a cell as it was before any state changes from the current
+     * transaction.
+     */
+    Stream.prototype.snapshot6 = function (b, c, d, e, f, f_) {
+        var _this = this;
+        var out = new StreamWithSend(null);
+        var ff = Lambda_1.Lambda6_toFunction(f_);
+        out.vertex = new Vertex_1.Vertex("snapshot", 0, [
+            new Vertex_1.Source(this.vertex, function () {
+                return _this.listen_(out.vertex, function (a) {
+                    out.send_(ff(a, b.sampleNoTrans__(), c.sampleNoTrans__(), d.sampleNoTrans__(), e.sampleNoTrans__(), f.sampleNoTrans__()));
+                }, false);
+            }),
+            new Vertex_1.Source(b.getVertex__(), null),
+            new Vertex_1.Source(c.getVertex__(), null),
+            new Vertex_1.Source(d.getVertex__(), null),
+            new Vertex_1.Source(e.getVertex__(), null),
+            new Vertex_1.Source(f.getVertex__(), null)
+        ].concat(Lambda_1.toSources(Lambda_1.Lambda6_deps(f_))));
         return out;
     };
     /**
