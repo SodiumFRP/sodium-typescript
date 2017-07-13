@@ -1,6 +1,6 @@
 {
   "name": "sodiumjs",
-  "version": "0.9.2",
+  "version": "1.0.0",
   "description": "A Functional Reactive Programming (FRP) library for JavaScript",
   "author": "Stephen Blackheath",
   "license": "BSD-3-Clause",
