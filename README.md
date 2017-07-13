@@ -90,3 +90,8 @@ This allows Sodium to track all dependencies. There are some limitations to this
 scheme - for example, it can't track dependencies if you poke arbitrary Sodium
 objects into a StreamSink, but I think these should not affect any normal usages.
 Time will tell.
+
+CHANGELOG
+
+1.0.0    Add snapshot3(), snapshot4(), snapshot5() and snapshot6().
+         Fix a serious bug in TimerSystem where timers sometimes don't fire.
