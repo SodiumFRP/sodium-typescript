@@ -13,10 +13,12 @@ Install [Node.js® and npm](https://nodejs.org/en/download/current/) if they are
 
 ## Installation
 
-### via NPM
+### via NPM or Yarn
 ```
 $> npm install sodiumjs
 $> npm install -g sodiumjs
+$> yarn add sodiumjs
+$> yarn global add sodiumjs
 ```
 
 ### via Bower
