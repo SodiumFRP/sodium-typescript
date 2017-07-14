@@ -273,8 +273,8 @@ var Vertex = (function () {
             this.free();
         }
     };
+    Vertex.NULL = new Vertex("user", 1e12, []);
     return Vertex;
 }());
-Vertex.NULL = new Vertex("user", 1e12, []);
 exports.Vertex = Vertex;
 //# sourceMappingURL=Vertex.js.map

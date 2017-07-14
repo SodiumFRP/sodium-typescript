@@ -10,9 +10,9 @@ var Entry = (function () {
     Entry.prototype.toString = function () {
         return this.seq.toString();
     };
+    Entry.nextSeq = 0;
     return Entry;
 }());
-Entry.nextSeq = 0;
 exports.Entry = Entry;
 var Transaction = (function () {
     function Transaction() {
@@ -160,10 +160,10 @@ var Transaction = (function () {
             throw err;
         }
     };
+    Transaction.currentTransaction = null;
+    Transaction.onStartHooks = [];
+    Transaction.runningOnStartHooks = false;
     return Transaction;
 }());
-Transaction.currentTransaction = null;
-Transaction.onStartHooks = [];
-Transaction.runningOnStartHooks = false;
 exports.Transaction = Transaction;
 //# sourceMappingURL=Transaction.js.map
