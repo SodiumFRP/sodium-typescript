@@ -1,10 +1,21 @@
 language: node_js
 node_js:
- - "6"
- - "5"
- - "4"
+- '6'
+- '5'
+- '4'
 install:
- - npm install
+- npm install
 script:
- - npm run prerelease
- - npm run test
+- npm run prerelease
+- npm run test
+deploy:
+  provider: npm
+  email:
+    secure: inOaTqSMh3j8gaONOB9sKgMGbZ4JwJU/rRL5FlM/F4cg3vzG1yI/l1QrrxZZ/mJGFt2tPxhQwhZkP22qpeYH4ukoyp3ec0criloc2ON59x6Q63tlJx3LGWNel0mx+Aj7roghCz6Bw2Uar6XhyKqDim8m0p3TnBOwUGs32ikhYbGLiWveR0B6U9LYWsnT8r3qez+JpQkLfMxxMNyuYyAdrY/GKJK1jYiMA4z6ubh7twdmdJH2GBW7skPbcdcmEeCwzSHSFdKkJJXaHM4KopB363s80yjmWU+FBS7oeQXYqYggna3TNdeyGhUrLOmT0zwAWno2aca2me2de7T6XzA7X8NCB8CpyWeYB51MhshG6EspRS/BSuYJqZ90BrSuYNW3nbTCkutyZYYUCgNwNz/ng1EtRprllBykg+nvDtJQoyejc5faYnihb2kqFE27p26lezF2525iZTdKNcb5V9wsPaQDTMgKdvbk9+BEPwoUZdyDeWfJ6edf+mcxd+9KkK9RYg0FLH6PSYgRWz6f1apDObeZfqAL+5cwD186L/YK6q+cNuDxrnnkDCkV+IIpL8YeCahV9PAw4vIifir/6CeBxfYrf+eU8eJFR9XrxRHBohDmg7m9I1CqdScwGtTcmH1u5bCzrj0qlaKSb4ZnLoBRMlTtrEw5KCJ2KdBfKPR7GDA=
+  api_key:
+    secure: sQLLjy457hzDEbM8fOweUlGEXwjXUvKHwz6bDtOcEG4Z/KtM3f3ULTLkieeeugZPzWBWdw7oyBceOPM6z1spUYA8C47UT9uESVjd8vDZ+s2M4xHDPQDHpm+FqjHMIBNMJvSpD6HMSSYQXjOFm8vwoZ6p4dIPEH5fYflk7G4HocV6l5MTQ6q/EYMR0cISLwuTIiQlhpWXa2jc1jq3zg7pc/cUlXhsNyaIr10BmiWF81CKrj4EsULmNHRlYVTAnIBIxEM4kFfKjWHfO4enIaPBpkEhvdFm33TanSkC8aG0wFYlWYqnaR34+iJqsB7IH9POYwHUbwBi+33Fz2YN/OjCWPQkglGxLfn9lLQrXI9WxTTxiMBymnRpF+HobkWsJlxD1wF01AIdlBGuTRWv0cOl/JGo22toWA5qkN2Ur9VPAU2Tj5osl3+RM+x9i4yDFX5zHrkLjsolhRMyc+CG+2o26Q+jPc2Lh9kIWHMnyKNvn86OrcETYd67wDz5cDbSmsGtpXQCy2TetP1mU1ypGFJQ20h9JmWkD/K6GC6YHLfX3+oX0VfHtYwlznLLWsoajFFVpNhS14qmA9ChZsaYBF32N0GtHmddlVpv7Kio2U1zcG4cIn2lflrtwQ68CmL/T4M6b9yPDRednucf1aEIzwF+EODsKRK98tkleXBkqqbe50o=
+  skip_cleanup: true
+  tag: next
+  on:
+    node: '6'
+    tags: true

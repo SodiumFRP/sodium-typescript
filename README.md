@@ -13,30 +13,34 @@ Install [Node.js® and npm](https://nodejs.org/en/download/current/) if they are
 
 ## Installation
 
-### via NPM or Yarn
-```
+### via NPM
+```bash
 $> npm install sodiumjs
 $> npm install -g sodiumjs
+```
+
+### via Yarn
+```bash
 $> yarn add sodiumjs
 $> yarn global add sodiumjs
 ```
 
 ### via Bower
-```
+```bash
 $> bower install sodiumjs
 ```
 
 ## How to use
 
 ### ES6
-```
+```javascript
 import { Cell } from 'sodiumjs';
 ...
 const c = new Cell(12);
 ```
 
 ### TypeScript
-```
+```javascript
 import { Cell } from 'sodiumjs';
 ...
 const c = new Cell<number>(12);
@@ -45,7 +49,7 @@ const c = new Cell<number>(12);
 ### In a browser
 Use the [UMD(Universal Module Definition)](https://github.com/umdjs/umd) format `sodium.umd.js` from `dist/lib` directory
 
-```
+```html
 <script src="dist/lib/sodium.umd.js"></script>
 <script>
     var cell = new Sodium.Cell(12);
@@ -57,7 +61,7 @@ Use the [UMD(Universal Module Definition)](https://github.com/umdjs/umd) format 
 
 Build commonjs libraries and UMD library for direct browser usage
 
-```
+```bash
 $> npm run prerelease
 ```
 ## Examples
