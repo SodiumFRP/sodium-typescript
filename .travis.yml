@@ -18,3 +18,5 @@ deploy:
   tag: next
   on:
     branch: feat-travisci
+    node: '6'
+    tags: true
