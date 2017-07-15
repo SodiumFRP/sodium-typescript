@@ -17,6 +17,5 @@ deploy:
   skip_cleanup: true
   tag: next
   on:
-    branch: feat-travisci
     node: '6'
     tags: true
