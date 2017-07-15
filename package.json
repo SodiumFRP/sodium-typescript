@@ -27,7 +27,9 @@
     "build:ts": "tsc",
     "build": "npm run clean && npm run build:umd && npm run build:ts",
     "prerelease": "npm run build",
-    "test": "karma start"
+    "test": "karma start",
+    "preversion": "npm test",
+    "postversion": "git push && git push --tags"
   },
   "dependencies": {
     "typescript-collections": "github:rixrix/typescript-collections"
