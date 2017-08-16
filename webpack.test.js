@@ -10,26 +10,16 @@ var testSourceDir = '../spec';
  */
 module.exports = {
     module: {
-        /**
-         * Array of module loaders
-         *
-         * See: http://webpack.github.io/docs/configuration.html#module-loaders
-         */
-        loaders: [
-            /**
-             * TypeScript loader
-             *
-             * See: https://github.com/s-panferov/awesome-typescript-loader
-             */
+        rules: [
             {
                 test: /\.ts$/,
-                loader: 'awesome-typescript-loader',
+                loader: "awesome-typescript-loader",
                 exclude: /(node_modules|bower_components|dist)/
-            }
+            },
         ]
     },
-    resolve: {
-        root: path.resolve(testSourceDir),
-        extensions: ['', '.js', '.ts']
+      resolve: {
+        modules: [path.resolve(testSourceDir), "node_modules"],
+        extensions: ['.js', '.ts']
     }
 };
