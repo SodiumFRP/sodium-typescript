@@ -23,7 +23,7 @@
   "typings": "./dist/lib/Sodium.d.ts",
   "scripts": {
     "clean": "rimraf ./dist",
-    "build:umd": "webpack --progress --colors --build=dev && webpack --progress --colors --build=prod && rimraf ./dist/lib/src",
+    "build:umd": "cross-env NODE_ENV=dev webpack --progress --colors && cross-env NODE_ENV=production webpack -p --progress --colors && rimraf ./dist/lib/src",
     "build:ts": "tsc",
     "build": "npm run clean && npm run build:umd && npm run build:ts",
     "prerelease": "npm run build",
@@ -35,22 +35,23 @@
     "typescript-collections": "github:rixrix/typescript-collections"
   },
   "devDependencies": {
-    "@types/jasmine": "^2.2.30",
-    "@types/node": "^4.0.30",
-    "@types/source-map": "^0.5.0",
+    "@types/jasmine": "^2.5.53",
+    "@types/node": "^8.0.22",
+    "@types/source-map": "^0.5.1",
     "@types/uglify-js": "^2.6.29",
-    "@types/webpack": "^3.0.4",
-    "awesome-typescript-loader": "^3.2.1",
-    "jasmine-core": "^2.6.4",
+    "@types/webpack": "^3.0.9",
+    "awesome-typescript-loader": "^3.2.3",
+    "cross-env": "^5.0.5",
+    "jasmine-core": "^2.7.0",
     "karma": "^1.7.0",
     "karma-jasmine": "^1.1.0",
     "karma-phantomjs-launcher": "^1.0.4",
     "karma-spec-reporter": "0.0.31",
-    "karma-webpack": "^1.8.1",
-    "rimraf": "^2.5.3",
-    "typescript": "^2.4.1",
-    "uglify-js": "^2.8.29",
-    "webpack": "^1.15.0",
+    "karma-webpack": "^2.0.4",
+    "rimraf": "^2.6.1",
+    "typescript": "^2.4.2",
+    "uglify-js": "^3.0.27",
+    "webpack": "^3.5.5",
     "yargs": "^8.0.2"
   }
 }

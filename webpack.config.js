@@ -1,7 +1,7 @@
+'use strict';
+
 var webpack = require('webpack');
 var path = require('path');
-var argv = require('yargs').argv;
-var UglifyJsPlugin = webpack.optimize.UglifyJsPlugin;
 
 var libraryName = 'Sodium';
 var sourceDir = './src';
@@ -10,12 +10,15 @@ var sourceEntryPoint = './src/lib/Sodium.ts';
 
 var plugins = [], outputFile;
 
-if (argv.build == 'prod') {
-    plugins.push(new UglifyJsPlugin({ minimize: true }));
+if (process.env.NODE_ENV === "production") {
     outputFile = libraryName.toLowerCase() + '.umd.min.js';
 } else {
     outputFile = libraryName.toLowerCase() + '.umd.js';
 }
+
+console.log("--------------------");
+console.log(process.env.NODE_ENV);
+console.log("--------------------");
 
 /*
  * Webpack configuration
@@ -82,27 +85,17 @@ module.exports = {
         umdNamedDefine: true
     },
     module: {
-        /**
-         * Array of module loaders
-         *
-         * See: http://webpack.github.io/docs/configuration.html#module-loaders
-         */
-        loaders: [
-            /**
-             * TypeScript loader
-             *
-             * See: https://github.com/s-panferov/awesome-typescript-loader
-             */
+        rules: [
             {
                 test: /\.ts$/,
-                loader: 'awesome-typescript-loader',
+                loader: "awesome-typescript-loader",
                 exclude: /(node_modules|bower_components|dist)/
-            }
+            },
         ]
     },
     resolve: {
-        root: path.resolve(sourceDir),
-        extensions: ['', '.js', '.ts']
+        modules: [path.resolve(sourceDir), "node_modules"],
+        extensions: ['.js', '.ts']
     },
     plugins: plugins
 };
