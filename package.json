@@ -38,20 +38,21 @@
     "@types/jasmine": "^2.5.53",
     "@types/node": "^8.0.22",
     "@types/source-map": "^0.5.1",
-    "@types/uglify-js": "^2.6.29",
     "@types/webpack": "^3.0.9",
     "awesome-typescript-loader": "^3.2.3",
     "cross-env": "^5.0.5",
+    "fantasy-laws": "git://github.com/fantasyland/fantasy-laws.git#davidchambers/everything",
     "jasmine-core": "^2.7.0",
+    "jsverify": "^0.8.2",
     "karma": "^1.7.0",
+    "karma-fail-fast-reporter": "^1.0.5",
     "karma-jasmine": "^1.1.0",
     "karma-phantomjs-launcher": "^1.0.4",
     "karma-spec-reporter": "0.0.31",
     "karma-webpack": "^2.0.4",
     "rimraf": "^2.6.1",
+    "sanctuary": "^0.13.2",
     "typescript": "^2.4.2",
-    "uglify-js": "^3.0.27",
-    "webpack": "^3.5.5",
-    "yargs": "^8.0.2"
+    "webpack": "^3.5.5"
   }
 }

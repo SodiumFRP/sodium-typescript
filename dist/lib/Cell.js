@@ -261,6 +261,28 @@ var Cell = (function () {
             return Operational_1.Operational.value(_this).listen(h);
         });
     };
+    /**
+     * Fantasy-land Algebraic Data Type Compatability.
+     * Cell satisfies the Functor, Apply, Applicative, and Monad Categories.
+     * @see {@link https://github.com/fantasyland/fantasy-land} for more info
+     */
+    //of :: Applicative f => a -> f a
+    Cell['fantasy-land/of'] = function (a) {
+        return new Cell(a);
+    };
+    //map :: Functor f => f a ~> (a -> b) -> f b
+    Cell.prototype['fantasy-land/map'] = function (f) {
+        return this.map(f);
+    };
+    //ap :: Apply f => f a ~> f (a -> b) -> f b
+    Cell.prototype['fantasy-land/ap'] = function (cf) {
+        return Cell.apply(cf, this);
+    };
+    //TODO: currently breaking
+    //chain :: Chain m => m a ~> (a -> m b) -> m b
+    Cell.prototype['fantasy-land/chain'] = function (f) {
+        return Cell.switchC(this.map(f));
+    };
     return Cell;
 }());
 exports.Cell = Cell;
