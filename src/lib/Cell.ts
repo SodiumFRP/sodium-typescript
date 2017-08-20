@@ -365,4 +365,34 @@ export class Cell<A> {
             return Operational.value(this).listen(h);
         });
     }
+
+    /**
+     * Fantasy-land Algebraic Data Type Compatability.
+     * Cell satisfies the Functor, Apply, Applicative, and Monad Categories.
+     * @see {@link https://github.com/fantasyland/fantasy-land} for more info
+     */
+
+    //of :: Applicative f => a -> f a
+    static 'fantasy-land/of'<A>(a:A):Cell<A> {
+      return new Cell<A>(a);
+    }
+
+    //map :: Functor f => f a ~> (a -> b) -> f b
+    'fantasy-land/map'<B>(f : ((a : A) => B)) : Cell<B> {
+      return this.map(f);
+    }
+
+    //ap :: Apply f => f a ~> f (a -> b) -> f b
+    'fantasy-land/ap'<B>(cf: Cell<(a : A) => B>):Cell<B> {
+        return Cell.apply(cf, this);
+    }
+
+    //TODO: currently breaking
+    //chain :: Chain m => m a ~> (a -> m b) -> m b
+
+
+    'fantasy-land/chain'<B>(f: ((a:A) => Cell<B>)):Cell<B> {
+      return Cell.switchC(this.map(f));
+    }
+
 }
