@@ -3,7 +3,7 @@
 
 /**
   * Fantasy-land Algebraic Data Type Compatability.
-  * Cell satisfies the Functor, Apply, Applicative, and Monad Categories.
+  * Cell satisfies the Monad and Comonad Categories (and hence Functor, Apply, Applicative, and Extend as well)
   * @see {@link https://github.com/fantasyland/fantasy-land} for more info
   * @see {@link https://github.com/sanctuary-js/sanctuary/blob/master/test/Maybe/Maybe.js} for valid test examples (Sanctuary's Maybe)
   */
@@ -12,7 +12,7 @@ const laws = require('fantasy-laws');
 const { create, env } = require('sanctuary');
 import * as jsc from 'jsverify';
 
-import { Cell, StreamSink } from '../src/lib/Sodium';
+import { Cell, StreamSink, Stream } from '../src/lib/Sodium';
 
 const S = create({
   checkTypes: false,
@@ -20,18 +20,28 @@ const S = create({
 });
 
 describe('Fantasy-land Cell', () => {
+  //would be nice if we could push all samples off to listeners... like in Fantasy-land Practical Tests below, but for unit testing it's okay
+
   function CellArb<A>(arb: jsc.Arbitrary<A>) {
     return arb.smap(x => new Cell<A>(x), x => x.sample());
   }
 
-  /*
   function CellEq<T>(a: Cell<T>, b: Cell<T>) {
     return a.sample() === b.sample();
   }
-*/
 
-  function CellEq<T>(a: Cell<T>, b: Cell<T>) {
-    return a.sample() === b.sample();
+  function CellHead(x: string): Cell<string> {
+    const head = S.head(x);
+
+    return new Cell<string>(head.isNothing ? "" : head.value);
+  }
+
+  function CellParseInt(radix: number): ((x: number) => Cell<number>) {
+    return function (x: number) {
+      const m = S.parseInt(radix)(x);
+
+      return new Cell<number>(m.isNothing ? 0 : m.value);
+    };
   }
 
   describe('Functor Laws', () => {
@@ -77,15 +87,13 @@ describe('Fantasy-land Cell', () => {
 
   });
 
-  //TODO - currently breaking
-/*
   describe('Chain Laws', () => {
     const testLaws = laws.Chain(CellEq);
 
     it('Associativity', testLaws.associativity(
       CellArb(jsc.array(jsc.asciistring)),
-      jsc.constant(S.head),
-      jsc.constant(S.parseInt(36))
+      jsc.constant(CellHead),
+      jsc.constant(CellParseInt(36))
     ));
   });
 
@@ -93,7 +101,7 @@ describe('Fantasy-land Cell', () => {
     const testLaws = laws.Monad(CellEq, Cell);
 
     it('Left Identity', testLaws.leftIdentity(
-      jsc.constant(S.head),
+      jsc.constant(CellHead),
       jsc.string
     ));
 
@@ -101,7 +109,65 @@ describe('Fantasy-land Cell', () => {
       CellArb(jsc.number)
     ));
   });
-*/
+
+  describe('Extend Laws', () => {
+    const testLaws = laws.Extend(CellEq);
+    it('Associativity', testLaws.associativity(
+      CellArb(jsc.integer),
+      jsc.constant(function (c: Cell<number>) { return c.sample() + 1; }),
+      jsc.constant(function (c: Cell<number>) { return c.sample() * c.sample(); })
+    ));
+  });
+
+  describe('Comonad Laws', () => {
+    const testLaws = laws.Comonad(CellEq);
+
+    it('Left Identity', testLaws.leftIdentity(
+      CellArb(jsc.number)
+    ));
+
+    it('Right Identity', testLaws.rightIdentity(
+      CellArb(jsc.string),
+      jsc.constant(CellHead)
+    ));
+  });
+});
+
+
+describe('Fantasy-land Stream', () => {
+  /*
+
+  TODO: figure out right way to define arb and equality here
+  If a solution is found that uses listen(), consider porting Cell to that approach as well.
+
+  function StreamArb<A>(arb: jsc.Arbitrary<A>) {
+    return arb.smap(x => {
+      const sink = new StreamSink<A>();
+      sink.listen(() => {});
+      sink.send(x);
+      return sink;
+    }, x => x.hold(undefined).sample());
+  }
+
+  function StreamEq<T>(a: Stream<T>, b: Stream<T>) {
+    console.log(a.hold(undefined).sample());
+    return a.hold(undefined).sample() === b.hold(undefined).sample();
+  }
+
+  describe('Functor Laws', () => {
+    const testLaws = laws.Functor(StreamEq);
+
+    it('Identity', testLaws.identity(
+      StreamArb<number>(jsc.number)
+    ));
+
+    it('Composition', testLaws.composition(
+      StreamArb<number>(jsc.number),
+      jsc.constant(Math.sqrt),
+      jsc.constant(Math.abs)
+    ));
+  });
+  */
 });
 
 
@@ -110,7 +176,7 @@ describe('Fantasy-land Practical Tests', () => {
     const addFunctors = S.lift2(S.add);
 
     const cResult = addFunctors(new Cell<number>(2), new Cell<number>(3));
-    cResult.listen((n:number) => {
+    cResult.listen((n: number) => {
       it("lifting the add() results in 5", (done) => {
         expect(n).toEqual(5);
         done();
@@ -132,7 +198,7 @@ describe('Fantasy-land Practical Tests', () => {
     let idx = 0;
 
 
-    cArrays.listen((sArr:Array<string>) => {
+    cArrays.listen((sArr: Array<string>) => {
       const res = sArr
         .filter(val => val.length)
         .join(" ");
@@ -174,7 +240,7 @@ describe('Fantasy-land Practical Tests', () => {
 
 
       const d = S.join(new Cell<Cell<number>>(a));
-      d.listen((n:number) => {
+      d.listen((n: number) => {
         expect(n).toEqual(3);
         done();
       });
@@ -182,12 +248,39 @@ describe('Fantasy-land Practical Tests', () => {
 
     it("chain test", (done) => {
 
-      const e = S.chain((n:number) => new Cell<number>(n + 2), a);
-      e.listen((n:number) => {
+      const e = S.chain((n: number) => new Cell<number>(n + 2), a);
+      e.listen((n: number) => {
         expect(n).toEqual(5);
         done();
       });
     })
+  });
+
+  describe('Concat', () => {
+    const s1 = new StreamSink<number>();
+    const s2 = new StreamSink<number>();
+    const s3 = S.concat(s1, s2);
+
+    let fired: boolean = false;
+
+    it("concat test " + (fired ? "s1" : "s2"), (done) => {
+      s3.listen((n: number) => {
+        if (!fired) {
+          expect(n).toEqual(5);
+          fired = true;
+        } else {
+          expect(n).toEqual(42);
+        }
+
+        done();
+
+      });
+
+      s1.send(5);
+      s2.send(42);
+    });
+
+
   });
 
 });

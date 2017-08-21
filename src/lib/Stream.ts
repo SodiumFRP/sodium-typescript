@@ -527,6 +527,28 @@ export class Stream<A> {
                 this.vertex.deregister(target);
         };
     }
+
+
+    /**
+     * Fantasy-land Algebraic Data Type Compatability.
+     * Stream satisfies the Functor and Monoid Categories (and hence Semigroup)
+     * @see {@link https://github.com/fantasyland/fantasy-land} for more info
+     */
+
+    //map :: Functor f => f a ~> (a -> b) -> f b
+    'fantasy-land/map'<B>(f : ((a : A) => B)) : Stream<B> {
+      return this.map(f);
+    }
+
+    //concat :: Semigroup a => a ~> a -> a
+    'fantasy-land/concat'(a:Stream<A>) : Stream<A> {
+      return this.orElse(a);
+    }
+
+    //empty :: Monoid m => () -> m
+    'fantasy-land/empty'() : Stream<A> {
+      return new Stream<A>();
+    }
 }
 
 export class StreamWithSend<A> extends Stream<A> {
