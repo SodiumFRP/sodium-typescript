@@ -174,6 +174,14 @@ export declare class Stream<A> {
     once(): Stream<A>;
     listen(h: (a: A) => void): () => void;
     listen_(target: Vertex, h: (a: A) => void, suppressEarlierFirings: boolean): () => void;
+    /**
+     * Fantasy-land Algebraic Data Type Compatability.
+     * Stream satisfies the Functor and Monoid Categories (and hence Semigroup)
+     * @see {@link https://github.com/fantasyland/fantasy-land} for more info
+     */
+    'fantasy-land/map'<B>(f: ((a: A) => B)): Stream<B>;
+    'fantasy-land/concat'(a: Stream<A>): Stream<A>;
+    'fantasy-land/empty'(): Stream<A>;
 }
 export declare class StreamWithSend<A> extends Stream<A> {
     constructor(vertex?: Vertex);

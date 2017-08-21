@@ -1137,6 +1137,23 @@ var Stream = (function () {
                 _this.vertex.deregister(target);
         };
     };
+    /**
+     * Fantasy-land Algebraic Data Type Compatability.
+     * Stream satisfies the Functor and Monoid Categories (and hence Semigroup)
+     * @see {@link https://github.com/fantasyland/fantasy-land} for more info
+     */
+    //map :: Functor f => f a ~> (a -> b) -> f b
+    Stream.prototype['fantasy-land/map'] = function (f) {
+        return this.map(f);
+    };
+    //concat :: Semigroup a => a ~> a -> a
+    Stream.prototype['fantasy-land/concat'] = function (a) {
+        return this.orElse(a);
+    };
+    //empty :: Monoid m => () -> m
+    Stream.prototype['fantasy-land/empty'] = function () {
+        return new Stream();
+    };
     return Stream;
 }());
 exports.Stream = Stream;
@@ -2019,7 +2036,7 @@ var Cell = (function () {
     };
     /**
      * Fantasy-land Algebraic Data Type Compatability.
-     * Cell satisfies the Functor, Apply, Applicative, and Monad Categories.
+     * Cell satisfies the Monad and Comonad Categories (and hence Functor, Apply, Applicative, and Extend as well)
      * @see {@link https://github.com/fantasyland/fantasy-land} for more info
      */
     //of :: Applicative f => a -> f a
@@ -2034,10 +2051,17 @@ var Cell = (function () {
     Cell.prototype['fantasy-land/ap'] = function (cf) {
         return Cell.apply(cf, this);
     };
-    //TODO: currently breaking
     //chain :: Chain m => m a ~> (a -> m b) -> m b
     Cell.prototype['fantasy-land/chain'] = function (f) {
         return Cell.switchC(this.map(f));
+    };
+    //extend :: Extend w => w a ~> (w a -> b) -> w b
+    Cell.prototype['fantasy-land/extend'] = function (f) {
+        return new Cell(f(this));
+    };
+    //extract :: Comonad w => w a ~> () -> a
+    Cell.prototype['fantasy-land/extract'] = function () {
+        return this.sample();
     };
     return Cell;
 }());

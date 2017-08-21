@@ -107,11 +107,13 @@ export declare class Cell<A> {
     listen(h: (a: A) => void): () => void;
     /**
      * Fantasy-land Algebraic Data Type Compatability.
-     * Cell satisfies the Functor, Apply, Applicative, and Monad Categories.
+     * Cell satisfies the Monad and Comonad Categories (and hence Functor, Apply, Applicative, and Extend as well)
      * @see {@link https://github.com/fantasyland/fantasy-land} for more info
      */
     static 'fantasy-land/of'<A>(a: A): Cell<A>;
     'fantasy-land/map'<B>(f: ((a: A) => B)): Cell<B>;
     'fantasy-land/ap'<B>(cf: Cell<(a: A) => B>): Cell<B>;
     'fantasy-land/chain'<B>(f: ((a: A) => Cell<B>)): Cell<B>;
+    'fantasy-land/extend'<B>(f: ((a: Cell<A>) => B)): Cell<B>;
+    'fantasy-land/extract'(): A;
 }
