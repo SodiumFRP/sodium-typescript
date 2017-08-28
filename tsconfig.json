@@ -5,15 +5,14 @@
 		"noImplicitAny": true,
 		"removeComments": false,
 		"preserveConstEnums": true,
-		"outDir": "dist",
+		"outDir": "dist/tsc",
+		"declarationDir": "dist/tsc/typings",
 		"sourceMap": true,
 		"declaration": true,
 		"moduleResolution": "node",
 		"diagnostics": true
 	},
 	"files": [
-		"./src/lib/Sodium.ts",
-		"./src/test/suite.ts",
-		"./src/test/test-timers.ts"
+		"./src/lib/Sodium.ts"
 	]
 }

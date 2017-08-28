@@ -3,6 +3,9 @@ logs
 *.log
 npm-debug.log*
 
+# Fusebox cache
+.fusebox
+
 # Runtime data
 pids
 *.pid
