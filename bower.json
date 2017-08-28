@@ -1,7 +1,7 @@
 {
   "name": "sodiumjs",
   "description": "A Functional Reactive Programming (FRP) library for TypeScript/JavaScript",
-  "main": "./dist/lib/Sodium.js",
+  "main": "./dist/sodium.js",
   "authors": [
     "Stephen Blackheath",
     "Richard Sentino"
@@ -31,5 +31,5 @@
   "dependencies": {
     "typescript-collections": "rixrix/typescript-collections#master"
   },
-  "version": "1.0.0"
+  "version": "1.0.5"
 }

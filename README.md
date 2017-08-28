@@ -47,28 +47,80 @@ const c = new Cell<number>(12);
 ```
 
 ### In a browser
-Use the [UMD(Universal Module Definition)](https://github.com/umdjs/umd) format `sodium.umd.js` from `dist/lib` directory
+
+The built files in `dist` use a universal format and can be loaded directly in the browser as-is.
+
+You can either load `sodium.js` (debugging with source maps) or `sodium.min.js` (optimized for production). 
 
 ```html
-<script src="dist/lib/sodium.umd.js"></script>
+<script src="dist/sodium.min.js"></script>
 <script>
     var cell = new Sodium.Cell(12);
     ...
 </script>
 ```
 
-## Build
+## Development
 
-Build commonjs libraries and UMD library for direct browser usage
+Sodium library code is in [src/lib](src/lib). Packaging and bundling is all done with [FuseBox](http://fuse-box.org/)
+
+The following list provides various development scenarios in more detail. In short, the recommended flow is:
+
+1. `Dev` - quick iteration while seeing live changes in the browser. Once that's confirmed to work...
+2. `Test` - unit tests to confirm that nothing else was broken in the process
+3. `Build` - create the final build for distribution
+4. `External` - integration test to confirm that the library loads externally, via the distribution build
+5. Commit to repo / deploy to npm.
+
+### Dev
 
 ```bash
-$> npm run prerelease
+$> npm run dev
 ```
+
+Iterative developing in a browser environment. Changes to the source in either the Sodium library itself or the browser app code will be recompiled on save.
+
+Note that it currently caches the html markup - dom changes should really be code-driven or be very minimal/static.
+
+Project is in `src/dev` folder, code entry point is `src/dev/DevInit.ts`
+
+
+### Test - unit
+
+```bash
+$> npm run test:unit
+```
+
+Runs unit tests against all *.test.ts files in src/tests directory
+
+### Build
+
+```bash
+$> npm run build
+```
+
+Creates the distribution library (both minified and not), as well as the Typescript definition files. 
+
+Deployments must have run this first so that the `dist` folder is up to date
+
+### Test - external
+
+```bash
+$> npm run test:external
+```
+
+ Verifies the scenario of loading sodium in the browser as an external library. This does not watch for changes to sodium itself - it's only for integration testing against the final build. Therefore, you _must_ `build` before running this.
+
+Project is in `src/tests/external-browser` folder.
+
 ## Examples
 
-There are examples both in ```examples/basic``` and ```examples/book``` folders, the latter being a git submodule (this will change in future). Use a standard ```git clone --recursive https://github.com/SodiumFRP/sodium-typescript``` command in order to fetch these.
+There are examples both in the ```examples/book``` folder, (which is a git submodule, although this will change in future). Use a standard ```git clone --recursive https://github.com/SodiumFRP/sodium-typescript``` command in order to fetch them.
 
-Here's an example you can try in your browser: [Reactive Drawing Pad](https://github.com/graforlock/reactive-drawing-pad/tree/master)
+Here are some demos from the community you can try in your browser: 
+
+* [Reactive Drawing Pad](https://github.com/graforlock/reactive-drawing-pad/tree/master)
+* [Misc Playground (drum machine, animation, etc.)](https://github.com/dakom/sodium-typescript-playground)
 
 ## License
 
@@ -99,5 +151,8 @@ Time will tell.
 
 CHANGELOG
 
+1.0.5    Migrate build environment over to fuse-box. 
+         Begin adding fantasy-land compatibility
+         
 1.0.0    Add snapshot3(), snapshot4(), snapshot5() and snapshot6().
          Fix a serious bug in TimerSystem where timers sometimes don't fire.

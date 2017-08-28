@@ -1,13 +1,14 @@
 language: node_js
 node_js:
-- '6'
-- '5'
-- '4'
+- stable
+
 install:
-- npm install
+  - npm install
 script:
-- npm run prerelease
-- npm run test
+  - npm run test:unit
+after_success:
+  - npm run build
+
 deploy:
   provider: npm
   email:
@@ -17,5 +18,4 @@ deploy:
   skip_cleanup: true
   tag: latest
   on:
-    node: '6'
     tags: true

@@ -1,6 +1,6 @@
 {
   "name": "sodiumjs",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A Functional Reactive Programming (FRP) library for JavaScript",
   "author": "Stephen Blackheath",
   "license": "BSD-3-Clause",
@@ -19,40 +19,32 @@
     "typescript",
     "sodium"
   ],
-  "main": "./dist/lib/Sodium.js",
-  "typings": "./dist/lib/Sodium.d.ts",
+  "main": "./dist/sodium.js",
+  "typings": "./dist/typings/Sodium.d.ts",
   "scripts": {
     "clean": "rimraf ./dist",
-    "build:umd": "cross-env NODE_ENV=dev webpack --progress --colors && cross-env NODE_ENV=production webpack -p --progress --colors && rimraf ./dist/lib/src",
-    "build:ts": "tsc",
-    "build": "npm run clean && npm run build:umd && npm run build:ts",
-    "prerelease": "npm run build",
-    "test": "karma start",
-    "preversion": "npm test",
-    "postversion": "git push && git push --tags"
-  },
-  "dependencies": {
-    "typescript-collections": "github:rixrix/typescript-collections"
+    "dev": "cross-env BUILD_TYPE=dev node fuse.js",
+    "test:unit": "cross-env BUILD_TYPE=test-unit node fuse.js",
+    "test:external": "live-server --mount=/dist:./dist ./src/tests/external-browser",
+    "build": "npm run clean && npm run _build:plain && npm run _build:prod && npm run _build:tsc",
+    "_build:plain": "cross-env BUILD_TYPE=build:plain node fuse.js",
+    "_build:prod": "cross-env BUILD_TYPE=build:prod node fuse.js",
+    "_build:tsc": "tsc && mv ./dist/tsc/typings ./dist && rimraf ./dist/tsc"
   },
   "devDependencies": {
-    "@types/jasmine": "^2.5.53",
-    "@types/node": "^8.0.22",
-    "@types/source-map": "^0.5.1",
-    "@types/webpack": "^3.0.9",
-    "awesome-typescript-loader": "^3.2.3",
+    "@types/chai": "^4.0.4",
+    "@types/node": "^8.0.28",
+    "chai": "^4.1.2",
     "cross-env": "^5.0.5",
     "fantasy-laws": "git://github.com/fantasyland/fantasy-laws.git#davidchambers/everything",
-    "jasmine-core": "^2.7.0",
-    "jsverify": "^0.8.2",
-    "karma": "^1.7.0",
-    "karma-fail-fast-reporter": "^1.0.5",
-    "karma-jasmine": "^1.1.0",
-    "karma-phantomjs-launcher": "^1.0.4",
-    "karma-spec-reporter": "0.0.31",
-    "karma-webpack": "^2.0.4",
-    "rimraf": "^2.6.1",
+    "fuse-box": "^2.2.31",
+    "fuse-test-runner": "^1.0.14",
+    "jsverify": "^0.8.3",
+    "live-server": "1.2.0",
+    "rimraf": "^2.6.2",
+    "typescript-collections": "github:rixrix/typescript-collections",
     "sanctuary": "^0.13.2",
-    "typescript": "^2.4.2",
-    "webpack": "^3.5.5"
+    "typescript": "^2.5.2",
+    "uglify-js": "^3.1.0"
   }
 }
