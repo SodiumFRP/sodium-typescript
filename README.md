@@ -30,6 +30,11 @@ $> yarn global add sodiumjs
 $> bower install sodiumjs
 ```
 
+### via [jsDelivr CDN](https://www.jsdelivr.com/package/npm/sodiumjs)
+```
+<script src="https://cdn.jsdelivr.net/npm/sodiumjs@1/dist/sodium.min.js"></script>
+```
+
 ## How to use
 
 ### ES6
