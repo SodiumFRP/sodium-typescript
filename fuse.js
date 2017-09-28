@@ -22,7 +22,7 @@ const BUILD = {
     PLAIN: "build:plain",
     PRODUCTION: "build:prod",
     TEST: "test-unit",
-    
+
 }
 
 const buildType = process.env.BUILD_TYPE;
@@ -41,19 +41,21 @@ const fuse = FuseBox.init({
     homeDir: "src",
     output: (buildType !== BUILD.PRODUCTION) ? `dist/$name.js` : `dist/$name.min.js`,
     target: "browser",
-    
+
     package: (buildType === BUILD.TEST) ? undefined : "sodiumjs",
-    
+
     globals: (buildType === BUILD.TEST) ? undefined : { "sodiumjs": "Sodium" },
-    
+
     sourceMaps: (buildType === BUILD.PRODUCTION) ? undefined : sourceMapStyle,
     plugins: [
         buildType === BUILD.PRODUCTION
         && QuantumPlugin({
-            bakeApiIntoBundle: bundleName,
-            treeshake: true,
-            uglify: true,
-            target: "browser"
+          removeUseStrict: false,
+          containedAPI: true,
+          bakeApiIntoBundle: bundleName,
+          treeshake: true,
+          uglify: true,
+          target: "npm"
         }),
 
         buildType === BUILD.DEV

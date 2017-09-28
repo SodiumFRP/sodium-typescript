@@ -19,7 +19,7 @@
     "typescript",
     "sodium"
   ],
-  "main": "./dist/sodium.js",
+  "main": "./dist/sodium.min.js",
   "typings": "./dist/typings/Sodium.d.ts",
   "scripts": {
     "clean": "rimraf ./dist",
