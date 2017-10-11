@@ -23,7 +23,7 @@ body {
   font-family: "Courier New", Courier, monospace
 }
 
-.desc {
+#desc {
   margin-top: 1em;
   font-size: 2em;
 }

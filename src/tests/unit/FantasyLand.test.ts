@@ -9,15 +9,11 @@ import { expect } from 'chai';
   */
 
 const laws = require('fantasy-laws');
+
 const { create, env } = require('sanctuary');
 import * as jsc from 'jsverify';
-
+import {S} from "../../test-utils/Sanctuary";
 import { Cell, StreamSink, Stream } from '../../lib/Sodium';
-
-const S = create({
-  checkTypes: false,
-  env,
-});
 
 
 

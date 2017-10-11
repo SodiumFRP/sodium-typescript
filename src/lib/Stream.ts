@@ -14,6 +14,7 @@ import { Listener } from "./Listener";
 import { Tuple2 } from "./Tuple2";
 import { Lazy } from "./Lazy";
 import { LazyCell } from "./LazyCell";
+import {Z} from "./FantasyLand";
 
 export class Stream<A> {
     constructor(vertex? : Vertex) {
@@ -542,7 +543,9 @@ export class Stream<A> {
 
     //concat :: Semigroup a => a ~> a -> a
     'fantasy-land/concat'(a:Stream<A>) : Stream<A> {
-      return this.orElse(a);
+      return this.merge(a, (left:any, right) => {
+        return (Z.Semigroup.test(left)) ? Z.concat(left, right) : left;
+      });
     }
 
     //empty :: Monoid m => () -> m

@@ -1,6 +1,6 @@
 {
   "name": "sodiumjs",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "description": "A Functional Reactive Programming (FRP) library for JavaScript",
   "author": "Stephen Blackheath",
   "license": "BSD-3-Clause",
@@ -33,18 +33,19 @@
   },
   "devDependencies": {
     "@types/chai": "^4.0.4",
-    "@types/node": "^8.0.28",
+    "@types/node": "^8.0.34",
     "chai": "^4.1.2",
     "cross-env": "^5.0.5",
     "fantasy-laws": "git://github.com/fantasyland/fantasy-laws.git#davidchambers/everything",
-    "fuse-box": "^2.2.31",
+    "fuse-box": "^2.3.3",
     "fuse-test-runner": "^1.0.14",
     "jsverify": "^0.8.3",
     "live-server": "1.2.0",
     "rimraf": "^2.6.2",
-    "typescript-collections": "github:rixrix/typescript-collections",
     "sanctuary": "^0.13.2",
-    "typescript": "^2.5.2",
-    "uglify-js": "^3.1.0"
+    "sanctuary-type-classes": "^7.0.0",
+    "typescript": "^2.5.3",
+    "typescript-collections": "github:rixrix/typescript-collections",
+    "uglify-js": "^3.1.3"
   }
 }
