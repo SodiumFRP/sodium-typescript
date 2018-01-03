@@ -1,5 +1,5 @@
 import { Vertex, Source } from "./Vertex";
-import { BSTree } from 'typescript-collections';
+import * as Collections from 'typescript-collections';
 import { Stream, StreamWithSend } from "./Stream";
 import { StreamSink } from "./StreamSink";
 import { Cell } from "./Cell";
@@ -78,7 +78,7 @@ export class TimerSystem {
      */
     time : Cell<number>;
 
-    private eventQueue : BSTree<Event> = new BSTree<Event>((a, b) => {
+    private eventQueue : Collections.BSTree<Event> = new Collections.BSTree<Event>((a, b) => {
         if (a.t < b.t) return -1;
         if (a.t > b.t) return 1;
         if (a.seq < b.seq) return -1;

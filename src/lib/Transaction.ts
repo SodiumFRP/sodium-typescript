@@ -1,5 +1,5 @@
 import {Vertex} from './Vertex';
-import {Set, PriorityQueue} from 'typescript-collections';
+import * as Collections from 'typescript-collections';
 
 export class Entry
 {
@@ -37,7 +37,7 @@ export class Transaction
     this.toRegen = true;
   }
 
-  prioritizedQ: PriorityQueue<Entry> = new PriorityQueue<Entry>((a, b) =>
+  prioritizedQ: Collections.PriorityQueue<Entry> = new Collections.PriorityQueue<Entry>((a, b) =>
   {
     // Note: Low priority numbers are treated as "greater" according to this
     // comparison, so that the lowest numbers are highest priority and go first.
@@ -47,7 +47,7 @@ export class Transaction
     if (a.seq > b.seq) return -1;
     return 0;
   });
-  private entries: Set<Entry> = new Set<Entry>((a) => a.toString());
+  private entries: Collections.Set<Entry> = new Collections.Set<Entry>((a) => a.toString());
   private lastQ: Array<() => void> = [];
   private postQ: Array<() => void> = null;
 

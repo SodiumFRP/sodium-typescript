@@ -3,8 +3,9 @@ logs
 *.log
 npm-debug.log*
 
-# Fusebox cache
-.fusebox
+# Rollup cache
+.rpt2_cache
+
 
 # Runtime data
 pids

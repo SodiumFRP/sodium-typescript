@@ -1,12 +1,10 @@
 {
 	"compilerOptions": {
 		"target": "es5",
-		"module": "commonjs",
-		"noImplicitAny": true,
+    "module": "commonjs",
+		"noImplicitAny": false, //would be nice to enable this...
 		"removeComments": false,
 		"preserveConstEnums": true,
-		"outDir": "dist/tsc",
-		"declarationDir": "dist/tsc/typings",
 		"sourceMap": true,
 		"declaration": true,
 		"moduleResolution": "node",
