@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 
 import {
   CellLoop,
@@ -11,15 +10,13 @@ import {
   getTotalRegistrations
 } from '../../lib/Sodium';
 
-export class CellLoopTest {
+afterEach(() => {
+  if (getTotalRegistrations() != 0) {
+    throw new Error('listeners were not deregistered');
+  }
+});
 
-  afterEach() {
-    if (getTotalRegistrations() != 0) {
-      throw new Error('listeners were not deregistered');
-    }
-  };
-
-  'should test loopValueSnapshot'(done) {
+test('should test loopValueSnapshot', (done) => {
     const out: string[] = [];
     const kill = Transaction.run(() => {
       const a = new Cell("lettuce");
@@ -34,10 +31,10 @@ export class CellLoopTest {
 
     kill();
 
-    expect(["lettuce cheese"]).to.deep.equal(out);
-  };
+    expect(["lettuce cheese"]).toEqual(out);
+});
 
-  'should test loopValueHold'(done) {
+test('should test loopValueHold', (done) => {
     const out: string[] = [];
     const value = Transaction.run(() => {
       const a = new CellLoop<string>();
@@ -54,10 +51,10 @@ export class CellLoopTest {
     sTick.send(Unit.UNIT);
     kill();
 
-    expect(["cheese"]).to.deep.equal(out);
-  };
+    expect(["cheese"]).toEqual(out);
+  });
 
-  'should test liftLoop'(done) {
+  test('should test liftLoop', (done) => {
     const out: string[] = [];
     const b = new CellSink("kettle");
     const c = Transaction.run(() => {
@@ -65,8 +62,8 @@ export class CellLoopTest {
       const c_ = a.lift(b, (aa, bb) => aa + " " + bb);
       a.loop(new Cell("tea"));
       return c_;
-    }),
-      kill = c.listen(x => {
+    });
+    const kill = c.listen(x => {
         out.push(x);
         if (out.length === 2) {
           done();
@@ -76,6 +73,5 @@ export class CellLoopTest {
     b.send("caddy");
     kill();
 
-    expect(["tea kettle", "tea caddy"]).to.deep.equal(out);
-  };
-}
+    expect(["tea kettle", "tea caddy"]).toEqual(out);
+  });

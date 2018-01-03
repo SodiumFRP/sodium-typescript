@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 
 import {
   IOAction,
@@ -6,16 +5,13 @@ import {
   getTotalRegistrations
 } from '../../lib/Sodium';
 
-export class IOActionTest {
-  afterEach() {
-    if (getTotalRegistrations() != 0) {
-      throw new Error('listeners were not deregistered');
-    }
-  };
+afterEach(() => {
+  if (getTotalRegistrations() != 0) {
+    throw new Error('listeners were not deregistered');
+  }
+});
 
-
-
-  'IOAction'(done) {
+  test('IOAction', (done) => {
     const name = "fromAsync",
       action = IOAction.fromAsync((a: number, result: (b: number) => void) => {
         setTimeout(() => {
@@ -41,14 +37,12 @@ export class IOActionTest {
           out2 = out.map((num) => num);
           kill();
 
-          expect([]).to.deep.equal(out0);
-          expect([6]).to.deep.equal(out1);
-          expect([6, 10]).to.deep.equal(out2);
+          expect([]).toEqual(out0);
+          expect([6]).toEqual(out1);
+          expect([6, 10]).toEqual(out2);
           done();
         }, 100);
       }, 100)
 
 
-  }
-
-}
+  });

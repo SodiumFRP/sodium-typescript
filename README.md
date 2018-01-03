@@ -30,93 +30,46 @@ $> yarn global add sodiumjs
 $> bower install sodiumjs
 ```
 
-### via [jsDelivr CDN](https://www.jsdelivr.com/package/npm/sodiumjs)
+### via html include 
 ```
-<script src="https://cdn.jsdelivr.net/npm/sodiumjs@1/dist/sodium.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sodiumjs/dist/sodium.umd.min.js"></script>
 ```
+
+_this requires also including [sanctuary-type-classes](https://github.com/sanctuary-js/sanctuary-type-classes) and [typescript-collections](https://github.com/basarat/typescript-collections) dependencies_
 
 ## How to use
 
-### ES6
+### Import
 ```javascript
 import { Cell } from 'sodiumjs';
-...
+```
+### ES6
+
+```javascript
 const c = new Cell(12);
 ```
 
 ### TypeScript
 ```javascript
-import { Cell } from 'sodiumjs';
-...
 const c = new Cell<number>(12);
 ```
 
 ### In a browser
 
-The built files in `dist` use a universal format and can be loaded directly in the browser as-is.
-
-You can either load `sodium.js` (debugging with source maps) or `sodium.min.js` (optimized for production). 
-
 ```html
-<script src="dist/sodium.min.js"></script>
 <script>
     var cell = new Sodium.Cell(12);
-    ...
 </script>
 ```
 
 ## Development
 
-Sodium library code is in [src/lib](src/lib). Packaging and bundling is all done with [FuseBox](http://fuse-box.org/)
+Sodium library code is in [src/lib](src/lib)
 
-The following list provides various development scenarios in more detail. In short, the recommended flow is:
+Packaging and bundling is all done with [Rollup](https://rollupjs.org/)
 
-1. `Dev` - quick iteration while seeing live changes in the browser. Once that's confirmed to work...
-2. `Test` - unit tests to confirm that nothing else was broken in the process
-3. `Build` - create the final build for distribution
-4. `External` - integration test to confirm that the library loads externally, via the distribution build
-5. Commit to repo / deploy to npm.
+Testing is via [Jest](https://facebook.github.io/jest/)
 
-### Dev
-
-```bash
-$> npm run dev
-```
-
-Iterative developing in a browser environment. Changes to the source in either the Sodium library itself or the browser app code will be recompiled on save.
-
-Note that it currently caches the html markup - dom changes should really be code-driven or be very minimal/static.
-
-Project is in `src/dev` folder, code entry point is `src/dev/DevInit.ts`
-
-
-### Test - unit
-
-```bash
-$> npm run test:unit
-```
-
-Runs unit tests against all *.test.ts files in src/tests directory
-
-### Build
-
-```bash
-$> npm run build
-```
-
-Creates the distribution library (both minified and not), as well as the Typescript definition files. 
-
-Deployments must have run this first so that the `dist` folder is up to date
-
-### Test - external
-
-```bash
-$> npm run test:external
-```
-
- Verifies the scenario of loading sodium in the browser as an external library. This does not watch for changes to sodium itself - it's only for integration testing against the final build. Therefore, you _must_ `build` before running this.
-
-Project is in `src/tests/external-browser` folder.
 
 ## Examples
 

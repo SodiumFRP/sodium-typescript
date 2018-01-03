@@ -1,5 +1,5 @@
 import { Vertex } from './Vertex';
-import { PriorityQueue } from 'typescript-collections';
+import * as Collections from 'typescript-collections';
 export declare class Entry {
     constructor(rank: Vertex, action: () => void);
     private static nextSeq;
@@ -16,7 +16,7 @@ export declare class Transaction {
     inCallback: number;
     private toRegen;
     requestRegen(): void;
-    prioritizedQ: PriorityQueue<Entry>;
+    prioritizedQ: Collections.PriorityQueue<Entry>;
     private entries;
     private lastQ;
     private postQ;

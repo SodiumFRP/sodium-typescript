@@ -14,7 +14,7 @@ import { Listener } from "./Listener";
 import { Tuple2 } from "./Tuple2";
 import { Lazy } from "./Lazy";
 import { LazyCell } from "./LazyCell";
-import {Z} from "./FantasyLand";
+import * as Z from "sanctuary-type-classes";
 
 export class Stream<A> {
     constructor(vertex? : Vertex) {
