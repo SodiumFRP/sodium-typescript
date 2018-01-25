@@ -64,12 +64,22 @@ const c = new Cell<number>(12);
 
 ## Development
 
+The usual `npm run build/test/clean` commands are available to produce the distribution package.
+
+However, a more comfortable iteration style may be using the the live integration testing approach:
+
+1. cd `integration`
+2. `npm run dev:auto-reload` (or just `npm run dev` without live reloading)
+
+This starts up a local development server and showcases integration with a [webpack](https://webpack.github.io/) app. 
+
+Changes to the core lib are then seen live since it uses a local alias rather than reference the lastest build or distribution of the library
+
 Sodium library code is in [src/lib](src/lib)
 
-Packaging and bundling is all done with [Rollup](https://rollupjs.org/)
+Packaging/tree-shaking and bundling of the library is done with [Rollup](https://rollupjs.org/)
 
 Testing is via [Jest](https://facebook.github.io/jest/)
-
 
 ## Examples
 
@@ -77,6 +87,7 @@ There are examples both in the ```examples/book``` folder, (which is a git submo
 
 Here are some demos from the community you can try in your browser: 
 
+* [Petrol Pump](https://huanhulan.github.io/petrol_pump/)
 * [Reactive Drawing Pad](https://github.com/graforlock/reactive-drawing-pad/tree/master)
 * [Misc Playground (drum machine, animation, etc.)](https://github.com/dakom/sodium-typescript-playground)
 

@@ -6,7 +6,7 @@ import replace from 'rollup-plugin-replace';
 
 export default [
 	{
-        input: './src/lib/Sodium.ts',
+        input: './src/lib/Lib.ts',
         external: [ 'typescript-collections', 'sanctuary-type-classes' ],
         output: [
           { file: pkg.module, format: 'es', sourcemap: true },
@@ -17,7 +17,9 @@ export default [
                 'process.env.NODE_ENV': JSON.stringify( process.env['NODE_ENV'] )
             }),
 
-            typescript(),
+            typescript({
+                useTsconfigDeclarationDir: true
+            }),
 
             //uglify({}, minify)
         ]

@@ -1,0 +1,65 @@
+{
+  "name": "sodium-typescript-example",
+  "version": "0.0.1-alpha",
+  "description": "Sodium Typescript Example",
+  "scripts": {
+    "clean": "rimraf ./dist",
+    "dev": "cross-env NODE_ENV=dev webpack-dev-server --progress --open --config webpack.dev.js",
+    "dev:auto-reload": "cross-env NODE_ENV=dev-auto-reload webpack-dev-server --progress --open --config webpack.dev.js",
+    "build": "cross-env NODE_ENV=production webpack --progress --config webpack.prod.js && cp -R ./src/webpage/static ./dist/",
+    "dist:server": "http-server ./dist -o"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json"
+    ]
+  },
+  "author": "Stephen Blackheath",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "@types/draft-js": "0.10.19",
+    "@types/gl-matrix": "^2.4.0",
+    "@types/jest": "22.0.0",
+    "@types/node": "8.5.5",
+    "@types/react": "16.0.34",
+    "@types/react-dom": "16.0.3",
+    "awesome-typescript-loader": "3.4.1",
+    "chokidar": "2.0.0",
+    "clean-webpack-plugin": "0.1.17",
+    "cors": "^2.8.4",
+    "cross-env": "5.1.3",
+    "css-loader": "0.28.7",
+    "express": "^4.16.2",
+    "glob": "7.1.2",
+    "html-loader": "0.5.1",
+    "html-webpack-plugin": "2.30.1",
+    "install": "^0.10.2",
+    "jest": "22.0.4",
+    "npm": "^5.6.0",
+    "npm-run-all": "4.1.2",
+    "null-loader": "0.1.1",
+    "raw-loader": "0.5.1",
+    "rimraf": "2.6.2",
+    "serve-index": "^1.9.1",
+    "shelljs": "0.7.8",
+    "source-map-loader": "0.2.3",
+    "style-loader": "0.19.1",
+    "ts-jest": "22.0.0",
+    "ts-node": "4.1.0",
+    "tsconfig-paths": "2.7.3",
+    "typescript": "2.6.2",
+    "uglify-js": "3.3.4",
+    "uglifyjs-webpack-plugin": "1.1.5",
+    "webpack": "3.10.0",
+    "webpack-dev-server": "2.9.7",
+    "webpack-merge": "4.1.1"
+  }
+}

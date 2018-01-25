@@ -5,7 +5,7 @@ import { minify } from 'uglify-es';
 
 export default [
 	{
-        input: './src/lib/Sodium.ts',
+        input: './src/lib/Lib.ts',
         external: [ 'typescript-collections', 'sanctuary-type-classes' ],
         output: [
           { file: "dist/sodium.umd.min.js", name: "Sodium", format: 'umd', sourcemap: true,
@@ -20,7 +20,9 @@ export default [
                 'process.env.NODE_ENV': JSON.stringify( process.env['NODE_ENV'] )
             }),
 
-            typescript(),
+            typescript({
+              useTsconfigDeclarationDir: true
+            }),
 
             uglify({}, minify)
         ]

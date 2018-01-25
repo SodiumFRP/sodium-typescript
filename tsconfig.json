@@ -7,10 +7,23 @@
 		"preserveConstEnums": true,
 		"sourceMap": true,
 		"declaration": true,
+		"declarationDir": "dist/typings",
 		"moduleResolution": "node",
-		"diagnostics": true
+		"diagnostics": true,
+		"lib": [
+			"es6",
+			"es5",
+			"dom"
+    ]
+		
 	},
 	"files": [
-		"./src/lib/Sodium.ts"
-	]
+		"./src/lib/Lib.ts"
+  ],
+  "exclude": [
+		"node_modules",
+		"dist",
+		"build",
+		"coverage"
+  ]
 }

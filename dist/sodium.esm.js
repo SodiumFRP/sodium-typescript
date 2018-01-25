@@ -1,4 +1,4 @@
-import { BSTree, PriorityQueue, Set } from 'typescript-collections';
+import { PriorityQueue, Set, BSTree } from 'typescript-collections';
 import { Semigroup, concat } from 'sanctuary-type-classes';
 
 var totalRegistrations = 0;
