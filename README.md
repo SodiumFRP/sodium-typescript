@@ -9,10 +9,9 @@ A Functional Reactive Programming (FRP) library for TypeScript/JavaScript
 
 ## Examples
 
-There are examples both in the ```examples/book``` folder, (which is a git submodule, although this will change in future). Use a standard ```git clone --recursive https://github.com/SodiumFRP/sodium-typescript``` command in order to fetch them.
-
 Here are some demos from the community you can try in your browser: 
 
+* [Book Examples](https://github.com/graforlock/sodium-typescript-examples)
 * [Petrol Pump](https://huanhulan.github.io/petrol_pump/)
 * [Reactive Drawing Pad](https://github.com/graforlock/reactive-drawing-pad/tree/master)
 * [Misc Playground (drum machine, animation, etc.)](https://github.com/dakom/sodium-typescript-playground)

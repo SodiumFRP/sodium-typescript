@@ -1,3 +1,0 @@
-[submodule "examples/book"]
-	path = examples/book
-	url = https://github.com/graforlock/sodium-typescript-examples
