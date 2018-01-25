@@ -51,16 +51,17 @@ test('lift + nested data/map', (done) => {
         cValue: Cell<number>;
     }
     const out = new Array<number>();
-    const cValue = new Cell(1);
-    const cOriginal = new Cell<Data>({cValue: cValue});
+    const cOriginal = new Cell<Data>({cValue: new Cell(1)});
     const sOffset = new StreamSink<number>();
     const cOffset = sOffset.hold(0);
     
     const cTotal = cOriginal.lift(cOffset, (data, offset) => {
-        return data.cValue.map(value => value + offset)
+        return {
+            cValue: data.cValue.map(value => value + offset)
+        }
     })
     
-    const cFinal = Cell.switchC(cTotal);
+    const cFinal = Cell.switchC(cTotal.map(data => data.cValue));
     
     const kill = cFinal.listen(value => {
         out.push(value);
@@ -75,5 +76,4 @@ test('lift + nested data/map', (done) => {
     kill();
 
     expect(out).toEqual([1, 3, 5]);
-
 });
