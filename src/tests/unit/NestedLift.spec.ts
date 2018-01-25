@@ -44,37 +44,3 @@ import {
 
     expect(out).toEqual([1, 3, 5]);
   });
-  
-  /*
-  test('nested lift+map in data', (done) => {
-    interface Data {
-        cValue: Cell<number>;
-    }
-    const out = new Array<number>();
-    const cOriginal = new Cell<Data>({cValue: new Cell(1)});
-    const sOffset = new StreamSink<number>();
-    const cOffset = sOffset.hold(0);
-
-    const cTotal = cOriginal.map((data:Data) => {
-        return {
-            cValue: data.cValue.lift(cOffset, (value, offset) => value + offset)
-        }
-    })
-
-    const cFinal = Cell.switchC(cTotal.map(data => data.cValue));
-
-    const kill = cFinal.listen(value => {
-        out.push(value);
-
-        if(out.length === 2) {
-            done();
-        }
-    });
-
-    sOffset.send(2);
-    sOffset.send(4);
-    kill();
-
-    expect(out).toEqual([1, 3, 5]);
-  });
-  */
