@@ -18,7 +18,7 @@ afterEach(() => {
     }
 });
 
-test('nested map+lift', (done) => {
+test('map + nested lift', (done) => {
     const out = new Array<number>();
     const ccOriginal = new Cell<Cell<number>>(new Cell(1));
     const sOffset = new StreamSink<number>();
@@ -77,3 +77,4 @@ test('lift + nested data/map', (done) => {
 
     expect(out).toEqual([1, 3, 5]);
 });
+
