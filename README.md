@@ -7,6 +7,16 @@
 
 A Functional Reactive Programming (FRP) library for TypeScript/JavaScript
 
+## Examples
+
+There are examples both in the ```examples/book``` folder, (which is a git submodule, although this will change in future). Use a standard ```git clone --recursive https://github.com/SodiumFRP/sodium-typescript``` command in order to fetch them.
+
+Here are some demos from the community you can try in your browser: 
+
+* [Petrol Pump](https://huanhulan.github.io/petrol_pump/)
+* [Reactive Drawing Pad](https://github.com/graforlock/reactive-drawing-pad/tree/master)
+* [Misc Playground (drum machine, animation, etc.)](https://github.com/dakom/sodium-typescript-playground)
+
 ## Prerequisite: Node.js
 
 Install [Node.js® and npm](https://nodejs.org/en/download/current/) if they are not already on your machine.
@@ -80,16 +90,6 @@ Sodium library code is in [src/lib](src/lib)
 Packaging/tree-shaking and bundling of the library is done with [Rollup](https://rollupjs.org/)
 
 Testing is via [Jest](https://facebook.github.io/jest/)
-
-## Examples
-
-There are examples both in the ```examples/book``` folder, (which is a git submodule, although this will change in future). Use a standard ```git clone --recursive https://github.com/SodiumFRP/sodium-typescript``` command in order to fetch them.
-
-Here are some demos from the community you can try in your browser: 
-
-* [Petrol Pump](https://huanhulan.github.io/petrol_pump/)
-* [Reactive Drawing Pad](https://github.com/graforlock/reactive-drawing-pad/tree/master)
-* [Misc Playground (drum machine, animation, etc.)](https://github.com/dakom/sodium-typescript-playground)
 
 ## License
 
