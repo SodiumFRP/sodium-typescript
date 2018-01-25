@@ -18,7 +18,7 @@ afterEach(() => {
     }
 });
 
-test('nested lift', (done) => {
+test('nested map+lift', (done) => {
     const out = new Array<number>();
     const ccOriginal = new Cell<Cell<number>>(new Cell(1));
     const sOffset = new StreamSink<number>();
