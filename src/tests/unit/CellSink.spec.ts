@@ -6,7 +6,7 @@ import {
   Transaction,
   Tuple2,
   getTotalRegistrations
-} from '../../lib/Sodium';
+} from '../../lib/Lib';
 
 afterEach(() => {
   if (getTotalRegistrations() != 0) {

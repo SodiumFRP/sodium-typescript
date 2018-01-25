@@ -8,7 +8,7 @@ import {
   Transaction,
   Unit,
   getTotalRegistrations
-} from "../../lib/Sodium";
+} from "../../lib/Lib";
 
 const timeout: number = 30000;
 

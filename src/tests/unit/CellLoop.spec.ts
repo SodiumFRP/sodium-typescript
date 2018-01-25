@@ -8,7 +8,7 @@ import {
   Unit,
   CellSink,
   getTotalRegistrations
-} from '../../lib/Sodium';
+} from '../../lib/Lib';
 
 afterEach(() => {
   if (getTotalRegistrations() != 0) {

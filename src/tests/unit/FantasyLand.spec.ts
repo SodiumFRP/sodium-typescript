@@ -7,14 +7,10 @@
   * @see {@link https://github.com/sanctuary-js/sanctuary/blob/master/test/Maybe/Maybe.js} for valid test examples (Sanctuary's Maybe)
   */
 
-const laws = require('fantasy-laws');
-
-const { create, env } = require('sanctuary');
 import * as jsc from 'jsverify';
-import { S } from "../test-utils/Sanctuary";
-import { Cell, StreamSink, Stream } from '../../lib/Sodium';
-
-
+import { S} from "../test-utils/Sanctuary";
+import { Cell, StreamSink, Stream } from '../../lib/Lib';
+import * as laws from 'fantasy-laws';
 
 /*
  * Cell

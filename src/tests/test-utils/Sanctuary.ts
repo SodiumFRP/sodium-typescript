@@ -1,6 +1,5 @@
-const { create, env } = require('sanctuary');
+import {create, env} from 'sanctuary';
 
-export const S = create({
-  checkTypes: false,
-  env,
-});
+
+const checkTypes = false; //process.env.BUILD_TYPE !== 'build';
+export const S = create({checkTypes, env});

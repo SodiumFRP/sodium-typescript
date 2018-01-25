@@ -10,7 +10,7 @@ import {
   Cell,
   CellLoop,
   getTotalRegistrations
-} from '../../lib/Sodium';
+} from '../../lib/Lib';
 
 afterEach(() => {
   if (getTotalRegistrations() != 0) {
