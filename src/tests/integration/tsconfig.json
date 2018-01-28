@@ -8,7 +8,7 @@
                 "node_modules/@types/*",
                 "*"
               ],
-              "lib/*": ["../src/lib/*"],
+              "lib/*": ["../../lib/*"],
         },
         "outDir": "dist/tsc",
         "noImplicitAny": false,

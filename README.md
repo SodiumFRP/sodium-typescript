@@ -77,7 +77,7 @@ The usual `npm run build/test/clean` commands are available to produce the distr
 
 However, a more comfortable iteration style may be using the the live integration testing approach:
 
-1. cd `integration`
+1. cd `src/tests/integration`
 2. `npm run dev:auto-reload` (or just `npm run dev` without live reloading)
 
 This starts up a local development server and showcases integration with a [webpack](https://webpack.github.io/) app. 

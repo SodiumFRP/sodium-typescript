@@ -21,7 +21,7 @@ export const makeDomWriter = (appElement) => {
     
     const appLabel = document.createElement("h1");
     appLabel.setAttribute("style", "text-align: center; width: 100%");
-    appLabel.innerText = "Sodium Example";
+    appLabel.innerText = "Sodium Example Clock";
     appContainer.appendChild(appLabel);
 
     const tsText = document.createTextNode("");
