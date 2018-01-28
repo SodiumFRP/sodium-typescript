@@ -51,7 +51,7 @@ test('lift + nested data/map', (done) => {
         cValue: Cell<number>;
     }
     const out = new Array<number>();
-    const cOriginal = new Cell<Data>({cValue: new Cell(1)});
+    const cOriginal = new Cell<Data>({ cValue: new Cell(1) });
     const sOffset = new StreamSink<number>();
     const cOffset = sOffset.hold(0);
 
@@ -78,34 +78,49 @@ test('lift + nested data/map', (done) => {
     expect(out).toEqual([1, 3, 5]);
 });
 
-test('map + nested data/lift', (done) => {
-  interface Data {
-    cValue: Cell<number>;
-  }
-  const out = new Array<number>();
-  const cOriginal = new Cell<Data>({cValue: new Cell(1)});
-  const sOffset = new StreamSink<number>();
-  const cOffset = sOffset.hold(0);
-
-  const cTotal = cOriginal.map((data:Data) => {
-    return {
-      cValue: data.cValue.lift(cOffset, (value, offset) => value + offset)
+test('TBD - http://sodium.nz/t/changes-in-nested-cells/267/', (done) => {
+    interface Data {
+        cValue: Cell<number>;
     }
-  })
 
-  const cFinal = Cell.switchC(cTotal.map(data => data.cValue));
+    const runTest = (tempFix: boolean): Array<number> => {
+        const unlisteners = new Array<() => void>();
+        const out = new Array<number>();
+        const cOriginal = new Cell<Data>({ cValue: new Cell(1) });
+        const sOffset = new StreamSink<number>();
+        const cOffset = sOffset.hold(0);
 
-  const kill = cFinal.listen(value => {
-    out.push(value);
-    if (out.length === 1) { //only one firing happens this time
-      done();
+        const cTotal = cOriginal.map(lambda1((data: Data) => {
+            return {
+                cValue: data.cValue.lift(cOffset, (value, offset) => value + offset)
+            }
+        }, [cOffset]));
+
+        //o_O - Why does this make a difference ?!?!
+        if (tempFix) {
+            unlisteners.push(cTotal.sample().cValue.listen(() => { }));
+        }
+
+        const cFinal = Cell.switchC(cTotal.map(data => data.cValue));
+
+        unlisteners.push(cFinal.listen(value => {
+            out.push(value);
+            if (out.length === (tempFix ? 2 : 1)) {
+                done();
+            }
+        }));
+
+        sOffset.send(2);
+        sOffset.send(4);
+
+        unlisteners.forEach(unlistener => unlistener());
+
+        return out;
+
     }
-  });
 
-  sOffset.send(2);
-  sOffset.send(4);
+    //Check it out - different results depending on if we listened!
+    expect(runTest(true)).toEqual([1, 3, 5]);
+    expect(runTest(false)).toEqual([1]);
 
-  kill();
-  //expect(out).toEqual([1, 3, 5]); - this fails! See https://github.com/SodiumFRP/sodium-typescript/wiki/Changes-in-nested-Cells
-  expect(out).toEqual([1]);
 });
