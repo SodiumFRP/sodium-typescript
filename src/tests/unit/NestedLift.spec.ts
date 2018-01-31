@@ -28,15 +28,15 @@ test('map + nested lift', (done) => {
         cOriginal.lift(cOffset, (value, offset) => value + offset)
     );
 
-    const cFinal = Cell.switchC(cTotal);
+    const kill = Cell
+        .switchC(cTotal)
+        .listen(value => {
+            out.push(value);
 
-    const kill = cFinal.listen(value => {
-        out.push(value);
-
-        if (out.length === 2) {
-            done();
-        }
-    });
+            if (out.length === 2) {
+                done();
+            }
+        });
 
     sOffset.send(2);
     sOffset.send(4);
@@ -61,15 +61,16 @@ test('lift + nested data/map', (done) => {
         }
     })
 
-    const cFinal = Cell.switchC(cTotal.map(data => data.cValue));
+    
+    const kill = Cell
+        .switchC(cTotal.map(data => data.cValue))
+        .listen(value => {
+            out.push(value);
 
-    const kill = cFinal.listen(value => {
-        out.push(value);
-
-        if (out.length === 2) {
-            done();
-        }
-    });
+            if (out.length === 2) {
+                done();
+            }
+        });
 
     sOffset.send(2);
     sOffset.send(4);
@@ -78,49 +79,73 @@ test('lift + nested data/map', (done) => {
     expect(out).toEqual([1, 3, 5]);
 });
 
-test('TBD - http://sodium.nz/t/changes-in-nested-cells/267/', (done) => {
+test('map + nested data/lift (w/ Transaction)', (done) => {
     interface Data {
         cValue: Cell<number>;
     }
+    
+    const out = new Array<number>();
+    const cOriginal = new Cell<Data>({ cValue: new Cell(1) });
+    const sOffset = new StreamSink<number>();
+    const cOffset = sOffset.hold(0);
 
-    const runTest = (tempFix: boolean): Array<number> => {
-        const unlisteners = new Array<() => void>();
-        const out = new Array<number>();
-        const cOriginal = new Cell<Data>({ cValue: new Cell(1) });
-        const sOffset = new StreamSink<number>();
-        const cOffset = sOffset.hold(0);
-
-        const cTotal = cOriginal.map(lambda1((data: Data) => {
-            return {
-                cValue: data.cValue.lift(cOffset, (value, offset) => value + offset)
-            }
-        }, [cOffset]));
-
-        //o_O - Why does this make a difference ?!?!
-        if (tempFix) {
-            unlisteners.push(cTotal.sample().cValue.listen(() => { }));
+    const cTotal = cOriginal.map(lambda1((data: Data) => {
+        return {
+            cValue: data.cValue.lift(cOffset, (value, offset) => value + offset)
         }
+    }, [cOffset]));
 
-        const cFinal = Cell.switchC(cTotal.map(data => data.cValue));
+    const kill = Transaction.run(() => 
+        Cell.switchC(cTotal.map(data => data.cValue))
+            .listen(value => {
+                out.push(value);
+                if (out.length === 2) {
+                    done();
+                }
+            })
+    );
+    
 
-        unlisteners.push(cFinal.listen(value => {
+    sOffset.send(2);
+    sOffset.send(4);
+
+    kill();
+
+    expect(out).toEqual([1, 3, 5]);
+
+});
+
+test('map + nested data/lift (no Transaction)', (done) => {
+    interface Data {
+        cValue: Cell<number>;
+    }
+    
+    const out = new Array<number>();
+    const cOriginal = new Cell<Data>({ cValue: new Cell(1) });
+    const sOffset = new StreamSink<number>();
+    const cOffset = sOffset.hold(0);
+
+    const cTotal = cOriginal.map(lambda1((data: Data) => {
+        return {
+            cValue: data.cValue.lift(cOffset, (value, offset) => value + offset)
+        }
+    }, [cOffset]));
+
+    const kill = Cell
+        .switchC(cTotal.map(data => data.cValue))
+        .listen(value => {
             out.push(value);
-            if (out.length === (tempFix ? 2 : 1)) {
+            if (out.length === 2) {
                 done();
             }
-        }));
+        })
+    
 
-        sOffset.send(2);
-        sOffset.send(4);
+    sOffset.send(2);
+    sOffset.send(4);
 
-        unlisteners.forEach(unlistener => unlistener());
+    kill();
 
-        return out;
-
-    }
-
-    //Check it out - different results depending on if we listened!
-    expect(runTest(true)).toEqual([1, 3, 5]);
-    expect(runTest(false)).toEqual([1]);
+    expect(out).toEqual([1, 3, 5]);
 
 });
