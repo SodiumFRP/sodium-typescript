@@ -12,7 +12,7 @@ A Functional Reactive Programming (FRP) library for TypeScript/JavaScript
 Here are some demos from the community you can try in your browser: 
 
 * [Book Examples](https://github.com/graforlock/sodium-typescript-examples)
-* [Petrol Pump](https://huanhulan.github.io/petrol_pump/)
+* [Petrol Pump](https://github.com/huanhulan/petrol_pump/)
 * [Reactive Drawing Pad](https://github.com/graforlock/reactive-drawing-pad/tree/master)
 * [Misc Playground (drum machine, animation, etc.)](https://github.com/dakom/sodium-typescript-playground)
 
