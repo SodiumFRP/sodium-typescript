@@ -31,6 +31,7 @@ export class Transaction
 
   inCallback: number = 0;
   private toRegen: boolean = false;
+  private finishedPriorityQueue:boolean = false;
 
   requestRegen(): void
   {
@@ -51,11 +52,15 @@ export class Transaction
   private lastQ: Array<() => void> = [];
   private postQ: Array<() => void> = null;
 
-  prioritized(target: Vertex, f: () => void): void
+  prioritized(target: Vertex, action: () => void): void
   {
-    const e = new Entry(target, f);
-    this.prioritizedQ.enqueue(e);
-    this.entries.add(e);
+    if(this.finishedPriorityQueue) {
+      this.lastQ.push(action);
+    } else {
+      const e = new Entry(target, action);
+      this.prioritizedQ.enqueue(e);
+      this.entries.add(e);
+    }
   }
 
   last(h: () => void): void
@@ -113,6 +118,8 @@ export class Transaction
       this.entries.remove(e);
       e.action();
     }
+    this.finishedPriorityQueue = true;
+
     for (let i = 0; i < this.lastQ.length; i++)
       this.lastQ[i]();
     this.lastQ = [];
