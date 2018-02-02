@@ -125,7 +125,7 @@ export class Cell<A> {
     sampleLazyNoTrans__() : Lazy<A> {  // TO DO figure out how to hide this
         const me = this,
             s = new LazySample<A>(me);
-        Transaction.currentTransaction.last(() => {
+        Transaction.currentTransaction.sample(() => {
             s.value = me.valueUpdate != null ? me.valueUpdate : me.sampleNoTrans__();
             s.hasValue = true;
             s.cell = null;

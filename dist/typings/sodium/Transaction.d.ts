@@ -18,9 +18,11 @@ export declare class Transaction {
     requestRegen(): void;
     prioritizedQ: Collections.PriorityQueue<Entry>;
     private entries;
+    private sampleQ;
     private lastQ;
     private postQ;
-    prioritized(target: Vertex, f: () => void): void;
+    prioritized(target: Vertex, action: () => void): void;
+    sample(h: () => void): void;
     last(h: () => void): void;
     /**
      * Add an action to run after all last() actions.
