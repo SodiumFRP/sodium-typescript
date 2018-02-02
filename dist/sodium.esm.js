@@ -463,16 +463,20 @@ var Transaction = /** @class */ (function () {
             return 0;
         });
         this.entries = new Set(function (a) { return a.toString(); });
+        this.sampleQ = [];
         this.lastQ = [];
         this.postQ = null;
     }
     Transaction.prototype.requestRegen = function () {
         this.toRegen = true;
     };
-    Transaction.prototype.prioritized = function (target, f) {
-        var e = new Entry(target, f);
+    Transaction.prototype.prioritized = function (target, action) {
+        var e = new Entry(target, action);
         this.prioritizedQ.enqueue(e);
         this.entries.add(e);
+    };
+    Transaction.prototype.sample = function (h) {
+        this.sampleQ.push(h);
     };
     Transaction.prototype.last = function (h) {
         this.lastQ.push(h);
@@ -509,12 +513,20 @@ var Transaction = /** @class */ (function () {
     };
     Transaction.prototype.close = function () {
         while (true) {
-            this.checkRegen();
-            if (this.prioritizedQ.isEmpty())
+            while (true) {
+                this.checkRegen();
+                if (this.prioritizedQ.isEmpty())
+                    break;
+                var e = this.prioritizedQ.dequeue();
+                this.entries.remove(e);
+                e.action();
+            }
+            var sq = this.sampleQ;
+            this.sampleQ = [];
+            for (var i = 0; i < sq.length; i++)
+                sq[i]();
+            if (this.prioritizedQ.isEmpty() && this.sampleQ.length < 1)
                 break;
-            var e = this.prioritizedQ.dequeue();
-            this.entries.remove(e);
-            e.action();
         }
         for (var i = 0; i < this.lastQ.length; i++)
             this.lastQ[i]();
@@ -871,7 +883,7 @@ var Cell = /** @class */ (function () {
     };
     Cell.prototype.sampleLazyNoTrans__ = function () {
         var me = this, s = new LazySample(me);
-        Transaction.currentTransaction.last(function () {
+        Transaction.currentTransaction.sample(function () {
             s.value = me.valueUpdate != null ? me.valueUpdate : me.sampleNoTrans__();
             s.hasValue = true;
             s.cell = null;

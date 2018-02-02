@@ -48,14 +48,20 @@ export class Transaction
     return 0;
   });
   private entries: Collections.Set<Entry> = new Collections.Set<Entry>((a) => a.toString());
+  private sampleQ: Array<() => void> = [];
   private lastQ: Array<() => void> = [];
   private postQ: Array<() => void> = null;
 
-  prioritized(target: Vertex, f: () => void): void
+  prioritized(target: Vertex, action: () => void): void
   {
-    const e = new Entry(target, f);
+    const e = new Entry(target, action);
     this.prioritizedQ.enqueue(e);
     this.entries.add(e);
+  }
+
+  sample(h: () => void): void
+  {
+    this.sampleQ.push(h);
   }
 
   last(h: () => void): void
@@ -105,14 +111,25 @@ export class Transaction
 
   close(): void
   {
-    while (true)
+    while(true)
     {
-      this.checkRegen();
-      if (this.prioritizedQ.isEmpty()) break;
-      const e = this.prioritizedQ.dequeue();
-      this.entries.remove(e);
-      e.action();
+      while (true)
+      {
+        this.checkRegen();
+        if (this.prioritizedQ.isEmpty()) break;
+        const e = this.prioritizedQ.dequeue();
+        this.entries.remove(e);
+        e.action();
+      }
+
+      const sq = this.sampleQ;
+      this.sampleQ = [];
+      for (let i = 0; i < sq.length; i++)
+        sq[i]();
+
+      if(this.prioritizedQ.isEmpty() && this.sampleQ.length < 1) break;
     }
+
     for (let i = 0; i < this.lastQ.length; i++)
       this.lastQ[i]();
     this.lastQ = [];
