@@ -150,6 +150,14 @@ export class Cell<A> {
         );
     }
 
+    /**
+     * Transform the cell's value into the specified constant value.
+     * @param b Constant value.
+     */
+    mapTo<B>(b : B) : Cell<B> {
+        return this.map(() => b); 
+    }
+
 	/**
 	 * Lift a binary function into cells, so the returned Cell always reflects the specified
 	 * function applied to the input cells' values.
