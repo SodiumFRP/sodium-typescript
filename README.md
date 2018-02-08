@@ -34,11 +34,6 @@ $> yarn add sodiumjs
 $> yarn global add sodiumjs
 ```
 
-### via Bower
-```bash
-$> bower install sodiumjs
-```
-
 ### via html include 
 ```
 <script src="https://cdn.jsdelivr.net/npm/sodiumjs/dist/sodium.umd.min.js"></script>

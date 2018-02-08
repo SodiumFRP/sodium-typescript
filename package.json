@@ -69,6 +69,7 @@
     "sanctuary": "0.14.1",
     "ts-jest": "22.0.3",
     "ts-node": "4.1.0",
+    "tslib": "1.9.0",
     "typescript": "^2.7.1",
     "uglify-es": "3.3.9"
   },

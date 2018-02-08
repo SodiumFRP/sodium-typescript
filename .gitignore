@@ -3,6 +3,9 @@ logs
 *.log
 npm-debug.log*
 
+# Build artifacts
+# dist
+
 # Rollup cache
 .rpt2_cache
 
