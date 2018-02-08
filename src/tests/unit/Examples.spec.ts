@@ -29,6 +29,7 @@ test('example 1: nested switch + CellLoop', (done) => {
         ["apple"],
         ["APPLE"],
         [],
+        [],
         []
     ]
     const unlisteners = [];
@@ -127,10 +128,26 @@ test('example 1: nested switch + CellLoop', (done) => {
     sRemoveAll.send(null);
     sWrite.send(false);
 
-    //If there's nothing in the list, sModify needs a dummy listener
+    //test: []
+    //But first - if there's nothing in the list, sModify needs a dummy listener
     unlisteners.push(sModify.listen(() => {}));
     sModify.send("foo");
+    sWrite.send(false);
 
+    //-------HERE'S WHERE IT GETS WEIRD!!! -------------
+    //The dummy listener which was added in this outer scope is no longer valid if we add+clear again
+    
+    //Specifically, adding both of these two lines:
+    sAdd.send("foo"); 
+    sRemoveAll.send(null);
+
+    //Causes a "send() was invoked before listeners were registered" here:
+    sModify.send("foo");
+
+    //But when commenting out either of them, everything passes!
+
+    //----------DONE------------------------
     //test: []
+    sRemoveAll.send(null);
     sWrite.send(true);
 })
