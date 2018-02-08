@@ -19,6 +19,63 @@ afterEach(() => {
     }
 });
 
+test('example - attempt to cause same error as example 1, but simplified', (done) => {
+  const unlisteners = [];
+  const finish = () => setTimeout(() => { //postponed a frame for convenience
+    unlisteners.forEach(fn => fn());
+    done();
+  }, 0);
+  const s1 = new StreamSink<number>();
+  const s2 = new StreamSink<number>();
+  const c1 = s1.map(v => !v ? new Cell(v) : s2.hold(v)).hold(new Cell(0));
+
+  const c = Cell.switchC(c1);
+
+  unlisteners.push(
+    c.listen(v => {
+      //console.log(v);
+      if(v === -1) {
+        finish();
+      }
+    })
+  );
+
+  /*
+    Sending on s1:
+    -1 cleanup / finish
+    0 causes the inner value to be a new Cell
+    anything else causes the inner value to be a hold of s2
+
+    Sending on s2:
+    changes the inner value of s1 if it exists as a hold
+  */
+
+  //all of this is fine
+  s1.send(1);
+  s2.send(1);
+  s1.send(0);
+  s1.send(1);
+  s2.send(1);
+
+  //even this is fine
+  unlisteners.push(s2.listen(() => {})); //dummy listener
+  s1.send(0);
+  s1.send(1);
+  s2.send(1);
+  s1.send(0);
+  s2.send(1);
+
+  //Still seems to work here too (compare to following example)
+  s1.send(0);
+  s1.send(1);
+  s2.send(1);
+  s1.send(0);
+  s2.send(1);
+
+  //cleanup
+  s1.send(-1);
+});
+
 test('example 1: nested switch + CellLoop', (done) => {
     //General cleanup / final checking helpers
     const results = []
@@ -50,7 +107,7 @@ test('example 1: nested switch + CellLoop', (done) => {
     const makeItem = (label: string):Cell<string> => Transaction.run(() => {
         const cLoop = new CellLoop<string>();
         const cUpdate = sModify.snapshot(cLoop, makeUppercase).hold(label);
-        
+
         cLoop.loop(cUpdate);
 
         return cLoop;
@@ -68,7 +125,7 @@ test('example 1: nested switch + CellLoop', (done) => {
 
     const _ccItems = Transaction.run(() => {
         const cLoop = new CellLoop<Array<Cell<string>>>();
-        const cUpdate = 
+        const cUpdate =
             sAdd.map(addItem)
                 .orElse(sRemoveAll.map(removeAll))
                 .snapshot(cLoop, applyToList)
@@ -119,7 +176,7 @@ test('example 1: nested switch + CellLoop', (done) => {
     //test: ["apple"]
     sModify.send("foo");
     sWrite.send(false)
-    
+
     //test: ["APPLE"]
     sModify.send("apple");
     sWrite.send(false);
@@ -136,9 +193,9 @@ test('example 1: nested switch + CellLoop', (done) => {
 
     //-------HERE'S WHERE IT GETS WEIRD!!! -------------
     //The dummy listener which was added in this outer scope is no longer valid if we add+clear again
-    
+
     //Specifically, adding both of these two lines:
-    sAdd.send("foo"); 
+    sAdd.send("foo");
     sRemoveAll.send(null);
 
     //Causes a "send() was invoked before listeners were registered" here:
