@@ -60,7 +60,7 @@ test('lift + nested data/map', (done) => {
         }
     })
 
-    
+
     const kill = Cell
         .switchC(cTotal.map(data => data.cValue))
         .listen(value => {
@@ -82,7 +82,7 @@ test('map + nested data/lift (w/ Transaction)', (done) => {
     interface Data {
         cValue: Cell<number>;
     }
-    
+
     const out = new Array<number>();
     const cOriginal = new Cell<Data>({ cValue: new Cell(1) });
     const sOffset = new StreamSink<number>();
@@ -94,7 +94,7 @@ test('map + nested data/lift (w/ Transaction)', (done) => {
         }
     }, [cOffset]));
 
-    const kill = Transaction.run(() => 
+    const kill = Transaction.run(() =>
         Cell.switchC(cTotal.map(data => data.cValue))
             .listen(value => {
                 out.push(value);
@@ -103,7 +103,7 @@ test('map + nested data/lift (w/ Transaction)', (done) => {
                 }
             })
     );
-    
+
 
     sOffset.send(2);
     sOffset.send(4);
@@ -118,7 +118,7 @@ test('map + nested data/lift (no Transaction)', (done) => {
     interface Data {
         cValue: Cell<number>;
     }
-    
+
     const out = new Array<number>();
     const cOriginal = new Cell<Data>({ cValue: new Cell(1) });
     const sOffset = new StreamSink<number>();
@@ -138,7 +138,7 @@ test('map + nested data/lift (no Transaction)', (done) => {
                 done();
             }
         })
-    
+
 
     sOffset.send(2);
     sOffset.send(4);
@@ -150,168 +150,136 @@ test('map + nested data/lift (no Transaction)', (done) => {
 });
 
 test('example 2: with loop', (done) => {
-  const innerLoop = true; //changing this to false allows tests to pass as-is!
+    const listenOnInnerLoop = false; //Setting this to false causes test to fail!
 
-  const results = []
-  const expected = //results differ based on whether or not we're using the inner loop
-    innerLoop 
-        ?   [
-                "BAZ",
-                "",
-                "apple",
-                "apple",
-                "APPLE",
-                "",
-                "",
-                ""
-            ]
-        :   [
-                "baz",  
-                "",
-                "apple",
-                "foo",
-                    "apple",
-                "",
-                "",
-                ""
-            ];
-  const unlisteners = [];
-  const finish = () => setTimeout(() => { //postponed a frame for convenience
-    unlisteners.forEach(fn => fn());
-    expect(results.length).toBe(expected.length);
-    results.forEach((v, i) => expect(v).toEqual(expected[i]));
-    done();
-  }, 0);
+    const results = []
+    const expected = [
+        "BAZ",
+        "",
+        "apple",
+        "apple",
+        "APPLE",
+        "",
+        "",
+        ""
+    ];
 
-  const sWrite = new StreamSink<boolean>();
+    const unlisteners = [];
+    const finish = () => setTimeout(() => { //postponed a frame for convenience
+        unlisteners.forEach(fn => fn());
+        expect(results.length).toBe(expected.length);
+        results.forEach((v, i) => expect(v).toEqual(expected[i]));
+        done();
+    }, 0);
 
-  //Modify items
-  const sModify = new StreamSink<string>();
-  const makeUppercase = (target: string, s: string) => target === s ? s.toUpperCase() : s;
+    const sWrite = new StreamSink<boolean>();
 
-  //Manage list of items
-  const sAdd = new StreamSink<string>();
-  const sRemove = new StreamSink<string>();
-  const sRemoveAll = new StreamSink<string>();
+    //Modify items
+    const sModify = new StreamSink<string>();
+    const makeUppercase = (target: string, s: string) => target === s ? s.toUpperCase() : s;
 
-  const cItems = Transaction.run(() => {
-    const makeItem = (label: string): Cell<string> => {
-      const cLoop = new CellLoop<string>();
-      const cUpdate = sModify.snapshot(cLoop, makeUppercase).hold(label);
+    //Manage list of items
+    const sAdd = new StreamSink<string>();
+    const sRemove = new StreamSink<string>();
+    const sRemoveAll = new StreamSink<string>();
 
-      cLoop.loop(cUpdate);
+    const cItems = Transaction.run(() => {
+        const makeItem = (label: string): Cell<string> => {
+            const cLoop = new CellLoop<string>();
+            const cUpdate = sModify.snapshot(cLoop, makeUppercase).hold(label);
 
-      return cLoop;
-    };
+            cLoop.loop(cUpdate);
 
-    const addItemLoop = (label: string) => (c: Cell<string>) => makeItem(label);
-    const addItemSimple = (label: string) => (c: Cell<string>) => sModify.hold(label);
-    
-    const removeAll = () => (c: Cell<string>) => new Cell("");
+            if(listenOnInnerLoop) {
+                unlisteners.push(cLoop.listen(() => { }));
+            }
 
-    const applyToList = (fn, xs) => fn(xs);
+            return cLoop;
+        };
 
-    const emptyCell = new Cell("");
+        const addItem = (label: string) => (c: Cell<string>) => makeItem(label);
 
-    const ccLoop = new CellLoop<Cell<string>>();
-    const ccUpdate =
-      sAdd.map(innerLoop ? addItemLoop : addItemSimple)
-        .orElse(sRemoveAll.map(removeAll))
-        .snapshot(ccLoop, applyToList)
-        .hold(emptyCell);
+        const removeAll = () => (c: Cell<string>) => new Cell("");
 
-    ccLoop.loop(ccUpdate);
-    const ccItems = ccLoop;
+        const applyToList = (fn, xs) => fn(xs);
 
-    const cResult = Cell.switchC(ccItems); //Then switchC on it to get Cell<Array<string>>
-    
-    //None of these helps!
-    unlisteners.push(emptyCell.listen(() => {}));
-    unlisteners.push(ccUpdate.listen(() => {}));
-    unlisteners.push(ccItems.listen(() => {}));
-    unlisteners.push(ccLoop.listen(() => {}));
-    unlisteners.push(cResult.listen(() => {}));
+        const emptyCell = new Cell("");
 
-    return cResult;
-  });
+        const ccLoop = new CellLoop<Cell<string>>();
+        const ccUpdate =
+            sAdd.map(addItem)
+                .orElse(sRemoveAll.map(removeAll))
+                .snapshot(ccLoop, applyToList)
+                .hold(emptyCell);
 
-  //Flush writes
-  unlisteners.push(
-    sWrite.snapshot(cItems, (evt, items) => {
-      results.push(items);
-      return evt;
-    })
-      .listen(evt => {
-        if (evt) {
-          finish();
-        }
-      })
-  );
+        ccLoop.loop(ccUpdate);
+        const ccItems = ccLoop;
 
-  //This is just for the sake of debugging
-  unlisteners.push(
-    cItems.listen(items => {
-      //console.log(items);
-    })
-  );
+        const cResult = Cell.switchC(ccItems); //Then switchC on it to get Cell<Array<string>>
 
-  //expected state (after write): "BAZ"
-  sAdd.send("foo");
-  sAdd.send("bar");
-  sAdd.send("baz");
-  sModify.send("baz");
-  sWrite.send(false);
+        return cResult;
+    });
 
-  //expected state: ""
-  sRemoveAll.send(null);
-  sWrite.send(false);
+    //Flush writes
+    unlisteners.push(
+        sWrite.snapshot(cItems, (evt, items) => {
+            results.push(items);
+            return evt;
+        })
+            .listen(evt => {
+                if (evt) {
+                    finish();
+                }
+            })
+    );
 
-  //expected state: "apple"
-  sAdd.send("apple");
-  sWrite.send(false);
+    //This is just for the sake of debugging
+    unlisteners.push(
+        cItems.listen(items => {
+            //console.log(items);
+        })
+    );
 
-  //expected state: "apple"
-  sModify.send("foo");
-  sWrite.send(false)
+    //expected state (after write): "BAZ"
+    sAdd.send("foo");
+    sAdd.send("bar");
+    sAdd.send("baz");
+    sModify.send("baz");
+    sWrite.send(false);
 
-  //expected state: "APPLE"
-  sModify.send("apple");
-  sWrite.send(false);
+    //expected state: ""
+    sRemoveAll.send(null);
+    sWrite.send(false);
 
-  //expected state: "" 
-  sRemoveAll.send(null);
-  sWrite.send(false);
+    //expected state: "apple"
+    sAdd.send("apple");
+    sWrite.send(false);
 
-  //expected state: "" 
-  //But first - if there's nothing in the list, sModify needs a dummy listener
-  unlisteners.push(sModify.listen(() => { }));
-  sModify.send("foo");
-  sWrite.send(false);
+    //expected state: "apple"
+    sModify.send("foo");
+    sWrite.send(false)
 
-  
-  expect(cItems.sample()).toEqual(""); //Just to confirm here, it really is a Cell of ""
-  //-------HERE'S WHERE IT GETS WEIRD!!! -------------
-  //The dummy listener which was added in this outer scope is no longer valid if we add+clear again
+    //expected state: "APPLE"
+    sModify.send("apple");
+    sWrite.send(false);
 
-  //Specifically, adding both of these two lines:
-  sAdd.send("foo");
-  sRemoveAll.send(null);
+    //expected state: "" 
+    sRemoveAll.send(null);
+    sWrite.send(false);
 
-  //WITHOUT adding this line:
-  //unlisteners.push(sModify.listen(() => { }));
+    //expected state: "" 
+    sModify.send("foo");
+    sWrite.send(false);
 
-  //Causes a "send() was invoked before listeners were registered" here:
-  sModify.send("foo");
+    //Last write - won't get checked
+    sAdd.send("foo");
+    sRemoveAll.send(null);
 
-  /*
-    Note that either of these fixes it:
-    1. Commenting out either the sAdd or sRemoveAll
-    2. Uncommenting the re-adding of the listener
-  */
+    //Causes a "send() was invoked before listeners were registered" here:
+    sModify.send("foo");
 
-
-  //----------DONE------------------------
-  //expected state : ""
-  sRemoveAll.send(null);
-  sWrite.send(true);
+    //----------DONE------------------------
+    //expected state : ""
+    sRemoveAll.send(null);
+    sWrite.send(true);
 });
