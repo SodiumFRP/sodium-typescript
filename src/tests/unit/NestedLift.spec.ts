@@ -150,7 +150,7 @@ test('map + nested data/lift (no Transaction)', (done) => {
 });
 
 test('example 2: with loop', (done) => {
-    const listenOnInnerLoop = false; //Setting this to false causes test to fail!
+    const listenOnInnerLoop = false; //True passes, false fails!
 
     const results = []
     const expected = [
@@ -201,16 +201,13 @@ test('example 2: with loop', (done) => {
 
         const removeAll = () => (c: Cell<string>) => new Cell("");
 
-        const applyToList = (fn, xs) => fn(xs);
-
-        const emptyCell = new Cell("");
-
         const ccLoop = new CellLoop<Cell<string>>();
+
         const ccUpdate =
             sAdd.map(addItem)
                 .orElse(sRemoveAll.map(removeAll))
-                .snapshot(ccLoop, applyToList)
-                .hold(emptyCell);
+                .snapshot(ccLoop, (fn, xs) => fn(xs))
+                .hold(new Cell(""));
 
         ccLoop.loop(ccUpdate);
         const ccItems = ccLoop;
