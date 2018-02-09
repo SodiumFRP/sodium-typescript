@@ -1,5 +1,6 @@
 import {
   lambda1,
+  lambda2,
   StreamSink,
   StreamLoop,
   CellSink,
@@ -12,6 +13,7 @@ import {
 } from '../../lib/Lib';
 
 import { S } from "../test-utils/Sanctuary";
+import {testSequence} from "../test-utils/Sequence";
 
 afterEach(() => {
   if (getTotalRegistrations() != 0) {
@@ -19,7 +21,43 @@ afterEach(() => {
   }
 });
 
-test('example - attempt to cause same error as example 1, but simplified', (done) => {
+
+const CellSequenceAuto = <A>(cells: Array<Cell<A>>): Cell<Array<A>> => {
+  const fn = (out:Cell<Array<A>>, cell:Cell<A>) => 
+    out = out.lift(cell, (list, a) => list.concat([a]));
+
+  return cells.reduce(fn, new Cell(new Array<A>()));
+}
+
+const CellSequenceManual = <A>(cells: Array<Cell<A>>): Cell<Array<A>> => {
+  const cFinal = new Cell(new Array<A>());
+  
+  switch(cells.length) {
+    case 0:
+        return cFinal;
+    case 1:
+        return cFinal.lift(cells[0], (xs, x) => [x]);
+    case 2:
+        return cFinal.lift3(cells[0], cells[1], (xs, x1, x2) => [x1, x2]);
+    case 3:
+        return cFinal.lift4(cells[0], cells[1], cells[2], (xs, x1, x2, x3) => [x1, x2, x3]);
+    case 4:
+        return cFinal.lift5(cells[0], cells[1], cells[2], cells[3], (xs, x1, x2, x3, x4) => [x1, x2, x3, x4]);
+
+    default: throw new Error("unreached!");
+  }
+  
+}
+
+test('sanity check sequence - auto', (done) => {
+  testSequence (CellSequenceAuto) (done)
+});
+
+test('sanity check sequence - manual', (done) => {
+  testSequence (CellSequenceManual) (done)
+});
+
+test('example - without sequence', (done) => {
   const unlisteners = [];
   const finish = () => setTimeout(() => { //postponed a frame for convenience
     unlisteners.forEach(fn => fn());
@@ -57,7 +95,7 @@ test('example - attempt to cause same error as example 1, but simplified', (done
   s1.send(1);
   s2.send(1);
 
-  //even this is fine
+  //even this is fine if we add a dummy listener
   unlisteners.push(s2.listen(() => { })); //dummy listener
   s1.send(0);
   s1.send(1);
@@ -65,18 +103,26 @@ test('example - attempt to cause same error as example 1, but simplified', (done
   s1.send(0);
   s2.send(1);
 
-  //Still seems to work here too (compare to following example)
+  //Still seems to work here too (compare to following example where the listener disappears)
   s1.send(0);
   s1.send(1);
   s2.send(1);
   s1.send(0);
   s2.send(1);
-
+  
   //cleanup
   s1.send(-1);
 });
 
-test('example 1: nested switch + CellLoop', (done) => {
+
+
+test('example 1: with loop and sequence', (done) => {
+
+  //Pick one...
+
+  //const seq = S.sequence(Cell);
+  const seq = CellSequenceManual;
+
   //General cleanup / final checking helpers
   const results = []
   const expected = [
@@ -131,10 +177,18 @@ test('example 1: nested switch + CellLoop', (done) => {
         .hold([]);
 
     ccLoop.loop(ccUpdate);
-    const ccItems = ccLoop.map(S.sequence(Cell)) as Cell<Cell<Array<string>>>; //_cItems is Cell<Array<Cell<string>>>, so first map it with sequence to get Cell<Cell<Array<string>>>
-    return Cell.switchC(ccItems); //Then switchC on it to get Cell<Array<string>>
-  });
+    const ccItems = ccLoop.map(seq) as Cell<Cell<Array<string>>>; //_cItems is Cell<Array<Cell<string>>>, so first map it with sequence to get Cell<Cell<Array<string>>>
 
+    const cResult = Cell.switchC(ccItems); //Then switchC on it to get Cell<Array<string>>
+    
+    //None of these helps
+    unlisteners.push(ccUpdate.listen(() => {}));
+    unlisteners.push(ccItems.listen(() => {}));
+    unlisteners.push(ccLoop.listen(() => {}));
+    unlisteners.push(cResult.listen(() => {}));
+
+    return cResult;
+  });
 
   //Flush writes
   unlisteners.push(
@@ -156,39 +210,41 @@ test('example 1: nested switch + CellLoop', (done) => {
     })
   );
 
-  //test: ["foo, "BAR", "baz""]
+  //expected state (after write): ["foo, "BAR", "baz""]
   sAdd.send("foo");
   sAdd.send("bar");
   sAdd.send("baz");
   sModify.send("bar");
   sWrite.send(false);
 
-  //test: []
+  //expected state: []
   sRemoveAll.send(null);
   sWrite.send(false);
 
-  //test: ["apple"]
+  //expected state: ["apple"]
   sAdd.send("apple");
   sWrite.send(false);
 
-  //test: ["apple"]
+  //expected state: ["apple"]
   sModify.send("foo");
   sWrite.send(false)
 
-  //test: ["APPLE"]
+  //expected state: ["APPLE"]
   sModify.send("apple");
   sWrite.send(false);
 
-  //test: []
+  //expected state: []
   sRemoveAll.send(null);
   sWrite.send(false);
 
-  //test: []
+  //expected state: []
   //But first - if there's nothing in the list, sModify needs a dummy listener
   unlisteners.push(sModify.listen(() => { }));
   sModify.send("foo");
   sWrite.send(false);
 
+  
+  expect(cItems.sample()).toEqual([]); //Just to confirm here, it really is a Cell of []
   //-------HERE'S WHERE IT GETS WEIRD!!! -------------
   //The dummy listener which was added in this outer scope is no longer valid if we add+clear again
 
@@ -196,12 +252,21 @@ test('example 1: nested switch + CellLoop', (done) => {
   sAdd.send("foo");
   sRemoveAll.send(null);
 
+  //WITHOUT adding this line:
+  //unlisteners.push(sModify.listen(() => { }));
+
   //Causes a "send() was invoked before listeners were registered" here:
   sModify.send("foo");
 
-  //But when commenting out either of them, everything passes!
+  /*
+    Note that either of these fixes it:
+    1. Commending out either the sAdd or sRemoveAll
+    2. Uncommenting the re-adding of the listener
+  */
+
+
   //----------DONE------------------------
-  //test: []
+  //expected state : []
   sRemoveAll.send(null);
   sWrite.send(true);
 })
