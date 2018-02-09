@@ -250,34 +250,34 @@ test('example 2: with loop', (done) => {
   sModify.send("baz");
   sWrite.send(false);
 
-  //expected state: []
+  //expected state: ""
   sRemoveAll.send(null);
   sWrite.send(false);
 
-  //expected state: ["apple"]
+  //expected state: "apple"
   sAdd.send("apple");
   sWrite.send(false);
 
-  //expected state: ["apple"]
+  //expected state: "apple"
   sModify.send("foo");
   sWrite.send(false)
 
-  //expected state: ["APPLE"]
+  //expected state: "APPLE"
   sModify.send("apple");
   sWrite.send(false);
 
-  //expected state: []
+  //expected state: "" 
   sRemoveAll.send(null);
   sWrite.send(false);
 
-  //expected state: []
+  //expected state: "" 
   //But first - if there's nothing in the list, sModify needs a dummy listener
   unlisteners.push(sModify.listen(() => { }));
   sModify.send("foo");
   sWrite.send(false);
 
   
-  expect(cItems.sample()).toEqual(""); //Just to confirm here, it really is a Cell of []
+  expect(cItems.sample()).toEqual(""); //Just to confirm here, it really is a Cell of ""
   //-------HERE'S WHERE IT GETS WEIRD!!! -------------
   //The dummy listener which was added in this outer scope is no longer valid if we add+clear again
 
@@ -286,20 +286,20 @@ test('example 2: with loop', (done) => {
   sRemoveAll.send(null);
 
   //WITHOUT adding this line:
-  unlisteners.push(sModify.listen(() => { }));
+  //unlisteners.push(sModify.listen(() => { }));
 
   //Causes a "send() was invoked before listeners were registered" here:
   sModify.send("foo");
 
   /*
     Note that either of these fixes it:
-    1. Commending out either the sAdd or sRemoveAll
+    1. Commenting out either the sAdd or sRemoveAll
     2. Uncommenting the re-adding of the listener
   */
 
 
   //----------DONE------------------------
-  //expected state : []
+  //expected state : ""
   sRemoveAll.send(null);
   sWrite.send(true);
 });
