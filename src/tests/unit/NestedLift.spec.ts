@@ -150,21 +150,31 @@ test('map + nested data/lift (no Transaction)', (done) => {
 });
 
 test('example 2: with loop', (done) => {
+  const innerLoop = true; //changing this to false allows tests to pass as-is!
 
-  //Pick one...
-
-  //General cleanup / final checking helpers
   const results = []
-  const expected = [
-    "BAZ",  
-    "",
-    "apple",
-    "apple",
-    "APPLE",
-    "",
-    "",
-    ""
-  ]
+  const expected = //results differ based on whether or not we're using the inner loop
+    innerLoop 
+        ?   [
+                "BAZ",
+                "",
+                "apple",
+                "apple",
+                "APPLE",
+                "",
+                "",
+                ""
+            ]
+        :   [
+                "baz",  
+                "",
+                "apple",
+                "foo",
+                    "apple",
+                "",
+                "",
+                ""
+            ];
   const unlisteners = [];
   const finish = () => setTimeout(() => { //postponed a frame for convenience
     unlisteners.forEach(fn => fn());
@@ -194,7 +204,9 @@ test('example 2: with loop', (done) => {
       return cLoop;
     };
 
-    const addItem = (label: string) => (c: Cell<string>) => makeItem(label);
+    const addItemLoop = (label: string) => (c: Cell<string>) => makeItem(label);
+    const addItemSimple = (label: string) => (c: Cell<string>) => sModify.hold(label);
+    
     const removeAll = () => (c: Cell<string>) => new Cell("");
 
     const applyToList = (fn, xs) => fn(xs);
@@ -203,7 +215,7 @@ test('example 2: with loop', (done) => {
 
     const ccLoop = new CellLoop<Cell<string>>();
     const ccUpdate =
-      sAdd.map(addItem)
+      sAdd.map(innerLoop ? addItemLoop : addItemSimple)
         .orElse(sRemoveAll.map(removeAll))
         .snapshot(ccLoop, applyToList)
         .hold(emptyCell);
