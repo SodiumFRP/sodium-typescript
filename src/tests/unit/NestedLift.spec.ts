@@ -265,14 +265,14 @@ test('example 2: with loop', (done) => {
     sWrite.send(false);
 
     //expected state: "" 
-    sModify.send("foo");
+    sModify.send("foo"); //Causes a "send() was invoked before listeners were registered" here:
     sWrite.send(false);
 
     //Last write - won't get checked
     sAdd.send("foo");
     sRemoveAll.send("");
 
-    //Causes a "send() was invoked before listeners were registered" here:
+    //This will pass fine with the listenOnInnerLoop set to true
     sModify.send("foo");
 
     //----------DONE------------------------
