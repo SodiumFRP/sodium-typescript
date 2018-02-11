@@ -8,7 +8,8 @@ import {
     Operational,
     Cell,
     CellLoop,
-    getTotalRegistrations
+    getTotalRegistrations,
+    lambda2
 } from '../../lib/Lib';
 
 afterEach(() => {
@@ -180,7 +181,6 @@ test('example 2: with loop', (done) => {
 
     //Manage list of items
     const sAdd = new StreamSink<string>();
-    const sRemove = new StreamSink<string>();
     const sRemoveAll = new StreamSink<string>();
 
     const cItems = Transaction.run(() => {
@@ -197,17 +197,17 @@ test('example 2: with loop', (done) => {
             return cLoop;
         };
 
-        const addItem = (label: string) => (c: Cell<string>) => makeItem(label);
-
-        const removeAll = () => (c: Cell<string>) => new Cell("");
-
         const ccLoop = new CellLoop<Cell<string>>();
 
+        const emptyCell = new Cell("");
+
         const ccUpdate =
-            sAdd.map(addItem)
-                .orElse(sRemoveAll.map(removeAll))
-                .snapshot(ccLoop, (fn, xs) => fn(xs))
-                .hold(new Cell(""));
+            sAdd.orElse(sRemoveAll)
+                .snapshot(ccLoop, lambda2(
+                    (str, xs) => str === "" ? emptyCell : makeItem(str), 
+                    [emptyCell])
+                )
+                .hold(emptyCell);
 
         ccLoop.loop(ccUpdate);
         const ccItems = ccLoop;
@@ -245,7 +245,7 @@ test('example 2: with loop', (done) => {
     sWrite.send(false);
 
     //expected state: ""
-    sRemoveAll.send(null);
+    sRemoveAll.send("");
     sWrite.send(false);
 
     //expected state: "apple"
@@ -261,7 +261,7 @@ test('example 2: with loop', (done) => {
     sWrite.send(false);
 
     //expected state: "" 
-    sRemoveAll.send(null);
+    sRemoveAll.send("");
     sWrite.send(false);
 
     //expected state: "" 
@@ -270,13 +270,13 @@ test('example 2: with loop', (done) => {
 
     //Last write - won't get checked
     sAdd.send("foo");
-    sRemoveAll.send(null);
+    sRemoveAll.send("");
 
     //Causes a "send() was invoked before listeners were registered" here:
     sModify.send("foo");
 
     //----------DONE------------------------
     //expected state : ""
-    sRemoveAll.send(null);
+    sRemoveAll.send("");
     sWrite.send(true);
 });
