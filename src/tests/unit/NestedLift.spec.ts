@@ -205,7 +205,7 @@ test('example 2: with loop', (done) => {
             sAdd.orElse(sRemoveAll)
                 .snapshot(ccLoop, lambda2(
                     (str, xs) => str === "" ? emptyCell : makeItem(str), 
-                    [emptyCell])
+                    [emptyCell, sModify])
                 )
                 .hold(emptyCell);
 
