@@ -19,7 +19,7 @@ afterEach(() => {
     }
 });
 
-test('example 2: with loop', (done) => {
+test('strings with loop', (done) => {
     const results = []
     const expected = [
         "BAZ",
@@ -51,11 +51,12 @@ test('example 2: with loop', (done) => {
     const sRemoveAll = new StreamSink<string>();
 
     const cItems = Transaction.run(() => {
-        const makeItem = (label: string, cCurr:Cell<string>): Cell<string> => {
+        const makeItem = (label: string): Cell<string> => {
             const cLoop = new CellLoop<string>();
+
             const cUpdate = sModify.snapshot(cLoop, makeUppercase).hold(label);
 
-            cLoop.loop(cUpdate.lift(cCurr, lambda2((update, current) => update, [cCurr])));
+            cLoop.loop(cUpdate);
 
             return cLoop;
         };
@@ -67,7 +68,7 @@ test('example 2: with loop', (done) => {
         const ccUpdate =
             sAdd.orElse(sRemoveAll)
                 .snapshot(ccLoop, lambda2(
-                    (str, cCurr) => str === "" ? emptyCell : makeItem(str, cCurr),
+                    (str, xs) => Cell.switchC(xs.map(() => str === "" ? emptyCell : makeItem(str))),
                     [emptyCell, sModify])
                 )
                 .hold(emptyCell);
