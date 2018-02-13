@@ -10,10 +10,12 @@ import {
     Cell,
     CellLoop,
     getTotalRegistrations,
-    lambda2
+    lambda2,
+    Vertex
 } from '../../lib/Lib';
 
 afterEach(() => {
+    Vertex.collectCycles();
     if (getTotalRegistrations() != 0) {
         throw new Error('listeners were not deregistered');
     }
@@ -73,7 +75,7 @@ test('example 2: with loop', (done) => {
         const ccUpdate =
             sAdd.orElse(sRemoveAll)
                 .snapshot(ccLoop, lambda2(
-                    (str, xs) => str === "" ? emptyCell : makeItem(str),
+                    (str, xs) => Cell.switchC(xs.map((unused) => str === "" ? emptyCell : makeItem(str))),
                     [emptyCell, sModify])
                 )
                 .hold(emptyCell);
