@@ -10,12 +10,10 @@ import {
     Cell,
     CellLoop,
     getTotalRegistrations,
-    lambda2,
-    Vertex
+    lambda2
 } from '../../lib/Lib';
 
 afterEach(() => {
-    Vertex.collectCycles();
     if (getTotalRegistrations() != 0) {
         throw new Error('listeners were not deregistered');
     }
