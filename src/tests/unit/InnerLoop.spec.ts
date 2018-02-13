@@ -20,8 +20,6 @@ afterEach(() => {
 });
 
 test('example 2: with loop', (done) => {
-    const listenOnInnerLoop = false; //True passes, false fails!
-
     const results = []
     const expected = [
         "BAZ",
@@ -53,15 +51,11 @@ test('example 2: with loop', (done) => {
     const sRemoveAll = new StreamSink<string>();
 
     const cItems = Transaction.run(() => {
-        const makeItem = (label: string): Cell<string> => {
+        const makeItem = (label: string, cCurr:Cell<string>): Cell<string> => {
             const cLoop = new CellLoop<string>();
             const cUpdate = sModify.snapshot(cLoop, makeUppercase).hold(label);
 
-            cLoop.loop(cUpdate);
-
-            if(listenOnInnerLoop) {
-                unlisteners.push(cLoop.listen(() => { }));
-            }
+            cLoop.loop(cUpdate.lift(cCurr, lambda2((update, current) => update, [cCurr])));
 
             return cLoop;
         };
@@ -73,7 +67,7 @@ test('example 2: with loop', (done) => {
         const ccUpdate =
             sAdd.orElse(sRemoveAll)
                 .snapshot(ccLoop, lambda2(
-                    (str, xs) => Cell.switchC(xs.map((unused) => str === "" ? emptyCell : makeItem(str))),
+                    (str, cCurr) => str === "" ? emptyCell : makeItem(str, cCurr),
                     [emptyCell, sModify])
                 )
                 .hold(emptyCell);
