@@ -59,6 +59,7 @@ export function describeAll(v : Vertex, visited : Set<number>)
 
 export class Vertex {
     static NULL : Vertex = new Vertex("user", 1e12, []);
+    static collectingCycles : boolean = false;
     id : number;
 
 	constructor(name : string, rank : number, sources : Source[]) {
@@ -101,7 +102,7 @@ export class Vertex {
         if (verbose)
             console.log("DEC "+this.descr());
         let matched = false;
-        for (let i = 0; i < target.childrn.length; i++)
+        for (let i = target.childrn.length-1; i >= 0; i--)
             if (target.childrn[i] === this) {
                 target.childrn.splice(i, 1);
             }
@@ -199,9 +200,17 @@ export class Vertex {
 	}
 
 	static collectCycles() : void {
-	    Vertex.markRoots();
-	    Vertex.scanRoots();
-	    Vertex.collectRoots();
+        if (Vertex.collectingCycles) {
+            return;
+        }
+        try {
+            Vertex.collectingCycles = true;
+            Vertex.markRoots();
+            Vertex.scanRoots();
+            Vertex.collectRoots();
+        } finally {
+            Vertex.collectingCycles = false;
+        }
 	}
 
 	static markRoots() : void {
