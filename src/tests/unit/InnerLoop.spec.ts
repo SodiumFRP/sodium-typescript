@@ -61,11 +61,12 @@ const runTest = (strategy:STRATEGY, done: () => void) => {
 
             const cUpdate = sModify.snapshot(cLoop, makeUppercase).hold(label);
 
-            cLoop.loop(
-                strategy === STRATEGY.SWITCH_MAP
-                    ?   cUpdate
-                    :   cUpdate.lift(cCurr, lambda2((update, current) => update, [cCurr]))
-            );
+            cLoop.loop((() => {
+                switch(strategy) {
+                    case STRATEGY.SWITCH_MAP:   return cUpdate;
+                    case STRATEGY.LIFT:   return cUpdate.lift(cCurr, lambda2((update, current) => update, [cCurr]));
+                }                
+            })());
 
             return cLoop;
         };
@@ -76,13 +77,12 @@ const runTest = (strategy:STRATEGY, done: () => void) => {
 
         const ccUpdate =
             sAdd.orElse(sRemoveAll)
-                .snapshot(ccLoop, lambda2(
-                    (str, cCurr) => 
-                        strategy === STRATEGY.SWITCH_MAP
-                            ?   Cell.switchC(cCurr.map(() => str === "" ? emptyCell : makeItem(str)))
-                            :   str === "" ? emptyCell : makeItem(str, cCurr)
-                    , [emptyCell, sModify])
-                )
+                .snapshot(ccLoop, lambda2((str, cCurr) => (() => {
+                    switch(strategy) {
+                        case STRATEGY.SWITCH_MAP: return Cell.switchC(cCurr.map(() => str === "" ? emptyCell : makeItem(str)));
+                        case STRATEGY.LIFT:   return str === "" ? emptyCell : makeItem(str, cCurr);
+                    }
+                })(), [emptyCell, sModify]))
                 .hold(emptyCell);
 
         ccLoop.loop(ccUpdate);
