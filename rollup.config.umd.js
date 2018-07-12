@@ -1,10 +1,10 @@
 import typescript from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
-import uglify from 'rollup-plugin-uglify';
+import {uglify} from 'rollup-plugin-uglify';
 import { minify } from 'uglify-es';
 
 export default [
-	{
+    {
         input: './src/lib/Lib.ts',
         external: [ 'typescript-collections', 'sanctuary-type-classes' ],
         output: [
@@ -21,10 +21,15 @@ export default [
             }),
 
             typescript({
-              useTsconfigDeclarationDir: true
+                tsconfigOverride: {
+                    compilerOptions: {
+                        declaration: false //will be run as a separate step via tsc which is more thorough
+                    }
+                },
+                useTsconfigDeclarationDir: true,
             }),
 
             uglify({}, minify)
         ]
-	}
+    }
 ];

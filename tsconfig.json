@@ -1,8 +1,8 @@
 {
 	"compilerOptions": {
 		"target": "es5",
-    "module": "commonjs",
-		"noImplicitAny": false, //would be nice to enable this...
+                "module": "es2015",
+                "noImplicitAny": false, //would be nice to enable this...
 		"removeComments": false,
 		"preserveConstEnums": true,
 		"sourceMap": true,

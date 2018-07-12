@@ -129,7 +129,7 @@ test('Comonad Laws', () => {
 test('Lift', (done) => {
   const addFunctors = S.lift2(S.add);
 
-  const cResult = addFunctors(new Cell<number>(2), new Cell<number>(3));
+  const cResult = addFunctors(new Cell<number>(2)) (new Cell<number>(3));
   const kill = cResult.listen((n: number) => {
     expect(n).toBe(5);
     done();
@@ -156,7 +156,7 @@ test('Join', (done) => {
 test('Chain', (done) => {
   const a = new Cell<number>(3);
 
-  const e = S.chain((n: number) => new Cell<number>(n + 2), a);
+  const e = S.chain((n: number) => new Cell<number>(n + 2)) (a);
   const kill = e.listen((n: number) => {
     expect(n).toBe(5);
     done();
@@ -167,7 +167,7 @@ test('Chain', (done) => {
 test('Concat', (done) => {
   const s1 = new StreamSink<number>();
   const s2 = new StreamSink<number>();
-  const s3 = S.concat(s1, s2);
+  const s3 = S.concat(s1) (s2);
 
   let fired: boolean = false;
 
