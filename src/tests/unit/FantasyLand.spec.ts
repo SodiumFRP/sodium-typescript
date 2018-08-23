@@ -104,27 +104,6 @@ test('Monad Laws', () => {
   );
 });
 
-test('Extend Laws', () => {
-  const testLaws = laws.Extend(CellEq);
-  testLaws.associativity(
-    CellArb(jsc.integer),
-    jsc.constant(function (c: Cell<number>) { return c.sample() + 1; }),
-    jsc.constant(function (c: Cell<number>) { return c.sample() * c.sample(); })
-  );
-});
-
-test('Comonad Laws', () => {
-  const testLaws = laws.Comonad(CellEq);
-
-  testLaws.leftIdentity(
-    CellArb(jsc.number)
-  );
-
-  testLaws.rightIdentity(
-    CellArb(jsc.string),
-    jsc.constant(CellHead)
-  );
-});
 
 test('Lift', (done) => {
   const addFunctors = S.lift2(S.add);
