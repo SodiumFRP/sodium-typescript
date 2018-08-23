@@ -391,14 +391,4 @@ export class Cell<A> {
     'fantasy-land/chain'<B>(f: ((a:A) => Cell<B>)):Cell<B> {
       return Cell.switchC(this.map(f));
     }
-
-    //extend :: Extend w => w a ~> (w a -> b) -> w b
-    'fantasy-land/extend'<B>(f: ((a:Cell<A>) => B)):Cell<B> {
-      return new Cell<B>(f(this));
-    }
-
-    //extract :: Comonad w => w a ~> () -> a
-    'fantasy-land/extract'():A {
-      return this.sample();
-    }
 }
