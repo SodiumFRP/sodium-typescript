@@ -14,7 +14,7 @@ import { Listener } from "./Listener";
 import { Tuple2 } from "./Tuple2";
 import { Lazy } from "./Lazy";
 import { LazyCell } from "./LazyCell";
-//import * as Z from "sanctuary-type-classes";
+import * as Z from "sanctuary-type-classes";
 
 export class Stream<A> {
     constructor(vertex? : Vertex) {
@@ -544,9 +544,7 @@ export class Stream<A> {
     //concat :: Semigroup a => a ~> a -> a
     'fantasy-land/concat'(a:Stream<A>) : Stream<A> {
       return this.merge(a, (left:any, right) => {
-        return left['fantasy-land/concat'] != null ? left['fantasy-land/concat'] (right) 
-            : left['concat'] != null ? left['concat'] (right)
-            : left;
+        return (Z.Semigroup.test(left)) ? Z.concat(left, right) : left;
       });
     }
 

@@ -7,7 +7,7 @@ import replace from 'rollup-plugin-replace';
 export default [
     {
         input: './src/lib/Lib.ts',
-        external: [ 'typescript-collections'],
+        external: [ 'typescript-collections', 'sanctuary-type-classes'],
         output: [
           { file: pkg.module, format: 'es', sourcemap: true },
           { file: pkg.main, format: 'cjs', sourcemap: true },

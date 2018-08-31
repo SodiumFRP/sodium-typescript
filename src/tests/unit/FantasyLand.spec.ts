@@ -9,7 +9,7 @@
 
 import * as jsc from 'jsverify';
 import { S} from "../test-utils/Sanctuary";
-import { Cell, StreamSink, Stream } from '../../lib/Lib';
+import { Cell, StreamSink, Stream, Transaction} from '../../lib/Lib';
 import * as laws from 'fantasy-laws';
 import { testSequence } from '../test-utils/Sequence';
 
@@ -99,25 +99,19 @@ test('Sequence', (done) => {
 });
 
 test('Concat', (done) => {
-  const s1 = new StreamSink<number>();
-  const s2 = new StreamSink<number>();
+  const s1 = new StreamSink<Array<number>>();
+  const s2 = new StreamSink<Array<number>>();
   const s3 = S.concat(s1) (s2);
 
-  let fired: boolean = false;
-
-
-  const kill = s3.listen((n: number) => {
-    if (!fired) {
-      expect(n).toBe(5);
-      fired = true;
-    } else {
-      expect(n).toBe(42);
+  const kill = s3.listen((n: Array<number>) => {
+      expect(n).toEqual([5, 3, 42]);
       done();
-    }
   });
-
-  s1.send(5);
-  s2.send(42);
+  
+  Transaction.run(() => {
+    s1.send([5]);
+    s2.send([3, 42]);
+  })
   kill();
 });
 
