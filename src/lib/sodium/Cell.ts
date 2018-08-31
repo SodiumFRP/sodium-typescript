@@ -368,7 +368,7 @@ export class Cell<A> {
 
     /**
      * Fantasy-land Algebraic Data Type Compatability.
-     * Cell satisfies the Monad (and Functor, Apply, Applicative) categories
+     * Cell satisfies the Functor, Apply, Applicative categories
      * @see {@link https://github.com/fantasyland/fantasy-land} for more info
      */
 

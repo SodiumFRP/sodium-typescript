@@ -2,7 +2,7 @@
 
 /**
   * Fantasy-land Algebraic Data Type Compatability.
-  * Cell satisfies the Monad and Comonad Categories (and hence Functor, Apply, Applicative, and Extend as well)
+  * Cell satisfies the Functor, Apply, and Applicative categories
   * @see {@link https://github.com/fantasyland/fantasy-land} for more info
   * @see {@link https://github.com/sanctuary-js/sanctuary/blob/master/test/Maybe/Maybe.js} for valid test examples (Sanctuary's Maybe)
   */
