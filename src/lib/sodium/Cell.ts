@@ -386,9 +386,4 @@ export class Cell<A> {
     'fantasy-land/ap'<B>(cf: Cell<(a : A) => B>):Cell<B> {
         return Cell.apply(cf, this);
     }
-
-    //chain :: Chain m => m a ~> (a -> m b) -> m b
-    'fantasy-land/chain'<B>(f: ((a:A) => Cell<B>)):Cell<B> {
-      return Cell.switchC(this.map(f));
-    }
 }

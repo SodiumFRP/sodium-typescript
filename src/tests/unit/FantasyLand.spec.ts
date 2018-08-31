@@ -82,29 +82,6 @@ test('Appplicative Laws', () => {
 
 });
 
-test('Chain Laws', () => {
-  const testLaws = laws.Chain(CellEq);
-  testLaws.associativity(
-    CellArb(jsc.array(jsc.asciistring)),
-    jsc.constant(CellHead),
-    jsc.constant(CellParseInt(36))
-  );
-});
-
-test('Monad Laws', () => {
-  const testLaws = laws.Monad(CellEq, Cell);
-
-  testLaws.leftIdentity(
-    jsc.constant(CellHead),
-    jsc.string
-  );
-
-  testLaws.rightIdentity(
-    CellArb(jsc.number)
-  );
-});
-
-
 test('Lift', (done) => {
   const addFunctors = S.lift2(S.add);
 
@@ -119,28 +96,6 @@ test('Lift', (done) => {
 
 test('Sequence', (done) => {
   testSequence (S.sequence(Cell)) (done)
-});
-
-
-test('Join', (done) => {
-  const a = new Cell<number>(3);
-  const d = S.join(new Cell<Cell<number>>(a));
-  const kill = d.listen((n: number) => {
-    expect(n).toBe(3);
-    done();
-  });
-  kill();
-});
-
-test('Chain', (done) => {
-  const a = new Cell<number>(3);
-
-  const e = S.chain((n: number) => new Cell<number>(n + 2)) (a);
-  const kill = e.listen((n: number) => {
-    expect(n).toBe(5);
-    done();
-  });
-  kill();
 });
 
 test('Concat', (done) => {
