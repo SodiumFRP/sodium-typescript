@@ -96,7 +96,7 @@ test('multiple loop: stream and send out of transaction', done => {
     });
 
 
-    //need to delay the handler so it can call kill - due to dummy listener below, use a list
+    //need to delay the handler so it can call kill 
     const kill = cResult.listen(n => setTimeout(() => onValue(n), 0))
 
     //It fails with "send invoked before listeners were registered"
