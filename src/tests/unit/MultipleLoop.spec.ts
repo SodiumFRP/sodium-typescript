@@ -77,7 +77,39 @@ test('multiple loop: stream out of transaction', done => {
     }
 });
 
-//this fails!
+//very interestingly - this also passes
+test('single loop: stream and send out of transaction', done => {
+    const s = new StreamSink<number>();
+
+    const cResult = Transaction.run(() => {
+
+        const c = new CellLoop<number>();
+        c.loop(
+            s.snapshot(c, (n1, n2) => n1 * n2).hold(2)
+        );
+
+        return c;
+    });
+
+
+    //need to delay the handler so it can call kill
+    const kill = cResult.listen(n => setTimeout(() => onValue(n), 0)); 
+
+    s.send(4);
+    const out = [];
+
+    const onValue = n => {
+        out.push(n);
+        if(out.length === 2) {
+            expect([2, 8]).toEqual(out);
+            kill();
+            done();
+        }
+    }
+});
+
+
+//this fails - even though all the above tests pass!
 test('multiple loop: stream and send out of transaction', done => {
     const s = new StreamSink<number>();
     const cResult = Transaction.run(() => {
@@ -99,9 +131,6 @@ test('multiple loop: stream and send out of transaction', done => {
     //need to delay the handler so it can call kill 
     const kill = cResult.listen(n => setTimeout(() => onValue(n), 0))
 
-    //It fails with "send invoked before listeners were registered"
-    //Even though this is clearly after the listen()
-    
     //Uncomment this dummy listener for a "fix" (remember to kill it below too)
     //const killDummy = s.listen(() => {});
     
