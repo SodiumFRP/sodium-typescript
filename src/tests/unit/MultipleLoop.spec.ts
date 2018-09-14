@@ -97,15 +97,13 @@ test('multiple loop: stream and send out of transaction', done => {
 
 
     //need to delay the handler so it can call kill - due to dummy listener below, use a list
-    const kills = [
-        cResult.listen(n => setTimeout(() => onValue(n), 0))
-    ]; 
+    const kill = cResult.listen(n => setTimeout(() => onValue(n), 0))
 
     //It fails with "send invoked before listeners were registered"
     //Even though this is clearly after the listen()
     
-    //Uncomment this dummy listener for a "fix"
-    //kills.push(s.listen(() => {}));
+    //Uncomment this dummy listener for a "fix" (remember to kill it below too)
+    //const killDummy = s.listen(() => {});
     
     s.send(4);
 
@@ -116,7 +114,8 @@ test('multiple loop: stream and send out of transaction', done => {
         out.push(n);
         if(out.length == 2) {
             expect([2, 16]).toEqual(out);
-            kills.forEach(kill => kill());
+            kill();
+            //killDummy();
             done();
         }
     }
