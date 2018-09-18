@@ -2,7 +2,8 @@ import {
     StreamSink,
     getTotalRegistrations,
     Transaction,
-    CellLoop
+    CellLoop,
+    lambda3
 } from '../../lib/Lib';
 
 afterEach(() => {
@@ -110,18 +111,21 @@ test('single loop: stream and send out of transaction', done => {
 
 
 //this fails - even though all the above tests pass!
-test('multiple loop: stream and send out of transaction', done => {
+//still fails with the lambda and delay attempts
+test('multiple loop w/ lambda: stream and send out of transaction', done => {
     const s = new StreamSink<number>();
     const cResult = Transaction.run(() => {
 
         const c1 = new CellLoop<number>();
         const c2 = new CellLoop<number>();
+
+        //As an attempted fix, put everything in lambdas
         c1.loop(
-            s.snapshot3(c1, c2, (n1, n2, n3) => n1 * n2 * n3).hold(2)
+            s.snapshot3(c1, c2, lambda3((n1, n2, n3) => n1 * n2 * n3, [s, c1, c2])).hold(2)
         );
 
         c2.loop(
-            s.snapshot3(c1, c2, (n1, n2, n3) => n1 * n2 * n3).hold(2)
+            s.snapshot3(c1, c2, lambda3((n1, n2, n3) => n1 * n2 * n3, [s, c1, c2])).hold(2)
         );
 
         return c1;
@@ -133,8 +137,14 @@ test('multiple loop: stream and send out of transaction', done => {
 
     //Uncomment this dummy listener for a "fix" (remember to kill it below too)
     //const killDummy = s.listen(() => {});
-    
-    s.send(4);
+
+    //As an attempted fix - put it in another transaction, and delay that
+    setTimeout(
+        () => Transaction.run(() => {
+            s.send(4);
+        }),
+        0
+    );
 
 
     //now we're getting the initial cell value too so we need to collect it
@@ -149,3 +159,4 @@ test('multiple loop: stream and send out of transaction', done => {
         }
     }
 });
+
