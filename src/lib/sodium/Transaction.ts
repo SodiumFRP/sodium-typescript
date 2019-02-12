@@ -69,6 +69,10 @@ export class Transaction
     this.lastQ.push(h);
   }
 
+  public static post_(action: () => void): void {
+    Transaction.run(() => Transaction.currentTransaction.post(0, action));
+  }
+
   /**
    * Add an action to run after all last() actions.
    */
