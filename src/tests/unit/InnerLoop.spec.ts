@@ -19,12 +19,7 @@ afterEach(() => {
     }
 });
 
-enum STRATEGY {
-    SWITCH_MAP = "switch+map",
-    LIFT = "lift"
-}
-
-const runTest = (strategy:STRATEGY, done: () => void) => {
+const runTest = (done: () => void) => {
     const results = []
     const expected = [
         "BAZ",
@@ -56,17 +51,12 @@ const runTest = (strategy:STRATEGY, done: () => void) => {
     const sRemoveAll = new StreamSink<string>();
 
     const cItems = Transaction.run(() => {
-        const makeItem = (label: string, cCurr?:Cell<string>): Cell<string> => {
+        const makeItem = (label: string, cCurr:Cell<string>): Cell<string> => {
             const cLoop = new CellLoop<string>();
 
-            const cUpdate = sModify.snapshot(cLoop, makeUppercase).hold(label);
+            const cUpdate = sModify.snapshot(cCurr, makeUppercase).hold(label);
 
-            cLoop.loop((() => {
-                switch(strategy) {
-                    case STRATEGY.SWITCH_MAP:   return cUpdate;
-                    case STRATEGY.LIFT:   return cUpdate.lift(cCurr, lambda2((update, current) => update, [cCurr]));
-                }                
-            })());
+            cLoop.loop(cUpdate);
 
             return cLoop;
         };
@@ -75,14 +65,17 @@ const runTest = (strategy:STRATEGY, done: () => void) => {
 
         const emptyCell = new Cell("");
 
+        const cCurr = Cell.switchC(ccLoop);
+
         const ccUpdate =
             sAdd.orElse(sRemoveAll)
-                .snapshot(ccLoop, lambda2((str, cCurr) => (() => {
-                    switch(strategy) {
-                        case STRATEGY.SWITCH_MAP: return Cell.switchC(cCurr.map(() => str === "" ? emptyCell : makeItem(str)));
-                        case STRATEGY.LIFT:   return str === "" ? emptyCell : makeItem(str, cCurr);
+                .map(lambda1(str => {
+                    if (str === "") {
+                        return emptyCell;
+                    } else {
+                        return makeItem(str, cCurr);
                     }
-                })(), [emptyCell, sModify]))
+                }, [emptyCell, sModify, cCurr]))
                 .hold(emptyCell);
 
         ccLoop.loop(ccUpdate);
@@ -157,10 +150,6 @@ const runTest = (strategy:STRATEGY, done: () => void) => {
     sWrite.send(true);
 }
 
-test('Inner Loop ' + STRATEGY.SWITCH_MAP, (done) => {
-    runTest (STRATEGY.SWITCH_MAP, done);
-});
-
-test('Inner Loop ' + STRATEGY.LIFT, (done) => {
-    runTest (STRATEGY.LIFT, done);
+test('Inner Loop ', (done) => {
+    runTest (done);
 });
