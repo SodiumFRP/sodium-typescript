@@ -54,11 +54,11 @@ const runTest = (done: () => void) => {
         const makeItem = (label: string, cCurr:Cell<string>): Cell<string> => {
             const cLoop = new CellLoop<string>();
 
-            const cUpdate = sModify.snapshot(cCurr, makeUppercase).hold(label);
+            const cUpdate = sModify.snapshot(cLoop, makeUppercase).hold(label);
 
-            cLoop.loop(cUpdate);
+            cLoop.loop(cCurr);
 
-            return cLoop;
+            return cUpdate;
         };
 
         const ccLoop = new CellLoop<Cell<string>>();
