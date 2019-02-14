@@ -51,6 +51,7 @@ export class Transaction
   private sampleQ: Array<() => void> = [];
   private lastQ: Array<() => void> = [];
   private postQ: Array<() => void> = null;
+  private collectCyclesAtEnd: boolean = false;
 
   prioritized(target: Vertex, action: () => void): void
   {
@@ -69,8 +70,9 @@ export class Transaction
     this.lastQ.push(h);
   }
 
-  public static post_(action: () => void): void {
-    Transaction.run(() => Transaction.currentTransaction.post(0, action));
+  public static _collectCyclesAtEnd(): void
+  {
+    Transaction.run(() => Transaction.currentTransaction.collectCyclesAtEnd = true);
   }
 
   /**
@@ -175,6 +177,10 @@ export class Transaction
         }
       }
       this.postQ = null;
+    }
+    if (this.collectCyclesAtEnd) {
+      Vertex.collectCycles();
+      this.collectCyclesAtEnd = false;
     }
   }
 

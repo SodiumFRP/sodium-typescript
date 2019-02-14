@@ -83,8 +83,7 @@ export class Vertex {
         if (verbose)
             console.log("deregister "+this.descr()+" => "+target.descr());
         this.decrement(target);
-        Transaction.post_(() => Transaction.post_(() => Vertex.collectCycles()));
-        //window.setTimeout(() => Vertex.collectCycles(), 0);
+        Transaction._collectCyclesAtEnd();
     }
     private incRefCount(target : Vertex) : boolean {
         let anyChanged : boolean = false;
