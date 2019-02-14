@@ -21,10 +21,11 @@ export declare class Transaction {
     private sampleQ;
     private lastQ;
     private postQ;
+    private collectCyclesAtEnd;
     prioritized(target: Vertex, action: () => void): void;
     sample(h: () => void): void;
     last(h: () => void): void;
-    static post_(action: () => void): void;
+    static _collectCyclesAtEnd(): void;
     /**
      * Add an action to run after all last() actions.
      */

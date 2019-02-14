@@ -34,6 +34,7 @@ var Transaction = /** @class */ (function () {
         this.sampleQ = [];
         this.lastQ = [];
         this.postQ = null;
+        this.collectCyclesAtEnd = false;
     }
     Transaction.prototype.requestRegen = function () {
         this.toRegen = true;
@@ -49,8 +50,8 @@ var Transaction = /** @class */ (function () {
     Transaction.prototype.last = function (h) {
         this.lastQ.push(h);
     };
-    Transaction.post_ = function (action) {
-        Transaction.run(function () { return Transaction.currentTransaction.post(0, action); });
+    Transaction._collectCyclesAtEnd = function () {
+        Transaction.run(function () { return Transaction.currentTransaction.collectCyclesAtEnd = true; });
     };
     /**
      * Add an action to run after all last() actions.
@@ -131,6 +132,10 @@ var Transaction = /** @class */ (function () {
                 }
             }
             this.postQ = null;
+        }
+        if (this.collectCyclesAtEnd) {
+            Vertex.collectCycles();
+            this.collectCyclesAtEnd = false;
         }
     };
     /**
@@ -249,8 +254,7 @@ var Vertex = /** @class */ (function () {
         if (verbose)
             console.log("deregister " + this.descr() + " => " + target.descr());
         this.decrement(target);
-        Transaction.post_(function () { return Transaction.post_(function () { return Vertex.collectCycles(); }); });
-        //window.setTimeout(() => Vertex.collectCycles(), 0);
+        Transaction._collectCyclesAtEnd();
     };
     Vertex.prototype.incRefCount = function (target) {
         var anyChanged = false;
