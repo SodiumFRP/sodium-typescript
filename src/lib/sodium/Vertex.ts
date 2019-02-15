@@ -1,3 +1,4 @@
+import { Transaction } from "./Transaction";
 import { Set } from "typescript-collections";
 
 let totalRegistrations : number = 0;
@@ -82,7 +83,7 @@ export class Vertex {
         if (verbose)
             console.log("deregister "+this.descr()+" => "+target.descr());
         this.decrement(target);
-        Vertex.collectCycles();
+        Transaction._collectCyclesAtEnd();
     }
     private incRefCount(target : Vertex) : boolean {
         let anyChanged : boolean = false;
