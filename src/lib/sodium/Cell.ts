@@ -4,7 +4,7 @@ import { Lambda1, Lambda1_deps, Lambda1_toFunction,
          Lambda4, Lambda4_deps, Lambda4_toFunction,
          Lambda5, Lambda5_deps, Lambda5_toFunction,
          Lambda6, Lambda6_deps, Lambda6_toFunction,
-         toSources } from "./Lambda";
+         toSources, lambda1 } from "./Lambda";
 import { Source, Vertex } from "./Vertex";
 import { Transaction } from "./Transaction";
 import { Lazy } from "./Lazy";
@@ -246,7 +246,52 @@ export class Cell<A> {
                        e),
                    f,
                    toSources(Lambda6_deps(fn0)));
-	}
+    }
+
+    /**
+     * High order depenency tracing. If any newly created sodium objects within a value of a cell of a sodium object
+     * happen to accumulate state, this method will keep the accumulation of state up to date.
+     */
+    public trace(extractor: (a: A) => (Stream<any>|Cell<any>)[]) : Cell<A> {
+        let cKeepAlive = Cell.switchC(this.map(
+            a =>
+                Cell.liftArray(
+                    extractor(a).map(
+                        x => {
+                            if (x instanceof Stream) {
+                                return x.hold({} as any);
+                            } else {
+                                return x;
+                            }
+                        }
+                    )
+                )
+        ));
+        return this.map(lambda1(a => a, [cKeepAlive]));
+    }
+
+    /**
+     * Lift an array of cells into a cell of an array.
+     */
+    public static liftArray<A>(ca : Cell<A>[]) : Cell<A[]> {
+        return Cell._liftArray(ca, 0, ca.length);
+    }
+
+    private static _liftArray<A>(ca : Cell<A>[], fromInc: number, toExc: number) : Cell<A[]> {
+        if (toExc - fromInc == 0) {
+            return new Cell<A[]>([]);
+        } else if (toExc - fromInc == 1) {
+            return ca[fromInc].map(a => [a]);
+        } else {
+            let pivot = Math.floor((fromInc + toExc) / 2);
+            // the thunk boxing/unboxing here is a performance hack for lift when there are simutaneous changing cells.
+            return Cell._liftArray(ca, fromInc, pivot).lift(
+                    Cell._liftArray(ca, pivot, toExc),
+                    (array1, array2) => () => array1.concat(array2)
+                )
+                .map(x => x());
+        }
+    }
 
 	/**
 	 * Apply a value inside a cell to a function inside a cell. This is the
