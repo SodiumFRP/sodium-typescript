@@ -80,6 +80,16 @@ export declare class Cell<A> {
      */
     lift6<B, C, D, E, F, G>(b: Cell<B>, c: Cell<C>, d: Cell<D>, e: Cell<E>, f: Cell<F>, fn0: ((a: A, b: B, c: C, d: D, e: E, f: F) => G) | Lambda6<A, B, C, D, E, F, G>): Cell<G>;
     /**
+     * High order depenency tracing. If any newly created sodium objects within a value of a cell of a sodium object
+     * happen to accumulate state, this method will keep the accumulation of state up to date.
+     */
+    trace(extractor: (a: A) => (Stream<any> | Cell<any>)[]): Cell<A>;
+    /**
+     * Lift an array of cells into a cell of an array.
+     */
+    static liftArray<A>(ca: Cell<A>[]): Cell<A[]>;
+    private static _liftArray;
+    /**
      * Apply a value inside a cell to a function inside a cell. This is the
      * primitive for all function lifting.
      */

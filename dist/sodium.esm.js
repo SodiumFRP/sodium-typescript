@@ -969,6 +969,43 @@ var Cell = /** @class */ (function () {
         return Cell.apply(Cell.apply(Cell.apply(Cell.apply(Cell.apply(cf, b), c), d), e), f, toSources(Lambda6_deps(fn0)));
     };
     /**
+     * High order depenency tracing. If any newly created sodium objects within a value of a cell of a sodium object
+     * happen to accumulate state, this method will keep the accumulation of state up to date.
+     */
+    Cell.prototype.trace = function (extractor) {
+        var cKeepAlive = Cell.switchC(this.map(function (a) {
+            return Cell.liftArray(extractor(a).map(function (x) {
+                if (x instanceof Stream) {
+                    return x.hold({});
+                }
+                else {
+                    return x;
+                }
+            }));
+        }));
+        return this.map(lambda1(function (a) { return a; }, [cKeepAlive]));
+    };
+    /**
+     * Lift an array of cells into a cell of an array.
+     */
+    Cell.liftArray = function (ca) {
+        return Cell._liftArray(ca, 0, ca.length);
+    };
+    Cell._liftArray = function (ca, fromInc, toExc) {
+        if (toExc - fromInc == 0) {
+            return new Cell([]);
+        }
+        else if (toExc - fromInc == 1) {
+            return ca[fromInc].map(function (a) { return [a]; });
+        }
+        else {
+            var pivot = Math.floor((fromInc + toExc) / 2);
+            // the thunk boxing/unboxing here is a performance hack for lift when there are simutaneous changing cells.
+            return Cell._liftArray(ca, fromInc, pivot).lift(Cell._liftArray(ca, pivot, toExc), function (array1, array2) { return function () { return array1.concat(array2); }; })
+                .map(function (x) { return x(); });
+        }
+    };
+    /**
      * Apply a value inside a cell to a function inside a cell. This is the
      * primitive for all function lifting.
      */
