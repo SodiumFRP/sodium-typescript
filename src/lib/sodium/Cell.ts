@@ -274,7 +274,7 @@ export class Cell<A> {
      * Lift an array of cells into a cell of an array.
      */
     public static liftArray<A>(ca : Cell<A>[]) : Cell<A[]> {
-        return Cell._liftArray(ca, 0, ca.length);
+        return Cell._liftArray(ca, 0, ca.length).map(lambda1(x => x, ca));
     }
 
     private static _liftArray<A>(ca : Cell<A>[], fromInc: number, toExc: number) : Cell<A[]> {
