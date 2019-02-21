@@ -2,7 +2,9 @@ import {
   lambda1,
   Cell,
   CellSink,
+  Stream,
   StreamSink,
+  Tuple2,
   getTotalRegistrations
 } from '../../lib/Lib';
 
@@ -58,4 +60,42 @@ test('cellLiftArray', () => {
   cs.send(2);
   kill();
   expect([[0,1],[1,1],[3,2],[6,6],[10,24],[24,2]]).toEqual(out);
+});
+
+test('cellTrace', () => {
+  const out: number[] = [];
+  class A {
+    c1: Cell<number>;
+    c2: Cell<number>;
+    constructor(c1: Cell<number>, c2: Cell<number>) {
+      this.c1 = c1;
+      this.c2 = c2;
+    }
+  }
+  const ss = new StreamSink<Stream<number>>();
+  const ss1 = new StreamSink<number>();
+  const ss2 = new StreamSink<number>();
+  let s1 = ss1.collect(0, (a,b) => new Tuple2(a + b, a + b));
+  let s2 = ss2.collect(1, (a,b) => new Tuple2(a * b, a * b));
+  let ca =
+    ss
+      .map(s => new A(s.accum(0, (a,b) => a + b), s.accum(1, (a,b) => a * b)))
+      .hold(new A(new Cell(9), new Cell(9)))
+      .trace(a => [a.c1, a.c2]);
+  let c1 = Cell.switchC(ca.map(a => a.c1));
+  let c2 = Cell.switchC(ca.map(a => a.c2));
+  let c3 = c1.lift(c2, (a, b) => a - b);
+  let kill = c3.listen(a => out.push(a));
+  ss.send(s1);
+  ss1.send(1);
+  ss2.send(2);
+  ss1.send(3);
+  ss2.send(4);
+  ss.send(s2);
+  ss1.send(1);
+  ss2.send(2);
+  ss1.send(3);
+  ss2.send(4);
+  kill();
+  expect([0, -1, 0, 1, -1, 0, -6]).toEqual(out);
 });
