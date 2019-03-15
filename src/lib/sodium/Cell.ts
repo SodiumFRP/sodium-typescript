@@ -11,6 +11,7 @@ import { Lazy } from "./Lazy";
 import { Listener } from "./Listener";
 import { Stream, StreamWithSend } from "./Stream";
 import { Operational } from "./Operational";
+import { Tuple2 } from "./Tuple2";
 
 class LazySample<A> {
     constructor(cell : Cell<A>) {
@@ -346,6 +347,37 @@ export class Cell<A> {
 	        out.setVertex__(new Vertex("switchS", 0, [src]));
 	        return out;
 	    });
+    }
+
+    /**
+     * When transforming a value from a larger type to a smaller type, it is likely for duplicate changes to become
+     * propergated. This function insures only distinct changes get propergated.
+     */
+    calm(eq: (a:A,b:A)=>boolean): Cell<A> {
+        return Operational
+            .updates(this)
+            .collectLazy(
+                this.sampleLazy(),
+                (newValue, oldValue) => {
+                    let result: A;
+                    if (eq(newValue, oldValue)) {
+                        result = null;
+                    } else {
+                        result = newValue;
+                    }
+                    return new Tuple2(result, newValue);
+                }
+            )
+            .filterNotNull()
+            .holdLazy(this.sampleLazy());
+    }
+
+    /**
+     * This function is the same as calm, except you do not need to pass an eq function. This function will use (===)
+     * as its eq function. I.E. calling calmRefEq() is the same as calm((a,b) => a === b).
+     */
+    calmRefEq(): Cell<A> {
+        return this.calm((a, b) => a === b);
     }
 
 	/**
