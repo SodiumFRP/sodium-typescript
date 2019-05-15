@@ -106,6 +106,7 @@ export class Vertex {
         for (let i = target.childrn.length-1; i >= 0; i--)
             if (target.childrn[i] === this) {
                 target.childrn.splice(i, 1);
+                break;
             }
         for (let i = 0; i < this.targets.length; i++)
             if (this.targets[i] === target) {
