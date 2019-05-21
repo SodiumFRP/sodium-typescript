@@ -223,7 +223,7 @@ export class Vertex {
 	static markRoots() : void {
         const newRoots : Vertex[] = [];
         // check refCountAdj was restored to zero before mark roots
-        if (verbose || true) {
+        if (verbose) {
             let stack: Vertex[] = roots.slice(0);
             let visited: Set<number> = new Set();
             while (stack.length != 0) {
@@ -268,7 +268,7 @@ export class Vertex {
 	        roots[i].buffered = false;
 	        roots[i].collectWhite();
         }
-        if (verbose || true) { // double check adjRefCount is zero for all vertices reachable by roots
+        if (verbose) { // double check adjRefCount is zero for all vertices reachable by roots
             let stack: Vertex[] = roots.slice(0);
             let visited: Set<number> = new Set();
             while (stack.length != 0) {
