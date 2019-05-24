@@ -27,8 +27,17 @@ export class Source {
             if (this.register_ !== null)
                 this.deregister_ = this.register_();
             else {
-                this.origin.increment(target);
-                this.deregister_ = () => this.origin.decrement(target);
+                this.origin.increment(Vertex.NULL);
+                target.childrn.push(this.origin);
+                this.deregister_ = () => {
+                    this.origin.decrement(Vertex.NULL);
+                    for (let i = target.childrn.length-1; i >= 0; --i) {
+                        if (target.childrn[i] === this.origin) {
+                            target.childrn.splice(i, 1);
+                            break;
+                        }
+                    }
+                }
             }
         }
     }
@@ -131,7 +140,12 @@ export class Vertex {
     }
 
 	private ensureBiggerThan(limit : number) : boolean {
-		if (this.rank > limit || this.visited)
+        if (this.visited) {
+            // Timer.spec.ts has a vertex cycle, this should be fixed first.
+            //throw new Error("Vertex cycle detected.");
+            return false;
+        }
+		if (this.rank > limit)
 			return false;
 
         this.visited = true;
