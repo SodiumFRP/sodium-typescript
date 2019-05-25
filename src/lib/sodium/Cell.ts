@@ -249,10 +249,10 @@ export class Cell<A> {
     }
 
     /**
-     * High order depenency tracing. If any newly created sodium objects within a value of a cell of a sodium object
+     * High order depenency traking. If any newly created sodium objects within a value of a cell of a sodium object
      * happen to accumulate state, this method will keep the accumulation of state up to date.
      */
-    public trace(extractor: (a: A) => (Stream<any>|Cell<any>)[]) : Cell<A> {
+    public tracking(extractor: (a: A) => (Stream<any>|Cell<any>)[]) : Cell<A> {
         let cKeepAlive = Cell.switchC(this.map(
             a =>
                 Cell.liftArray(
@@ -274,7 +274,7 @@ export class Cell<A> {
      * Lift an array of cells into a cell of an array.
      */
     public static liftArray<A>(ca : Cell<A>[]) : Cell<A[]> {
-        return Cell._liftArray(ca, 0, ca.length).map(lambda1(x => x, ca));
+        return Cell._liftArray(ca, 0, ca.length);
     }
 
     private static _liftArray<A>(ca : Cell<A>[], fromInc: number, toExc: number) : Cell<A[]> {

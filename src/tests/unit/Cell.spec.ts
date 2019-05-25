@@ -62,7 +62,7 @@ test('cellLiftArray', () => {
   expect([[0,1],[1,1],[3,2],[6,6],[10,24],[24,2]]).toEqual(out);
 });
 
-test('cellTrace', () => {
+test('cellTracking', () => {
   const out: number[] = [];
   class A {
     c1: Cell<number>;
@@ -81,7 +81,7 @@ test('cellTrace', () => {
     ss
       .map(s => new A(s.accum(0, (a,b) => a + b), s.accum(1, (a,b) => a * b)))
       .hold(new A(new Cell(9), new Cell(9)))
-      .trace(a => [a.c1, a.c2]);
+      .tracking(a => [a.c1, a.c2]);
   let c1 = Cell.switchC(ca.map(a => a.c1));
   let c2 = Cell.switchC(ca.map(a => a.c2));
   let c3 = c1.lift(c2, (a, b) => a - b);
