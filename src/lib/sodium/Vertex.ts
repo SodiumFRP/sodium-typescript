@@ -27,8 +27,17 @@ export class Source {
             if (this.register_ !== null)
                 this.deregister_ = this.register_();
             else {
-                this.origin.increment(target);
-                this.deregister_ = () => this.origin.decrement(target);
+                this.origin.increment(Vertex.NULL);
+                target.childrn.push(this.origin);
+                this.deregister_ = () => {
+                    this.origin.decrement(Vertex.NULL);
+                    for (let i = target.childrn.length-1; i >= 0; --i) {
+                        if (target.childrn[i] === this.origin) {
+                            target.childrn.splice(i, 1);
+                            break;
+                        }
+                    }
+                }
             }
         }
     }
@@ -61,6 +70,7 @@ export function describeAll(v : Vertex, visited : Set<number>)
 export class Vertex {
     static NULL : Vertex = new Vertex("user", 1e12, []);
     static collectingCycles : boolean = false;
+    static toBeFreedList : Vertex[] = [];
     id : number;
 
 	constructor(name : string, rank : number, sources : Source[]) {
@@ -106,6 +116,7 @@ export class Vertex {
         for (let i = target.childrn.length-1; i >= 0; i--)
             if (target.childrn[i] === this) {
                 target.childrn.splice(i, 1);
+                break;
             }
         for (let i = 0; i < this.targets.length; i++)
             if (this.targets[i] === target) {
@@ -129,7 +140,12 @@ export class Vertex {
     }
 
 	private ensureBiggerThan(limit : number) : boolean {
-		if (this.rank > limit || this.visited)
+        if (this.visited) {
+            // Timer.spec.ts has a vertex cycle, this should be fixed first.
+            //throw new Error("Vertex cycle detected.");
+            return false;
+        }
+		if (this.rank > limit)
 			return false;
 
         this.visited = true;
@@ -209,13 +225,37 @@ export class Vertex {
             Vertex.markRoots();
             Vertex.scanRoots();
             Vertex.collectRoots();
+            for (let i = Vertex.toBeFreedList.length-1; i >= 0; --i) {
+                let vertex = Vertex.toBeFreedList.splice(i, 1)[0];
+                vertex.free();
+            }
         } finally {
             Vertex.collectingCycles = false;
         }
 	}
 
 	static markRoots() : void {
-	    const newRoots : Vertex[] = [];
+        const newRoots : Vertex[] = [];
+        // check refCountAdj was restored to zero before mark roots
+        if (verbose) {
+            let stack: Vertex[] = roots.slice(0);
+            let visited: Set<number> = new Set();
+            while (stack.length != 0) {
+                let vertex = stack.pop();
+                if (visited.contains(vertex.id)) {
+                    continue;
+                }
+                visited.add(vertex.id);
+                if (vertex.refCountAdj != 0) {
+                    console.log("markRoots(): reachable refCountAdj was not reset to zero: " + vertex.descr());
+                }
+                for (let i = 0; i < vertex.childrn.length; ++i) {
+                    let child = vertex.childrn[i];
+                    stack.push(child);
+                }
+            }
+        }
+        //
 	    for (let i = 0; i < roots.length; i++) {
             if (verbose)
                 console.log("markRoots "+roots[i].descr());  // ###
@@ -225,8 +265,8 @@ export class Vertex {
             }
 	        else {
 	            roots[i].buffered = false;
-	            if (roots[i].color == Color.black && roots[i].refCount() == 0)
-	                roots[i].free();
+                if (roots[i].color == Color.black && roots[i].refCount() == 0)
+	                Vertex.toBeFreedList.push(roots[i]);
             }
 	    }
 	    roots = newRoots;
@@ -241,7 +281,25 @@ export class Vertex {
 	    for (let i = 0; i < roots.length; i++) {
 	        roots[i].buffered = false;
 	        roots[i].collectWhite();
-	    }
+        }
+        if (verbose) { // double check adjRefCount is zero for all vertices reachable by roots
+            let stack: Vertex[] = roots.slice(0);
+            let visited: Set<number> = new Set();
+            while (stack.length != 0) {
+                let vertex = stack.pop();
+                if (visited.contains(vertex.id)) {
+                    continue;
+                }
+                visited.add(vertex.id);
+                if (vertex.refCountAdj != 0) {
+                    console.log("collectRoots(): reachable refCountAdj was not reset to zero: " + vertex.descr());
+                }
+                for (let i = 0; i < vertex.childrn.length; ++i) {
+                    let child = vertex.childrn[i];
+                    stack.push(child);
+                }
+            }
+        }
 	    roots = [];
 	}
 
@@ -276,10 +334,10 @@ export class Vertex {
 	}
 
 	scanBlack() : void {
+        this.refCountAdj = 0;
 	    this.color = Color.black;
         let chs = this.children();
         for (let i = 0; i < chs.length; i++) {
-            chs[i].refCountAdj++;
             if (verbose)
                 console.log("scanBlack "+this.descr());
             if (chs[i].color != Color.black)
@@ -296,7 +354,7 @@ export class Vertex {
             let chs = this.children();
             for (let i = 0; i < chs.length; i++)
                 chs[i].collectWhite();
-            this.free();
+            Vertex.toBeFreedList.push(this);
 	    }
 	}
 }
