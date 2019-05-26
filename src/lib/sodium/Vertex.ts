@@ -7,6 +7,13 @@ export function getTotalRegistrations() : number {
 }
 
 export class Source {
+    // Note:
+    // When register_ == null, a rank-independent source is constructed (a vertex which is just kept alive for the
+    // lifetime of vertex that contains this source).
+    // When register_ != null it is likely to be a rank-dependent source, but this will depend on the code inside register_.
+    //
+    // rank-independent souces DO NOT bump up the rank of the vertex containing those sources.
+    // rank-depdendent sources DO bump up the rank of the vertex containing thoses sources when required.
     constructor(
         origin : Vertex,
         register_ : () => () => void
@@ -27,6 +34,9 @@ export class Source {
             if (this.register_ !== null)
                 this.deregister_ = this.register_();
             else {
+                // Note: The use of Vertex.NULL here instead of "target" is not a bug, this is done to create a
+                // rank-independent source. (see note at constructor for more details.). The origin vertex still gets
+                // added target vertex's children for the memory management algorithm.
                 this.origin.increment(Vertex.NULL);
                 target.childrn.push(this.origin);
                 this.deregister_ = () => {
