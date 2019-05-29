@@ -23,7 +23,8 @@ test('should test Router', (done) => {
     sa.send([2]);
     sa.send([3]);
     sa.send([1,2,3]);
+    sa.send([1,2,3,1,2])
     kill();
-    expect(out).toEqual(["a", "b", "c", "abc"]);
+    expect(out).toEqual(["a", "b", "c", "abc", "abc"]);
     done();
 });
