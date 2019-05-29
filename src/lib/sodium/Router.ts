@@ -13,7 +13,7 @@ export class Router<A,K> {
         this._vertex =
             new Vertex(
                 "Router",
-                this._inStream.getVertex__().rank + 1, // <-- estimated rank only, maybe adjusted by ensureBiggerThan
+                this._inStream.getVertex__().rank + 1, // <-- estimated rank only, may be adjusted by ensureBiggerThan
                 []
             );
         this._vertex.addSource(
@@ -44,12 +44,12 @@ export class Router<A,K> {
         );
     }
 
-    public filterIncludes(k: K): Stream<A> {
+    public filterMatches(k: K): Stream<A> {
         let out = new StreamWithSend<A>();
         let vertex =
             new Vertex(
-                "Router::filterEquals",
-                this._vertex.rank + 1, // <-- estimated rank only, maybe adjusted by ensureBiggerThan
+                "Router::filterMatches",
+                this._vertex.rank + 1, // <-- estimated rank only, may be adjusted by ensureBiggerThan
                 [
                     new Source(
                         this._vertex,
