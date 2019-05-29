@@ -4,6 +4,7 @@ export { StreamSink } from "./sodium/StreamSink";
 export { Cell } from "./sodium/Cell";
 export { CellLoop } from "./sodium/CellLoop";
 export { CellSink } from "./sodium/CellSink";
+export { Router } from "./sodium/Router";
 export { Transaction } from "./sodium/Transaction";
 export { Tuple2 } from "./sodium/Tuple2";
 export { Unit } from "./sodium/Unit";
