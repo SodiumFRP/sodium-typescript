@@ -1,4 +1,4 @@
-import { Dictionary } from 'typescript-collections';
+import { Dictionary, Set } from 'typescript-collections';
 import { Stream, StreamWithSend } from './Stream';
 import { Vertex, Source } from './Vertex';
 
@@ -24,9 +24,14 @@ export class Router<A,K> {
                         this._vertex,
                         (a: A) => {
                             let ks = selector(a);
+                            let visited = new Set<K>(keyToStr);
                             let outs: StreamWithSend<A>[] = [];
                             for (let i = 0; i < ks.length; ++i) {
                                 let k = ks[i];
+                                if (visited.contains(k)) {
+                                    continue;
+                                }
+                                visited.add(k);
                                 let outs2 = this._table.getValue(k);
                                 if (outs2 != undefined) {
                                     for (let j = 0; j < outs2.length; ++j) {
