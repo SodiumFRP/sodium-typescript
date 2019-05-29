@@ -3,3 +3,4 @@ dist/test
 tsconfig.json
 webpack.config.js
 examples
+.rpt2_cache
