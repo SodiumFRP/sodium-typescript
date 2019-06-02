@@ -278,12 +278,7 @@ export class Vertex {
     }
 
     free() : void {
-        let targets: Vertex[] = [];
-        this.targets.forEach((target, count) => {
-            for (let i = 0; i < count; ++i) {
-                targets.push(target);
-            }
-        });
+        let targets: Vertex[] = this.targetArray().slice(0);
         for (let i = 0; i < targets.length; ++i) {
             this.decRefCount(targets[i]);
         }
