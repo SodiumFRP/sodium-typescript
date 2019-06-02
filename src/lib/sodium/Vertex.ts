@@ -101,9 +101,14 @@ export class Vertex {
         Transaction._collectCyclesAtEnd();
     }
 
+    targetArrayCacheDirty : boolean = false;
+    childArrayCacheDirty : boolean = false;
+
     private targets_add(target : Vertex) {
         let count = (this.targets.getValue(target) || 0);
         this.targets.setValue(target, count + 1);
+        this.targetArrayCacheDirty = true;
+        this.targetArrayCache.splice(0, this.targetArrayCache.length);
     }
 
     private targets_remove(target : Vertex) : boolean {
@@ -117,12 +122,16 @@ export class Vertex {
         } else {
             this.targets.setValue(target, newCount);
         }
+        this.targetArrayCacheDirty = true;
+        this.targetArrayCache.splice(0, this.targetArrayCache.length);
         return true;
     }
 
     children_add(child : Vertex) {
         let count = (this.childrn.getValue(child) || 0);
         this.childrn.setValue(child, count + 1);
+        this.childArrayCacheDirty = true;
+        this.childArrayCache.splice(0, this.childArrayCache.length);
     }
 
     children_remove(child : Vertex) : boolean {
@@ -136,6 +145,8 @@ export class Vertex {
         } else {
             this.childrn.setValue(child, newCount);
         }
+        this.childArrayCacheDirty = true;
+        this.childArrayCache.splice(0, this.childArrayCache.length);
         return true;
     }
 
@@ -184,7 +195,7 @@ export class Vertex {
 
         this.visited = true;
         this.rank = limit + 1;
-        this.targets
+        this.targetArray()
             .forEach(
                 target =>
                     target.ensureBiggerThan(this.rank)
@@ -218,14 +229,34 @@ export class Vertex {
     buffered : boolean = false;
     refCountAdj : number = 0;
 
+    private childArrayCache: Vertex[] = [];
 	children() : Vertex[] {
-        let result: Vertex[] = [];
+        if (!this.childArrayCacheDirty) {
+            return this.childArrayCache;
+        }
+        this.childArrayCache.splice(0, this.childArrayCache.length);
         this.childrn.forEach((child, count) => {
             for (let i = 0; i < count; ++i) {
-                result.push(child);
+                this.childArrayCache.push(child);
             }
         });
-        return result;
+        this.childArrayCacheDirty = false;
+        return this.childArrayCache;
+    }
+
+    private targetArrayCache: Vertex[] = [];
+    targetArray() : Vertex[] {
+        if (!this.targetArrayCacheDirty) {
+            return this.targetArrayCache;
+        }
+        this.targetArrayCache.splice(0, this.targetArrayCache.length);
+        this.targets.forEach((target, count) => {
+            for (let i = 0; i < count; ++i) {
+                this.targetArrayCache.push(target);
+            }
+        });
+        this.targetArrayCacheDirty = false;
+        return this.targetArrayCache;
     }
 
 	increment(referrer : Vertex) : boolean {
