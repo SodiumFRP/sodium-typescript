@@ -19,7 +19,7 @@ test('should test Timer', (done) => {
       oAlarm = new CellLoop<number>(),
       sAlarm = sys.at(oAlarm);
     oAlarm.loop(
-      Operational.defer(sAlarm.map(t => t + period))
+      sAlarm.map(t => t + period)
         .hold(time.sample() + period));
     return sAlarm;
   }
