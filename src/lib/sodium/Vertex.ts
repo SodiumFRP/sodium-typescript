@@ -1,5 +1,5 @@
 import { Transaction } from "./Transaction";
-import { Set } from "typescript-collections";
+import { Dictionary, Set } from "typescript-collections";
 
 let totalRegistrations : number = 0;
 export function getTotalRegistrations() : number {
@@ -38,15 +38,10 @@ export class Source {
                 // rank-independent source. (see note at constructor for more details.). The origin vertex still gets
                 // added target vertex's children for the memory management algorithm.
                 this.origin.increment(Vertex.NULL);
-                target.childrn.push(this.origin);
+                target.children_add(this.origin);
                 this.deregister_ = () => {
                     this.origin.decrement(Vertex.NULL);
-                    for (let i = target.childrn.length-1; i >= 0; --i) {
-                        if (target.childrn[i] === this.origin) {
-                            target.childrn.splice(i, 1);
-                            break;
-                        }
-                    }
+                    target.children_remove(this.origin);
                 }
             }
         }
@@ -92,9 +87,9 @@ export class Vertex {
 	name : string;
     rank : number;
     sources : Source[];
-    targets : Vertex[] = [];
-    childrn : Vertex[] = [];
-    refCount() : number { return this.targets.length; };
+    targets : Dictionary<Vertex,number> = new Dictionary(v => "" + v.id);
+    childrn : Dictionary<Vertex,number> = new Dictionary(v => "" + v.id);
+    refCount() : number { return this.targets.size(); };
     visited : boolean = false;
     register(target : Vertex) : boolean {
         return this.increment(target);
@@ -105,14 +100,53 @@ export class Vertex {
         this.decrement(target);
         Transaction._collectCyclesAtEnd();
     }
+
+    private targets_add(target : Vertex) {
+        let count = (this.targets.getValue(target) || 0);
+        this.targets.setValue(target, count + 1);
+    }
+
+    private targets_remove(target : Vertex) : boolean {
+        let count = (this.targets.getValue(target) || 0);
+        if (count == 0) {
+            return false;
+        }
+        let newCount = count - 1;
+        if (newCount == 0) {
+            this.targets.remove(target);
+        } else {
+            this.targets.setValue(target, newCount);
+        }
+        return true;
+    }
+
+    children_add(child : Vertex) {
+        let count = (this.childrn.getValue(child) || 0);
+        this.childrn.setValue(child, count + 1);
+    }
+
+    children_remove(child : Vertex) : boolean {
+        let count = (this.childrn.getValue(child) || 0);
+        if (count == 0) {
+            return false;
+        }
+        let newCount = count - 1;
+        if (newCount == 0) {
+            this.childrn.remove(child);
+        } else {
+            this.childrn.setValue(child, newCount);
+        }
+        return true;
+    }
+
     private incRefCount(target : Vertex) : boolean {
         let anyChanged : boolean = false;
         if (this.refCount() == 0) {
             for (let i = 0; i < this.sources.length; i++)
                 this.sources[i].register(this);
         }
-        this.targets.push(target);
-        target.childrn.push(this);
+        this.targets_add(target);
+        target.children_add(this);
         if (target.ensureBiggerThan(this.rank))
             anyChanged = true;
         totalRegistrations++;
@@ -122,18 +156,8 @@ export class Vertex {
     private decRefCount(target : Vertex) : void {
         if (verbose)
             console.log("DEC "+this.descr());
-        let matched = false;
-        for (let i = target.childrn.length-1; i >= 0; i--)
-            if (target.childrn[i] === this) {
-                target.childrn.splice(i, 1);
-                break;
-            }
-        for (let i = 0; i < this.targets.length; i++)
-            if (this.targets[i] === target) {
-                this.targets.splice(i, 1);
-                matched = true;
-                break;
-            }
+        target.children_remove(this);
+        let matched = this.targets_remove(target);
         if (matched) {
             if (this.refCount() == 0) {
                 for (let i = 0; i < this.sources.length; i++)
@@ -159,9 +183,12 @@ export class Vertex {
 			return false;
 
         this.visited = true;
-		this.rank = limit + 1;
-		for (let i = 0; i < this.targets.length; i++)
-			this.targets[i].ensureBiggerThan(this.rank);
+        this.rank = limit + 1;
+        this.targets
+            .forEach(
+                target =>
+                    target.ensureBiggerThan(this.rank)
+            );
         this.visited = false;
 		return true;
 	}
@@ -191,7 +218,15 @@ export class Vertex {
     buffered : boolean = false;
     refCountAdj : number = 0;
 
-	children() : Vertex[] { return this.childrn; }
+	children() : Vertex[] {
+        let result: Vertex[] = [];
+        this.childrn.forEach((child, count) => {
+            for (let i = 0; i < count; ++i) {
+                result.push(child);
+            }
+        });
+        return result;
+    }
 
 	increment(referrer : Vertex) : boolean {
 	    return this.incRefCount(referrer);
@@ -212,8 +247,15 @@ export class Vertex {
     }
 
     free() : void {
-        while (this.targets.length > 0)
-            this.decRefCount(this.targets[0]);
+        let targets: Vertex[] = [];
+        this.targets.forEach((target, count) => {
+            for (let i = 0; i < count; ++i) {
+                targets.push(target);
+            }
+        });
+        for (let i = 0; i < targets.length; ++i) {
+            this.decRefCount(targets[i]);
+        }
     }
 
 	possibleRoots() : void {
@@ -259,8 +301,9 @@ export class Vertex {
                 if (vertex.refCountAdj != 0) {
                     console.log("markRoots(): reachable refCountAdj was not reset to zero: " + vertex.descr());
                 }
-                for (let i = 0; i < vertex.childrn.length; ++i) {
-                    let child = vertex.childrn[i];
+                let chs = vertex.children;
+                for (let i = 0; i < chs.length; ++i) {
+                    let child = chs[i];
                     stack.push(child);
                 }
             }
@@ -304,8 +347,9 @@ export class Vertex {
                 if (vertex.refCountAdj != 0) {
                     console.log("collectRoots(): reachable refCountAdj was not reset to zero: " + vertex.descr());
                 }
-                for (let i = 0; i < vertex.childrn.length; ++i) {
-                    let child = vertex.childrn[i];
+                let chs = vertex.children;
+                for (let i = 0; i < chs.length; ++i) {
+                    let child = chs[i];
                     stack.push(child);
                 }
             }
