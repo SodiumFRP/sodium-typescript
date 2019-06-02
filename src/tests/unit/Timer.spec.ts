@@ -3,7 +3,6 @@ import {
   Stream,
   StreamSink,
   CellLoop,
-  Operational,
   TimerSystem,
   SecondsTimerSystem,
   Transaction,
