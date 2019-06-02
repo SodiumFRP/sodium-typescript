@@ -82,7 +82,7 @@ export class Operational {
                 new Source(
                     s.getVertex__(),
                     () => {
-                        return s.listen_(out.getVertex__(), (as : Array<A>) => {
+                        return s.listen_(Vertex.NULL, (as : Array<A>) => {
                             for (let i = 0; i < as.length; i++) {
                                 Transaction.currentTransaction.post(i, () => {
                                     Transaction.run(() => {

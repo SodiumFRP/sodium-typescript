@@ -3,6 +3,7 @@ import {
   Stream,
   StreamSink,
   CellLoop,
+  Operational,
   TimerSystem,
   SecondsTimerSystem,
   Transaction,
@@ -18,7 +19,7 @@ test('should test Timer', (done) => {
       oAlarm = new CellLoop<number>(),
       sAlarm = sys.at(oAlarm);
     oAlarm.loop(
-      sAlarm.map(t => t + period)
+      Operational.defer(sAlarm.map(t => t + period))
         .hold(time.sample() + period));
     return sAlarm;
   }

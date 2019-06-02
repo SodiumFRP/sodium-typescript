@@ -151,9 +151,7 @@ export class Vertex {
 
 	private ensureBiggerThan(limit : number) : boolean {
         if (this.visited) {
-            // Timer.spec.ts has a vertex cycle, this should be fixed first.
-            //throw new Error("Vertex cycle detected.");
-            return false;
+            throw new Error("Vertex cycle detected.");
         }
 		if (this.rank > limit)
 			return false;
