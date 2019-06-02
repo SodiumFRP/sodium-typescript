@@ -82,15 +82,32 @@ export class Operational {
                 new Source(
                     s.getVertex__(),
                     () => {
-                        return s.listen_(Vertex.NULL, (as : Array<A>) => {
-                            for (let i = 0; i < as.length; i++) {
-                                Transaction.currentTransaction.post(i, () => {
-                                    Transaction.run(() => {
-                                        out.send_(as[i]);
+                        out.getVertex__().childrn.push(s.getVertex__());
+                        let cleanups: (()=>void)[] = [];
+                        cleanups.push(
+                            s.listen_(Vertex.NULL, (as : Array<A>) => {
+                                for (let i = 0; i < as.length; i++) {
+                                    Transaction.currentTransaction.post(i, () => {
+                                        Transaction.run(() => {
+                                            out.send_(as[i]);
+                                        });
                                     });
-                                });
+                                }
+                            }, false)
+                        );
+                        cleanups.push(() => {
+                            let chs = out.getVertex__().childrn;
+                            for (let i = chs.length-1; i >= 0; --i) {
+                                if (chs[i] == s.getVertex__()) {
+                                    chs.splice(i, 1);
+                                    break;
+                                }
                             }
-                        }, false);
+                        });
+                        return () => {
+                            cleanups.forEach(cleanup => cleanup());
+                            cleanups.splice(0, cleanups.length);
+                        }
                     }
                 )
             ]
