@@ -275,7 +275,9 @@ export class Cell<A> {
      * Lift an array of cells into a cell of an array.
      */
     public static liftArray<A>(ca : Cell<A>[]) : Cell<A[]> {
-        return Cell._liftArray(ca, 0, ca.length);
+        // HACK: The ".map(lambda1(x => x, ca))" is required for Cell::tracking to work at the moment.
+        // I'm not sure why it is needed, but it makes it work. More investigation will need to be done later.
+        return Cell._liftArray(ca, 0, ca.length).map(lambda1(x => x, ca));
     }
 
     private static _liftArray<A>(ca : Cell<A>[], fromInc: number, toExc: number) : Cell<A[]> {
