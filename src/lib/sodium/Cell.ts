@@ -254,21 +254,54 @@ export class Cell<A> {
      * happen to accumulate state, this method will keep the accumulation of state up to date.
      */
     public tracking(extractor: (a: A) => (Stream<any>|Cell<any>)[]) : Cell<A> {
-        let cKeepAlive = Cell.switchC(this.map(
-            a =>
-                Cell.liftArray(
-                    extractor(a).map(
-                        x => {
-                            if (x instanceof Stream) {
-                                return x.hold({} as any);
-                            } else {
-                                return x;
+        const out = new StreamWithSend<A>(null);
+        let vertex = new Vertex("tracking", 0, [
+            new Source(
+                this.vertex,
+                () => {
+                    let cleanup2: ()=>void = () => {};
+                    let updateDeps =
+                        (a: A) => {
+                            let lastCleanups2 = cleanup2;
+                            let deps = extractor(a).map(dep => dep.getVertex__());
+                            for (let i = 0; i < deps.length; ++i) {
+                                let dep = deps[i];
+                                vertex.childrn.push(dep);
+                                dep.increment(Vertex.NULL);
                             }
-                        }
-                    )
-                )
-        ));
-        return this.map(lambda1(a => a, [cKeepAlive]));
+                            cleanup2 = () => {
+                                for (let i = 0; i < deps.length; ++i) {
+                                    let dep = deps[i];
+                                    for (let j = 0; j < vertex.childrn.length; ++j) {
+                                        if (vertex.childrn[j] === dep) {
+                                            vertex.childrn.splice(j, 1);
+                                            break;
+                                        }
+                                    }
+                                    dep.decrement(Vertex.NULL);
+                                }
+                            };
+                            lastCleanups2();
+                        };
+                    updateDeps(this.sample());
+                    var cleanup1 =
+                        Operational.updates(this).listen_(
+                            vertex,
+                            (a: A) => {
+                                updateDeps(a);
+                                out.send_(a);
+                            },
+                            false
+                        );
+                    return () => {
+                        cleanup1();
+                        cleanup2();
+                    }
+                }
+            )
+        ]);
+        out.setVertex__(vertex);
+        return out.holdLazy(this.sampleLazy());
     }
 
     /**
