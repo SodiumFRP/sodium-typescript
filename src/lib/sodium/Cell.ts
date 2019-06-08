@@ -356,10 +356,12 @@ export class Cell<A> {
                                 // from the one we just switched to. So anything from the old input cell
                                 // that might have happened during this transaction will be suppressed.
                                 last_ca = ca;
+                                // Connect before disconnect to avoid memory bounce, when switching to same cell twice.
+                                let nextKill2 = Operational.value(ca).listen_(out.getVertex__(),
+                                    (a : A) => out.send_(a), false);
                                 if (kill2 !== null)
                                     kill2();
-                                kill2 = Operational.value(ca).listen_(out.getVertex__(),
-                                    (a : A) => out.send_(a), false);
+                                kill2 = nextKill2;
                             }, false);
                             return () => { kill1(); kill2(); };
                         }
@@ -383,8 +385,10 @@ export class Cell<A> {
                       () => {
                           let kill2 = csa.sampleNoTrans__().listen_(out.getVertex__(), h2, false);
                           const kill1 = csa.getStream__().listen_(out.getVertex__(), (sa : Stream<A>) => {
+                              // Connect before disconnect to avoid memory bounce, when switching to same stream twice.
+                              let nextKill2 = sa.listen_(out.getVertex__(), h2, true);
                               kill2();
-                              kill2 = sa.listen_(out.getVertex__(), h2, true);
+                              kill2 = nextKill2;
                           }, false);
                           return () => { kill1(); kill2(); };
                       }
