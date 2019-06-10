@@ -571,3 +571,15 @@ test('should test loopCell', (done) => {
   expect(6).toBe(sum_out.sample());
 });
 
+test('should test defer/split memory cycle', done => {
+  // We do not fire through sl here, as it would cause an infinite loop.
+  // This is just a memory management test.
+  let sl : StreamLoop<number>;
+  Transaction.run(() => {
+    sl = new StreamLoop<number>();
+    sl.loop(Operational.defer(sl));
+  });
+  let kill = sl.listen(() => {});
+  kill();
+  done();
+});
