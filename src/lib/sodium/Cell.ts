@@ -333,36 +333,45 @@ export class Cell<A> {
 	 */
 	static apply<A,B>(cf : Cell<(a : A) => B>, ca : Cell<A>, sources? : Source[]) : Cell<B> {
     	return Transaction.run(() => {
+            let pumping = false;
     	    const state = new ApplyState<A,B>(),
                 out = new StreamWithSend<B>(),
-                cf_value = Operational.value(cf),
-                ca_value = Operational.value(ca),
+                pump = () => {
+                    if (pumping) {
+                        return;
+                    }
+                    pumping = true;
+                    Transaction.currentTransaction.prioritized(out.getVertex__(), () => {
+                        let f = state.f_present ? state.f : cf.sampleNoTrans__();
+                        let a = state.a_present ? state.a : ca.sampleNoTrans__();
+                        out.send_(f(a));
+                        pumping = false;
+                    });
+                },
                 src1 = new Source(
-                        cf_value.getVertex__(),
+                        cf.getVertex__(),
                         () => {
-                            return cf_value.listen_(out.getVertex__(), (f : (a : A) => B) => {
+                            return Operational.updates(cf).listen_(out.getVertex__(), (f : (a : A) => B) => {
                                 state.f = f;
                                 state.f_present = true;
-                                if (state.a_present)
-                                    out.send_(state.f(state.a));
+                                pump();
                             }, false);
                         }
                     ),
                 src2 = new Source(
-                        ca_value.getVertex__(),
+                        ca.getVertex__(),
                         () => {
-                            return ca_value.listen_(out.getVertex__(), (a : A) => {
+                            return Operational.updates(ca).listen_(out.getVertex__(), (a : A) => {
                                 state.a = a;
                                 state.a_present = true;
-                                if (state.f_present)
-                                    out.send_(state.f(state.a));
+                                pump();
                             }, false);
                         }
                     );
             out.setVertex__(new Vertex("apply", 0,
                 [src1, src2].concat(sources ? sources : [])
             ));
-            return out.coalesce__((l, r) => r).holdLazy(new Lazy<B>(() =>
+            return out.holdLazy(new Lazy<B>(() =>
                     cf.sampleNoTrans__()(ca.sampleNoTrans__())
                 ));
         });
