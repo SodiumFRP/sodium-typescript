@@ -336,6 +336,8 @@ export class Cell<A> {
             let pumping = false;
     	    const state = new ApplyState<A,B>(),
                 out = new StreamWithSend<B>(),
+                cf_updates = Operational.updates(cf),
+                ca_updates = Operational.updates(ca),
                 pump = () => {
                     if (pumping) {
                         return;
@@ -349,9 +351,9 @@ export class Cell<A> {
                     });
                 },
                 src1 = new Source(
-                        cf.getVertex__(),
+                        cf_updates.getVertex__(),
                         () => {
-                            return Operational.updates(cf).listen_(out.getVertex__(), (f : (a : A) => B) => {
+                            return cf_updates.listen_(out.getVertex__(), (f : (a : A) => B) => {
                                 state.f = f;
                                 state.f_present = true;
                                 pump();
@@ -359,9 +361,9 @@ export class Cell<A> {
                         }
                     ),
                 src2 = new Source(
-                        ca.getVertex__(),
+                        ca_updates.getVertex__(),
                         () => {
-                            return Operational.updates(ca).listen_(out.getVertex__(), (a : A) => {
+                            return ca_updates.listen_(out.getVertex__(), (a : A) => {
                                 state.a = a;
                                 state.a_present = true;
                                 pump();
