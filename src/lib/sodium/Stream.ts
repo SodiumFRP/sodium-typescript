@@ -101,34 +101,6 @@ export class Stream<A> {
         });
     }
 
-    private merge_(s : Stream<A>) : Stream<A> {
-        const out = new StreamWithSend<A>();
-        const left = new Vertex("merge", 0, []);
-        left.sources.push(new Source(this.vertex, () => {
-            return this.listen_(left, (a : A) => {
-                    out.send_(a);
-                }, false);
-        }));
-        out.vertex.sources = out.vertex.sources.concat([
-                new Source(
-                    left,
-                    () => {
-                        left.register(out.vertex);
-                        return () => { left.deregister(out.vertex); }
-                    }
-                ),
-                new Source(
-                    s.vertex,
-                    () => {
-                        return s.listen_(out.vertex, (a : A) => {
-                            out.send_(a);
-                        }, false);
-                    }
-                )
-            ]);
-        return out;
-    }
-
     /**
      * Merge two streams of the same type into one, so that events on either input appear
      * on the returned stream.
