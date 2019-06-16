@@ -113,8 +113,9 @@ test('cell lift work load', done => {
   let c2 = new CellSink(0);
   let c3 = new CellSink(0);
   let c4 = new CellSink(0);
+  let out: string[] = [];
   let c = c1.lift4(c2, c3, c4, (x1, x2, x3, x4) => {
-    console.log(lines[idx]);
+    out.push(lines[idx]);
     idx = (idx + 1) % lines.length;
     return x1 + x2 + x3 + x4;
   });
@@ -126,5 +127,6 @@ test('cell lift work load', done => {
     c4.send(4);
   });
   kill();
+  expect(out).toEqual(["Work it harder", "Make it better"]);
   done();
 });
