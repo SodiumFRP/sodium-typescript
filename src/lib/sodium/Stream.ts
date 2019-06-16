@@ -129,22 +129,6 @@ export class Stream<A> {
         return out;
     }
 
-    coalesce__(f : ((left : A, right : A) => A) | Lambda2<A,A,A>) : Stream<A> {  // TO DO figure out how to hide this
-        const out = new StreamWithSend<A>();
-        const coalescer = new CoalesceHandler<A>(f, out);
-        out.vertex.sources = out.vertex.sources.concat([
-                new Source(
-                    this.vertex,
-                    () => {
-                        return this.listen_(out.vertex, (a : A) => {
-                            coalescer.send_(a);
-                        }, false);
-                    }
-                )
-            ]).concat(toSources(Lambda2_deps(f)));
-        return out;
-    }
-
     /**
      * Merge two streams of the same type into one, so that events on either input appear
      * on the returned stream.
