@@ -406,7 +406,7 @@ export class Cell<A> {
                         () => {
                             let kill2 : () => void = last_ca === null ? null :
                                     Operational.value(last_ca).listen_(out.getVertex__(),
-                                        (a : A) => out.send_(a), false);
+                                        (a : A) => { outValue = a; pump(); }, false);
                             const kill1 = cca_value.listen_(out.getVertex__(), (ca : Cell<A>) => {
                                 last_ca = ca;
                                 // Connect before disconnect to avoid memory bounce, when switching to same cell twice.
