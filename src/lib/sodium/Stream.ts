@@ -166,6 +166,7 @@ export class Stream<A> {
             if (pumping) {
                 return;
             }
+            pumping = true;
             Transaction.currentTransaction.prioritized(out.getVertex__(), () => {
                 if (mergeState.left_present && mergeState.right_present) {
                     out.send_(ff(mergeState.left, mergeState.right));
