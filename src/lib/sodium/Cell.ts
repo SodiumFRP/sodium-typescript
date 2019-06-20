@@ -333,36 +333,47 @@ export class Cell<A> {
 	 */
 	static apply<A,B>(cf : Cell<(a : A) => B>, ca : Cell<A>, sources? : Source[]) : Cell<B> {
     	return Transaction.run(() => {
+            let pumping = false;
     	    const state = new ApplyState<A,B>(),
                 out = new StreamWithSend<B>(),
-                cf_value = Operational.value(cf),
-                ca_value = Operational.value(ca),
+                cf_updates = Operational.updates(cf),
+                ca_updates = Operational.updates(ca),
+                pump = () => {
+                    if (pumping) {
+                        return;
+                    }
+                    pumping = true;
+                    Transaction.currentTransaction.prioritized(out.getVertex__(), () => {
+                        let f = state.f_present ? state.f : cf.sampleNoTrans__();
+                        let a = state.a_present ? state.a : ca.sampleNoTrans__();
+                        out.send_(f(a));
+                        pumping = false;
+                    });
+                },
                 src1 = new Source(
-                        cf_value.getVertex__(),
+                        cf_updates.getVertex__(),
                         () => {
-                            return cf_value.listen_(out.getVertex__(), (f : (a : A) => B) => {
+                            return cf_updates.listen_(out.getVertex__(), (f : (a : A) => B) => {
                                 state.f = f;
                                 state.f_present = true;
-                                if (state.a_present)
-                                    out.send_(state.f(state.a));
+                                pump();
                             }, false);
                         }
                     ),
                 src2 = new Source(
-                        ca_value.getVertex__(),
+                        ca_updates.getVertex__(),
                         () => {
-                            return ca_value.listen_(out.getVertex__(), (a : A) => {
+                            return ca_updates.listen_(out.getVertex__(), (a : A) => {
                                 state.a = a;
                                 state.a_present = true;
-                                if (state.f_present)
-                                    out.send_(state.f(state.a));
+                                pump();
                             }, false);
                         }
                     );
             out.setVertex__(new Vertex("apply", 0,
                 [src1, src2].concat(sources ? sources : [])
             ));
-            return out.coalesce__((l, r) => r).holdLazy(new Lazy<B>(() =>
+            return out.holdLazy(new Lazy<B>(() =>
                     cf.sampleNoTrans__()(ca.sampleNoTrans__())
                 ));
         });
@@ -375,6 +386,19 @@ export class Cell<A> {
 	    return Transaction.run(() => {
             const za = cca.sampleLazy().map((ba : Cell<A>) => ba.sample()),
                 out = new StreamWithSend<A>();
+            let outValue: A = null;
+            let pumping = false;
+            const pump = () => {
+                if (pumping) {
+                    return;
+                }
+                pumping = true;
+                Transaction.currentTransaction.prioritized(out.getVertex__(), () => {
+                    out.send_(outValue);
+                    outValue = null;
+                    pumping = false;
+                });
+            };
             let last_ca : Cell<A> = null;
             const cca_value = Operational.value(cca),
                   src = new Source(
@@ -382,16 +406,16 @@ export class Cell<A> {
                         () => {
                             let kill2 : () => void = last_ca === null ? null :
                                     Operational.value(last_ca).listen_(out.getVertex__(),
-                                        (a : A) => out.send_(a), false);
+                                        (a : A) => { outValue = a; pump(); }, false);
                             const kill1 = cca_value.listen_(out.getVertex__(), (ca : Cell<A>) => {
-                                // Note: If any switch takes place during a transaction, then the
-                                // coalesce__() below will always cause a sample to be fetched
-                                // from the one we just switched to. So anything from the old input cell
-                                // that might have happened during this transaction will be suppressed.
                                 last_ca = ca;
                                 // Connect before disconnect to avoid memory bounce, when switching to same cell twice.
                                 let nextKill2 = Operational.value(ca).listen_(out.getVertex__(),
-                                    (a : A) => out.send_(a), false);
+                                    (a : A) => {
+                                        outValue = a;
+                                        pump();
+                                    },
+                                    false);
                                 if (kill2 !== null)
                                     kill2();
                                 kill2 = nextKill2;
@@ -400,7 +424,7 @@ export class Cell<A> {
                         }
                     );
             out.setVertex__(new Vertex("switchC", 0, [src]));
-            return out.coalesce__((l, r) => r).holdLazy(za);
+            return out.holdLazy(za);
         });
 	}
 

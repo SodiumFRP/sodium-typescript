@@ -5,7 +5,8 @@ import {
   Stream,
   StreamSink,
   Tuple2,
-  getTotalRegistrations
+  getTotalRegistrations,
+  Transaction
 } from '../../lib/Lib';
 
 afterEach(() => {
@@ -98,4 +99,34 @@ test('cellTracking', () => {
   ss2.send(4);
   kill();
   expect([0, -1, 0, 1, -1, 0, -6]).toEqual(out);
+});
+
+test('cell lift work load', done => {
+  let lines = [
+    "Work it harder",
+    "Make it better",
+    "Do it faster",
+    "Makes us stronger"
+  ];
+  let idx = 0;
+  let c1 = new CellSink(0);
+  let c2 = new CellSink(0);
+  let c3 = new CellSink(0);
+  let c4 = new CellSink(0);
+  let out: string[] = [];
+  let c = c1.lift4(c2, c3, c4, (x1, x2, x3, x4) => {
+    out.push(lines[idx]);
+    idx = (idx + 1) % lines.length;
+    return x1 + x2 + x3 + x4;
+  });
+  let kill = c.listen(() => {});
+  Transaction.run(() => {
+    c1.send(1);
+    c2.send(2);
+    c3.send(3);
+    c4.send(4);
+  });
+  kill();
+  expect(out).toEqual(["Work it harder", "Make it better"]);
+  done();
 });
