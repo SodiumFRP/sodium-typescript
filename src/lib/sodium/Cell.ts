@@ -70,9 +70,14 @@ export class Cell<A> {
         // We do a trick here of registering the source for the duration of the current
         // transaction so that we are guaranteed to catch any stream events that
         // occur in the same transaction.
-        this.vertex.register(Vertex.NULL);
+        //
+        // A new temporary vertex null is constructed here as a performance work-around to avoid
+        // having too many children in Vertex.NULL as a deregister operation is O(n^2) where
+        // n is the number of children in the vertex.
+        let tmpVertexNULL = new Vertex("Cell::setStream", 1e12, []);
+        this.vertex.register(tmpVertexNULL);
         Transaction.currentTransaction.last(() => {
-            this.vertex.deregister(Vertex.NULL);
+            this.vertex.deregister(tmpVertexNULL);
         });
     }
 
