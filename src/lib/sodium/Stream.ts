@@ -491,7 +491,7 @@ export class Stream<A> {
             return out;
         });
         */
-        // We can't use the implementation above, beacuse deregistering
+        // We can't use the implementation above, because unregistering
         // listeners triggers the exception
         // "send() was invoked before listeners were registered"
         // We can revisit this another time. For now we will use the less
@@ -538,7 +538,7 @@ export class Stream<A> {
 
 
     /**
-     * Fantasy-land Algebraic Data Type Compatability.
+     * Fantasy-land Algebraic Data Type Compatibility.
      * Stream satisfies the Functor and Monoid Categories (and hence Semigroup)
      * @see {@link https://github.com/fantasyland/fantasy-land} for more info
      */
