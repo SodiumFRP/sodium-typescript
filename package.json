@@ -58,7 +58,7 @@
     "@types/node": "^10.9.4",
     "cross-env": "^5.2.0",
     "fantasy-laws": "^1.1.0",
-    "jest": "23.5.0",
+    "jest": "30.2.0",
     "jsverify": "^0.8.3",
     "live-server": "1.2.0",
     "minify": "3.0.5",
